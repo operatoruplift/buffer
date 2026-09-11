@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Buffer — understand your perp exposure",
   description:
-    "A clear snapshot of your Drift positions and the incremental effect of a shared market move.",
+    "A clear snapshot of your Solana perpetual positions and the incremental effect of a shared market move.",
   icons: { icon: "/icons/icon.svg", apple: '/icons/apple-touch-icon.png' },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Buffer' },
   applicationName: 'Buffer',

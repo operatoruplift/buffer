@@ -8,7 +8,7 @@ import {
   type PerpPosition, type SpotPosition, type UserAccount, type PerpMarketAccount,
   type SpotMarketAccount, type StateAccount, type Order, DriftClient, DRIFT_PROGRAM_ID, PollingDriftClientAccountSubscriber, getPerpMarketPublicKeySync, getSpotMarketPublicKeySync,
 } from '@drift-labs/sdk';
-import { ProviderFailure, serveRead, validateAuthority, validateSubaccount, type LiveProvider } from '../src/server/boundary';
+import { ProviderFailure, serveRead, validateAuthority, validateProtocol, validateSubaccount, type LiveProvider } from '../src/server/boundary';
 import { baselineCoverageIssues, normalizeRaw, normalizeSnapshot, observeOracle, requiredMarkets, type ReadData } from '../src/server/normalize';
 import { liveProvider, requireSelectedAccount, SnapshotAccountLoader, bindCanonicalDriftProgram } from '../src/server/drift';
 
@@ -69,6 +69,22 @@ function fixture(): ReadData {
 const mockProvider = (): LiveProvider => ({ discover: vi.fn(async () => ({ authority, subaccounts: [], retrievedAt: '2026-09-11T00:00:00.000Z' })), snapshot: vi.fn(async () => normalizeSnapshot(fixture())) });
 
 describe('read API boundaries', () => {
+  it('defaults to Velocity and accepts only the explicit legacy protocol', () => {
+    expect(validateProtocol(null)).toBe('velocity');
+    expect(validateProtocol('velocity')).toBe('velocity');
+    expect(validateProtocol('drift')).toBe('drift');
+    expect(() => validateProtocol('arbitrary')).toThrow(ProviderFailure);
+  });
+  it('passes the selected protocol to a provider resolver', async () => {
+    const velocity = mockProvider();
+    const drift = mockProvider();
+    const resolver = vi.fn(async (protocol: 'velocity' | 'drift') => protocol === 'velocity' ? velocity : drift);
+    const response = await serveRead(new Request(`http://localhost/api/accounts?authority=${authority}&protocol=drift`), 'discovery', resolver);
+    expect(response.status).toBe(200);
+    expect(resolver).toHaveBeenCalledWith('drift');
+    expect(drift.discover).toHaveBeenCalledWith(authority);
+    expect(velocity.discover).not.toHaveBeenCalled();
+  });
   it('accepts canonical addresses and rejects malformed addresses', () => {
     expect(validateAuthority(` ${authority} `)).toBe(authority);
     for (const input of [null, '', 'bad', '0'.repeat(44), 'a'.repeat(60)]) expect(() => validateAuthority(input)).toThrow(ProviderFailure);

@@ -1,16 +1,16 @@
 import 'server-only';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from 'velocity-web3';
 import {
-  BulkAccountLoader, DriftClient, DelistedMarketSetting, DRIFT_PROGRAM_ID, PollingDriftClientAccountSubscriber,
+  BulkAccountLoader, VelocityClient, DelistedMarketSetting, VELOCITY_PROGRAM_ID, PollingVelocityClientAccountSubscriber,
   getUserAccountPublicKeySync, getPerpMarketPublicKeySync, getSpotMarketPublicKeySync,
   type UserAccount, type PerpMarketAccount, type SpotMarketAccount, type User,
   type OracleInfo, type IWallet, type DataAndSlot, type OraclePriceData,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { ProviderFailure, type LiveProvider } from './boundary';
 import { PROTOCOLS } from '../lib/protocols';
-import { normalizeSnapshot, requiredMarkets, subaccountInfo, type ReadData } from './normalize';
+import { normalizeSnapshot, requiredMarkets, subaccountInfo, type ReadData } from './velocity-normalize';
 
-const PROGRAM = new PublicKey(PROTOCOLS.drift.programId);
+const PROGRAM = new PublicKey(PROTOCOLS.velocity.programId);
 const REQUEST_TIMEOUT_MS = 18_000;
 // Solana's published mainnet-beta genesis hash (sdk/src/genesis_config.rs).
 const MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
@@ -34,7 +34,7 @@ export class SnapshotAccountLoader extends BulkAccountLoader {
       result.value.forEach((account, index) => {
         const target = batch[index];
         if (account && this.programAccounts.has(target.publicKey.toBase58()) && !account.owner.equals(PROGRAM)) {
-          throw new ProviderFailure('INVALID_ACCOUNT', 'The account owner does not match the fixed Drift program.', 502, false);
+          throw new ProviderFailure('INVALID_ACCOUNT', 'The account owner does not match the fixed Velocity program.', 502, false);
         }
         this.bufferAndSlotMap.set(target.publicKey.toBase58(), { slot: result.context.slot, buffer: account?.data });
         if (account) for (const callback of target.callbacks.values()) callback(account.data, result.context.slot);
@@ -47,30 +47,30 @@ export class SnapshotAccountLoader extends BulkAccountLoader {
 interface Scope {
   connection: Connection;
   loader: SnapshotAccountLoader;
-  clients: DriftClient[];
+  clients: VelocityClient[];
   users: User[];
   programAccounts: Set<string>;
   authority: PublicKey;
 }
 
 /** Fail closed if a future SDK changes the program or subscriber binding. */
-export function bindCanonicalDriftProgram(client: DriftClient): void {
-  if (!(client.accountSubscriber instanceof PollingDriftClientAccountSubscriber)) {
+export function bindCanonicalVelocityProgram(client: VelocityClient): void {
+  if (!(client.accountSubscriber instanceof PollingVelocityClientAccountSubscriber)) {
     throw new ProviderFailure('INVALID_CONFIGURATION', 'The read-only account subscriber is unavailable.', 503, false);
   }
-  if (DRIFT_PROGRAM_ID !== PROGRAM.toBase58() || !client.program.programId.equals(PROGRAM) || client.accountSubscriber.program !== client.program) throw new ProviderFailure('INVALID_CONFIGURATION', 'The Drift program could not be verified.', 503, false);
+  if (VELOCITY_PROGRAM_ID !== PROGRAM.toBase58() || !client.program.programId.equals(PROGRAM) || client.accountSubscriber.program !== client.program) throw new ProviderFailure('INVALID_CONFIGURATION', 'The Velocity program could not be verified.', 503, false);
 }
 
-function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as number[] }, oracleInfos: OracleInfo[] = []): DriftClient {
+function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as number[] }, oracleInfos: OracleInfo[] = []): VelocityClient {
   const wallet: IWallet = {
     publicKey: scope.authority,
     async signTransaction() { throw new Error('Buffer is read-only.'); },
     async signAllTransactions() { throw new Error('Buffer is read-only.'); },
   };
-  const client = new DriftClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta', programID: PROGRAM,
+  const client = new VelocityClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta', programID: PROGRAM,
     skipLoadUsers: true, userStats: false, perpMarketIndexes: markets.perp, spotMarketIndexes: markets.spot, oracleInfos,
     accountSubscription: { type: 'polling', accountLoader: scope.loader }, delistedMarketSetting: DelistedMarketSetting.Subscribe });
-  bindCanonicalDriftProgram(client);
+  bindCanonicalVelocityProgram(client);
   // Request-owned listener: never allow SDK error events to become uncaught errors.
   client.eventEmitter.on('error', () => { /* All fetch failures propagate through the strict loader. */ });
   scope.clients.push(client);
@@ -112,7 +112,7 @@ async function withScope<T>(authority: string, run: (scope: Scope) => Promise<T>
   }
 }
 
-async function decodeMarkets<T extends PerpMarketAccount | SpotMarketAccount>(scope: Scope, client: DriftClient, kind: 'PerpMarket' | 'SpotMarket', indexes: number[]): Promise<Map<number, T>> {
+async function decodeMarkets<T extends PerpMarketAccount | SpotMarketAccount>(scope: Scope, client: VelocityClient, kind: 'PerpMarket' | 'SpotMarket', indexes: number[]): Promise<Map<number, T>> {
   const result = new Map<number, T>();
   if (!indexes.length) return result;
   const keys = indexes.map((index) => kind === 'PerpMarket' ? getPerpMarketPublicKeySync(PROGRAM, index) : getSpotMarketPublicKeySync(PROGRAM, index));
@@ -121,7 +121,7 @@ async function decodeMarkets<T extends PerpMarketAccount | SpotMarketAccount>(sc
   read.value.forEach((info, index) => {
     if (!info) return;
     if (!info.owner.equals(PROGRAM)) throw new ProviderFailure('INVALID_ACCOUNT', 'Market ownership could not be verified.', 502, false);
-    const market = client.program.coder.accounts.decode<T>(kind, info.data);
+    const market = client.program.coder.accounts.decode<T>(kind === 'PerpMarket' ? 'perpMarket' : 'spotMarket', info.data);
     if (market.marketIndex !== indexes[index] || !market.pubkey.equals(keys[index])) throw new ProviderFailure('INVALID_ACCOUNT', 'Market identity could not be verified.', 502, false);
     result.set(indexes[index], market);
   });
@@ -129,30 +129,30 @@ async function decodeMarkets<T extends PerpMarketAccount | SpotMarketAccount>(sc
 }
 
 export function requireSelectedAccount(account: UserAccount | null, authority: PublicKey, subaccount: number): asserts account is UserAccount {
-  if (!account) throw new ProviderFailure('SUBACCOUNT_NOT_FOUND', 'The selected Drift subaccount was not found for this authority.', 404, false);
+  if (!account) throw new ProviderFailure('SUBACCOUNT_NOT_FOUND', 'The selected Velocity subaccount was not found for this authority.', 404, false);
   if (!account.authority.equals(authority) || account.subAccountId !== subaccount) throw new ProviderFailure('SUBACCOUNT_MISMATCH', 'The selected subaccount does not belong to this authority.', 400, false);
 }
 
-export const liveProvider: LiveProvider = {
+export const velocityProvider: LiveProvider = {
   discover: (authority) => withScope(authority, async (scope) => {
     const client = clientFor(scope);
     const accounts = await client.getUserAccountsForAuthority(scope.authority);
     if (accounts.some((account) => !account.authority.equals(scope.authority))) throw new ProviderFailure('INVALID_ACCOUNT', 'Returned account ownership could not be verified.', 502, false);
-    return { authority, protocol: PROTOCOLS.drift, subaccounts: accounts.map((account) => subaccountInfo(account, getUserAccountPublicKeySync(PROGRAM, scope.authority, account.subAccountId).toBase58())).sort((a, b) => a.id - b.id), retrievedAt: new Date().toISOString() };
+    return { authority, protocol: PROTOCOLS.velocity, subaccounts: accounts.map((account) => subaccountInfo(account, getUserAccountPublicKeySync(PROGRAM, scope.authority, account.subAccountId).toBase58())).sort((a, b) => a.id - b.id), retrievedAt: new Date().toISOString() };
   }),
   snapshot: (authority, subaccount) => withScope(authority, async (scope) => {
     const decoder = clientFor(scope);
     const address = getUserAccountPublicKeySync(PROGRAM, scope.authority, subaccount);
     scope.programAccounts.add(address.toBase58());
     const read = await scope.connection.getAccountInfoAndContext(address, 'confirmed');
-    if (read.value && !read.value.owner.equals(PROGRAM)) throw new ProviderFailure('INVALID_ACCOUNT', 'The selected account is not owned by Drift.', 502, false);
-    const initial = read.value ? decoder.program.coder.accounts.decode<UserAccount>('User', read.value.data) : null;
+    if (read.value && !read.value.owner.equals(PROGRAM)) throw new ProviderFailure('INVALID_ACCOUNT', 'The selected account is not owned by Velocity.', 502, false);
+    const initial = read.value ? decoder.program.coder.accounts.decode<UserAccount>('user', read.value.data) : null;
     requireSelectedAccount(initial, scope.authority, subaccount);
     const required = requiredMarkets(initial);
     const initialPerps = await decodeMarkets<PerpMarketAccount>(scope, decoder, 'PerpMarket', required.perp);
     for (const market of initialPerps.values()) if (!required.spot.includes(market.quoteSpotMarketIndex)) required.spot.push(market.quoteSpotMarketIndex);
     const initialSpots = await decodeMarkets<SpotMarketAccount>(scope, decoder, 'SpotMarket', required.spot);
-    const oracles: OracleInfo[] = [...initialPerps.values()].map((m) => ({ publicKey: m.amm.oracle, source: m.amm.oracleSource })).concat([...initialSpots.values()].map((m) => ({ publicKey: m.oracle, source: m.oracleSource })));
+    const oracles: OracleInfo[] = [...initialPerps.values()].map((m) => ({ publicKey: m.oracle, source: m.oracleSource })).concat([...initialSpots.values()].map((m) => ({ publicKey: m.oracle, source: m.oracleSource })));
     const client = clientFor(scope, required, oracles);
     scope.programAccounts.add((await client.getStatePublicKey()).toBase58());
     const user = client.createUser(subaccount, { type: 'polling', accountLoader: scope.loader }, scope.authority);
@@ -161,7 +161,7 @@ export const liveProvider: LiveProvider = {
     await user.subscribe(initial);
     user.accountSubscriber.updateData(initial, read.context.slot);
     const subscribed = await client.subscribe();
-    if (!subscribed) throw new ProviderFailure('INCOMPLETE_DATA', 'Required Drift state did not arrive. Please retry.');
+    if (!subscribed) throw new ProviderFailure('INCOMPLETE_DATA', 'Required Velocity state did not arrive. Please retry.');
     await client.fetchAccounts();
     // User is request-owned, not stored in client.users; the shared loader includes it.
     const current = user.getUserAccountAndSlot();
@@ -181,9 +181,9 @@ export const liveProvider: LiveProvider = {
       if (!market || !scope.loader.getBufferAndSlot(key)?.buffer) continue;
       if (market.marketIndex !== index || !market.pubkey.equals(key)) throw new ProviderFailure('INVALID_ACCOUNT', 'Perpetual market identity changed unexpectedly.', 502, false);
       perps.set(index, market);
-      if (scope.loader.getBufferAndSlot(market.amm.oracle)?.buffer) {
-        const oracle = client.getOraclePriceDataAndSlot(market.amm.oracle, market.amm.oracleSource);
-        if (oracle) { perpOracles.set(index, oracle); try { valuationOracles.set(index, client.getMMOracleDataForPerpMarket(index)); } catch { /* Coverage marks missing valuation data unavailable. */ } }
+      if (scope.loader.getBufferAndSlot(market.oracle)?.buffer) {
+        const oracle = client.getOraclePriceDataAndSlot(market.oracle, market.oracleSource);
+        if (oracle) { perpOracles.set(index, oracle); try { valuationOracles.set(index, client.getMMOracleDataForPerpMarket(index, observedSlot)); } catch { /* Coverage marks missing valuation data unavailable. */ } }
       }
     }
     for (const index of required.spot) {
@@ -199,13 +199,6 @@ export const liveProvider: LiveProvider = {
     }
     const data: ReadData = { account: current.data, authority, address: address.toBase58(), accountSlot: current.slot, observedSlot,
       state: scope.loader.getBufferAndSlot(await client.getStatePublicKey())?.buffer ? client.getStateAccount() : undefined, perps, spots, perpOracles, spotOracles, valuationOracles, user, retrievedAt: new Date().toISOString() };
-    const snapshot = normalizeSnapshot(data);
-    const reason = 'Legacy Drift is paused. These balances did not migrate to Velocity; price scenarios are unavailable for this deployment.';
-    return { ...snapshot, protocol: PROTOCOLS.drift,
-      positions: snapshot.positions.map(position => ({ ...position, modeled: false, exclusionReason: reason })),
-      metrics: snapshot.metrics.map(metric => ({ ...metric, value: null, explanation: reason })),
-      warnings: [reason, ...snapshot.warnings],
-      provenance: [...snapshot.provenance, 'Legacy deployment status: https://docs.velocity.exchange/developers/migrate-from-drift'],
-    };
+    return { ...normalizeSnapshot(data), protocol: PROTOCOLS.velocity };
   }),
 };

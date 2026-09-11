@@ -4,6 +4,8 @@ const config: NextConfig = {
     "@drift-labs/sdk",
     "@solana/web3.js",
     "@solana/spl-token",
+    "@velocity-exchange/sdk",
+    "velocity-web3",
   ],
   poweredByHeader: false,
   devIndicators: false,

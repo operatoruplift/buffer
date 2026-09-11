@@ -8,6 +8,7 @@ export function createReport(snapshot: Snapshot, scenario: Scenario) {
     version: 1,
     sourceMode: snapshot.source,
     network: snapshot.network,
+    ...(snapshot.protocol ? { protocol: { ...snapshot.protocol } } : {}),
     sampleName: snapshot.sampleName,
     authority: snapshot.authority,
     selectedSubaccount: { ...snapshot.subaccount },

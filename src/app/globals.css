@@ -216,6 +216,65 @@ svg {
   font-size: 11px;
   margin-top: 29px;
 }
+.sample-guide {
+  border-top: 1px solid #d8e1f8;
+  border-bottom: 1px solid #d8e1f8;
+  margin-bottom: 22px;
+  padding: 11px 0 6px;
+}
+.guide-heading,
+.guide-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.guide-heading {
+  justify-content: space-between;
+}
+.guide-heading strong {
+  font-size: 12px;
+  font-weight: 550;
+}
+.guide-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  list-style: none;
+  margin: 5px 0 0;
+  padding: 0;
+}
+.guide-steps button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 0;
+  padding: 6px 0;
+  background: none;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 550;
+}
+.guide-steps button:hover {
+  text-decoration: underline;
+}
+.guide-steps button > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 450;
+}
+.sample-guide.collapsed {
+  padding-bottom: 11px;
+}
+.scenario-title h2,
+.contribution-heading h3 {
+  scroll-margin-top: 24px;
+}
+.scenario-title h2:focus-visible,
+.contribution-heading h3:focus-visible {
+  outline: 3px solid #7b9af4;
+  outline-offset: 5px;
+}
 .surface {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -466,10 +525,16 @@ svg {
 .workspace-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 22px;
+  grid-template-areas: "baseline baseline" "positions scenario";
+  gap: 0 22px;
   align-items: start;
 }
+.baseline-section {
+  grid-area: baseline;
+  min-width: 0;
+}
 .positions-column {
+  grid-area: positions;
   display: grid;
   gap: 18px;
   min-width: 0;
@@ -645,6 +710,7 @@ td > small {
   font-size: 11px;
 }
 .scenario {
+  grid-area: scenario;
   overflow: hidden;
 }
 .scenario > .panel-heading {
@@ -1181,7 +1247,7 @@ footer {
     margin-right: 28px;
   }
   .workspace-grid {
-    gap: 16px;
+    column-gap: 16px;
     grid-template-columns: 1.12fr 1fr;
   }
   .panel-heading {
@@ -1212,6 +1278,11 @@ footer {
 @media (max-width: 940px) {
   .workspace-grid {
     grid-template-columns: 1fr;
+    grid-template-areas: "scenario" "baseline" "positions";
+    gap: 22px;
+  }
+  .metrics {
+    margin-bottom: 0;
   }
   .positions-column {
     grid-template-columns: 1.2fr 1fr;
@@ -1336,6 +1407,24 @@ footer {
     margin-top: 13px;
     font-size: 10px;
   }
+  .guide-heading strong {
+    font-size: 11px;
+  }
+  .guide-heading > div {
+    gap: 7px;
+  }
+  .guide-heading .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .guide-steps {
+    display: grid;
+    gap: 0;
+    margin-top: 0;
+  }
+  .guide-steps button {
+    width: 100%;
+  }
   .eyebrow {
     font-size: 8px;
   }
@@ -1350,7 +1439,7 @@ footer {
     padding: 0 10px;
   }
   .input-wrap input {
-    font-size: 11px;
+    font-size: 16px;
   }
   .button.primary {
     width: 100%;
@@ -1373,6 +1462,7 @@ footer {
   .sample-picker select {
     max-width: 200px;
     font-size: 10px;
+    min-height: 44px;
   }
   .sample-note {
     align-items: start;
@@ -1400,6 +1490,7 @@ footer {
     max-width: 140px;
     font-size: 10px;
     padding-right: 10px;
+    min-height: 44px;
   }
   .account-name {
     font-size: 11px;
@@ -1435,7 +1526,7 @@ footer {
   .metrics {
     grid-template-columns: 1fr;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
   }
   .metric {
     padding: 14px 16px;
@@ -1545,10 +1636,12 @@ footer {
     padding: 18px 18px 22px;
   }
   .presets {
-    gap: 4px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
   }
   .presets button {
-    font-size: 9px;
+    font-size: 11px;
+    min-height: 44px;
   }
   .contributions {
     padding: 0 18px 18px;

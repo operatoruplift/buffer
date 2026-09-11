@@ -1,6 +1,6 @@
 # Buffer design direction and sources
 
-Research and implementation date: September 11, 2026.
+Research and implementation date: September 12, 2026.
 
 ## Recommended MotionSites starting point
 
@@ -17,7 +17,7 @@ The MotionSites integration returned full prompt text for all the selections bel
 | Loader | [Loader Animation](https://motionsites.ai/?prompt=18) · `18` | Premium | Inspected but not recommended as-is. Its counter runs on a fixed timer rather than load progress. Buffer should keep real loading status, allow early completion, and avoid making people wait for a decorative countdown. |
 | In-app layout | [Modern HR Dashboard](https://motionsites.ai/?prompt=modern-hr-dashboard) · `modern-hr-dashboard` | Premium | Best inspected responsive layout reference: clear heading, grouped metrics, and a reflow from desktop to mobile. Buffer keeps its purpose-built account/scenario layout and original financial meaning; HR cards, photos, charts, and counts do not transfer. |
 
-Also inspected **[Dashboard UI](https://motionsites.ai/?prompt=dashboard)** (`dashboard`). Its conference-room interface, background videos, and translucent panels are a poorer fit for dense financial data, so it was not selected.
+Also inspected **[Dashboard UI](https://motionsites.ai/?prompt=dashboard)** (`dashboard`). Its conference-room interface, background videos, and translucent panels are a poorer fit for dense financial data, so it was not selected. The resulting in-app explorer keeps the recommended Modern HR Dashboard information hierarchy while placing the live Velocity scenario first on narrow screens: account source, explicit subaccount, baseline, then the move and contribution breakdown.
 
 The MotionSites integration asks that its returned access message be shown verbatim:
 
@@ -59,8 +59,8 @@ These are visual references only. No Dribbble artwork, layout source files, or p
 - **Type:** local system Helvetica/Arial stack; no externally hosted commercial fonts or unverified font downloads.
 - **Composition:** a two-column introduction with a functioning preview; editorial feature rows; a coverage story; three method steps; browser-install guidance; privacy explanation; FAQ; a final action and oversized wordmark.
 - **Motion:** original CSS orbit and app-mark movement; reduced-motion media query, a server-safe preference subscription, and manual pause support. No required timed splash screen.
-- **Meaning:** the hero calculation uses the same `getSampleSnapshot`, `calculateScenario`, and `formatDecimal` functions as the app. All illustrative numbers are labeled as samples.
-- **Navigation:** real links to `/app`, `/auth`, installation guidance, method, FAQ, and the public source repository. Native disclosure elements support FAQ and mobile navigation.
+- **Meaning:** the hero calculation uses the same `getSampleSnapshot`, `calculateScenario`, and `formatDecimal` functions as the app. All illustrative numbers are labeled as samples; live Velocity reads show their protocol, quote currency, current slots, and freshness.
+- **Navigation:** real links to `/app`, `/auth`, installation guidance, method, FAQ, and the public source repository. Native disclosure elements support FAQ and mobile navigation. The live example is a direct call to action; no wallet connection is required.
 
 ## Token artwork provenance
 
@@ -72,8 +72,9 @@ Token marks are downloaded locally, not recreated with Unicode symbols or text a
 | `public/tokens/btc.png` | [Bitcoin native asset](https://github.com/trustwallet/assets/blob/master/blockchains/bitcoin/info/logo.png) | Orange Bitcoin mark |
 | `public/tokens/eth.png` | [Ethereum native asset](https://github.com/trustwallet/assets/blob/master/blockchains/ethereum/info/logo.png) | Ethereum diamond |
 | `public/tokens/usdc.png` | [Solana USDC mint EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png) | Blue USDC dollar mark |
+| `public/tokens/usdt.png` | [Solana USDT mint Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png) | Green Tether mark |
 
-Images are unmodified PNGs. Their original dimensions are 512×512, 128×128, 192×192, and 181×181 respectively. Display them proportionally, keep token names beside them, and use an empty `alt` attribute when the adjacent text already names the asset. They identify underlying assets; they are not additional protocol integrations or partner logos.
+Images are unmodified PNGs. Their original dimensions are 512×512, 128×128, 192×192, 181×181, and 300×300 respectively. Display them proportionally, keep token names beside them, and use an empty `alt` attribute when the adjacent text already names the asset. They identify underlying assets; they are not additional protocol integrations or partner logos.
 
 The repository’s [MIT license](https://github.com/trustwallet/assets/blob/master/LICENSE) was inspected. Its notice is preserved below and in `public/tokens/LICENSE.txt`. Token trademarks remain their respective owners’ marks.
 

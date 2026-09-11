@@ -1,68 +1,72 @@
 # Verification record
 
-**Last updated:** September 12, 2026. Checks ran September 11 UTC / September 12 in Vietnam. Local runtime: Node **24.16.0**. Vercel production runtime: Node **24.19.0**. Drift SDK: **2.161.0-beta.5**.
+**Last updated:** September 12, 2026. Checks ran September 12 in Vietnam. Local runtime: Node **24.16.0**. Current live provider: Velocity SDK **0.23.1**. Legacy compatibility provider: Drift SDK **2.161.0-beta.5**.
 
 ## Current results
 
 | Check | Result |
 | --- | --- |
-| Unit and provider suite | **60 passed**, including one compatibility test decoding seven captured mainnet account buffers. |
-| TypeScript and ESLint | Passed; production build also completed its type check. |
-| Vercel production build | Passed with the explicit Next.js framework configuration. |
-| Public deployment smoke | HTTP 200 for `/`, `/app`, `/auth`, `/demo`, manifest, service worker, and all three MP4s; videos use `video/mp4`. |
-| Production browser suite | **40 passed** across desktop and mobile, including explorer, website, PWA, and actual Supabase Auth/report integration. |
-| Production video browser tests | **2 passed** across desktop and mobile; all three films decode, play, and seek at 1600 × 900, with caption VTT responses verified. |
-| Actual Supabase browser integration | Passed on desktop and mobile: login, save, download, cross-tab identity change with a delayed response, owner isolation, delete, logout. |
-| Database ownership and constraints | Passed in the dedicated cloud project; see [database evidence](DATABASE-VERIFICATION.md). |
-| Mainnet provider | Local and deployed authority/subaccount reads passed. Both production API endpoints returned HTTP 200; stale oracle correctly withheld affected values. A fresh-price live scenario was not verified. |
-| Video media checks | All three films decoded, played, and sought successfully; captions, audio levels, frames, and provenance checked. See [video evidence](VIDEO.md). |
-| Production dependency audit | `npm audit --omit=dev`: zero high or critical findings; two moderate transitive findings remain. |
+| Unit and provider suite | **87 passed** across scenario, provider, device-report, and Velocity compatibility tests. |
+| TypeScript and ESLint | Passed on the current working tree. |
+| Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
+| Local judge-experience browser run | **16 passed** across the new quick-start guide, scenario-first mobile layout, device reports, PWA, website, and API-failure paths. |
+| Vercel public routes and media | Passed on `https://buffer-lovat.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
+| Supabase database | Dedicated Buffer project and both saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. |
+| Authentication | Confirmed-account password sign-in and report operations passed with disposable fixtures. Public signup and recovery remain gated until SMTP and Auth settings are verified. |
 
-**42 distinct production browser cases passed:** 40 in the combined suite and two additional video cases. The browser suite includes mocked live API state tests. Separate actual production account-discovery and snapshot reads returned HTTP 200 after the server dependency repair. The SDK read and stale-oracle result are recorded below.
+The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The final production browser run completed **44 passed, 2 skipped** across desktop and mobile; the two skipped cases are the opt-in Supabase fixture tests.
 
 ## Arithmetic and account coverage
 
 Unit tests verify long/short direction, zero shock, the +3,500 USDC example, decimal precision, large integer inputs, separate quote totals, missing/invalid prices, exclusions, malformed shocks, deterministic samples, immutable baseline values, expiry boundaries, and precision-preserving JSON export.
 
-Provider tests verify canonical addresses, bounded subaccount IDs, absent accounts, owner/subaccount mismatch, sanitized errors, complete baseline coverage, isolated collateral and LP/residual state, oracle validity, verified identities, debt/collateral/order inventory, loader failures, cleanup, and unchanged-byte read slots. Raw account fixtures guard against SDK binary-layout incompatibility, rather than merely retesting SDK-created mocks.
+Provider tests verify canonical addresses, bounded subaccount IDs, protocol/query validation, absent accounts, owner/subaccount mismatch, sanitized errors, complete baseline coverage, isolated collateral and residual state, oracle validity, verified identities, debt/collateral/order inventory, loader failures, cleanup, and unchanged-byte read slots. Device-report tests cover strict nested report validation, quota/error handling, corrupt storage preservation, ordering, deletion, and the 20-report/1 MiB limits.
 
-## Mainnet verification
+The Velocity compatibility tests decode captured public State, perp, spot, and Pyth Lazer oracle buffers. They assert the fixed Velocity program, the `velocity_state` PDA, current lower-camel account coders, market PDA derivation, SOL/BTC/ETH identities, and the USDT mint. Fixtures are layout guards, not current-price evidence.
 
-On production deployment `A3AbTkEYhDcBjp9ZMiXcLycghxKn`, aliased to `https://buffer-lovat.vercel.app`, the actual `/api/accounts` and `/api/snapshot` requests returned **HTTP 200** for public authority `7WigdYd1qdbPofUKhzbvtVPYdo8wAUEZMWBZp8MtyAb`. Discovery returned **Main Account**, subaccount `0`, User account `9P7Y41yQPacZtcsyKzBBT2FZmQe6RDxn7AQBMxZXoYz7`.
+## Current mainnet verification
 
-The snapshot retrieved at **2026-09-11T17:39:43.278Z** decoded **+1 SOL-PERP**, **31.732475 USDC debt**, and **0.855627563 SOL collateral**. Account read slot was **446215843**; observed RPC slot was **446215844**; the external oracle publication slot was **410366404**. The oracle failed Buffer's 150-slot maximum lag, and price, affected scenario values, and baseline metrics were unavailable as designed. An earlier local SDK read also passed at account/observed slot **446213278**.
+The current provider was exercised against Solana mainnet-beta with the fixed Velocity program `vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P`. State, SOL/BTC/ETH markets, USDT spot market, user account, and Pyth Lazer oracle accounts were owned by the expected program and decoded with `@velocity-exchange/sdk` **0.23.1**.
 
-A separate real browser journey passed public address discovery, explicit subaccount selection, and the Method dialog at account/observed slot **446216442**. Stale oracle data disabled scenario controls and report export, with no browser errors. Its screenshot is [live stale-oracle evidence](../screenshots/live-stale-oracle.png). Sample and saved-report export are verified separately; this check does not claim a live priced report.
+The public **Explore a live account** example uses authority `DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2`, Velocity subaccount `0`, and User account `DXN7aHSRosnuyv4eTctBwUJ8tJQ97eGeTEox9iVpnSoe`. A bounded read at observed slot **446228680** decoded +0.05 BTC, +2 ETH, USDT collateral, and no open orders. BTC and ETH oracle data was valid at one-slot lag. The same read recorded net USD value `2105.213085`, funding-inclusive unrealized P&L `297.289922`, and cross-margin health `89`.
 
-This is actual RPC/SDK integration evidence, distinct from mocked browser API cases. It verifies discovery, decoding, selected-account handling, and stale-data rejection. It does not establish fresh-oracle scenario success or sustained RPC capacity. The seven public market/state buffers in `tests/fixtures/drift-mainnet/` were independently captured at observed slot **446212035** and document canonical binary layouts. No user credentials or signing permissions were required.
+These values are observations only. The browser refetches the selected account and current slots, preserves retrieval metadata, and shows that balances can change. Baseline USD values are converted through the validated USDT quote oracle; scenario contributions remain denominated in USDT. The live read used no wallet, private key, transaction, or signing permission.
 
-The initial production RPC uses Solana's shared mainnet endpoint. A dedicated provider and an account with fresh eligible oracles remain useful for a complete fresh-price live demonstration. Keep source, subaccount, observation slots, coverage, and expiry visible during that check. See [provider details](PROVIDER.md).
+The final production smoke read without a `protocol` parameter (Velocity is the default) completed at `2026-09-11T19:50:46.127Z`, observed slot **446240613**, with net USD value `2121.618077`, funding-inclusive unrealized P&L `313.694912`, health `89`, and the same two modeled positions. The browser then applied −10% and produced a live USDT scenario total of approximately `−894.83`; values vary as the account and oracles move.
+
+The verified Velocity deployment identities were observed at slot **446228253**:
+
+| Account | Address | Bytes |
+| --- | --- | ---: |
+| State | `2etx5NvPNxeMZ7EfHE6GjJfW2imRYEUANehNS1WB4CVW` | 1752 |
+| SOL perp, index 0 | `FDejXbUrSy6zayBCL5xuk2SXLHZgr8ppfFTLcHbyJorY` | 1560 |
+| BTC perp, index 1 | `7s5WRWA3GahueLNfNb8bbVnHnxCssK5YjGCR3wP6Aa1t` | 1560 |
+| ETH perp, index 2 | `Bx7JoyYAmBLDPnEdQsPUEhs2dDu4Ga5PoW5BhhhAcChg` | 1560 |
+| USDT spot, index 0 | `2QpHj5vzgCdWaGM2KSoGtYJWeSkx24cMyzUDHDrucvRc` | 1064 |
+
+The USDT mint is `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`. The official [Velocity migration guide](https://docs.velocity.exchange/developers/migrate-from-drift) describes the new deployment and the fact that old Drift state does not carry over.
+
+## Legacy Drift verification
+
+The legacy provider is available only through the explicit Drift selector. Its earlier production read decoded authority `7WigdYd1qdbPofUKhzbvtVPYdo8wAUEZMWBZp8MtyAb`, User `9P7Y41yQPacZtcsyKzBBT2FZmQe6RDxn7AQBMxZXoYz7`, +1 SOL-PERP, 31.732475 USDC debt, and 0.855627563 SOL collateral. The external oracle publication was far older than Buffer's 150-slot freshness limit, so price, affected scenario values, and baseline metrics were unavailable as designed. The retired Drift path must never be used as a source of current Velocity prices.
 
 ## Browser evidence
 
-Browser tests cover the working app at 1280px desktop and 375px mobile widths. The explorer journey includes sample selection, contributions, the −10% preset, keyboard slider movement, Method dialog, JSON download, reset, and refresh. Additional cases cover partial coverage, copy/explorer links, no accounts/positions, explicit subaccount choice, API failures/retry, missing metrics, stale refresh, and late responses after authority/subaccount changes.
+Browser tests cover the working app at 1280px desktop and 375px mobile widths. The judge-experience cases exercise the explicit Velocity protocol label, three-step sample guide, scenario-first mobile order, 44px controls, device-local report save/delete/download, API failure and retry paths, and honest cloud-auth messaging. A separate production smoke journey exercises the live-example call to action end to end.
 
-The website tests exercise the actual scenario arithmetic in the landing preview, routing into `/app`, narrow-screen overflow, and the optional account screen's public-explorer path. PWA checks exercise manifest/icon dimensions, actual service-worker activation, offline sample navigation/calculation, keyboard controls, cache contents, private-request bypass, and installation guidance. Browser tests do not certify installation on physical iOS/Android/macOS devices.
+The explorer journey also covers sample selection, contributions, the −10% preset, keyboard slider movement, Method dialog, JSON download, reset, and refresh. Website tests cover landing-page arithmetic, routing into `/app`, narrow-screen overflow, and the public-explorer auth path. PWA tests cover manifest/icon dimensions, service-worker activation, offline sample navigation/calculation, keyboard controls, cache contents, private-request bypass, and installation guidance. Browser tests do not certify installation on physical iOS, Android, or desktop devices.
 
-Deterministic samples and mocked API state tests are labeled accordingly. Production sample screenshots in `screenshots/` and [the downloaded example](../examples/long-short-minus-10.json) demonstrate the core explorer; the exact report total is decimal string `3500`. The recorded films use sample fixtures and the earlier explorer capture, not fabricated production account activity.
+Deterministic samples and mocked API state tests are labeled accordingly. The sample report at [examples/long-short-minus-10.json](../examples/long-short-minus-10.json) preserves the exact decimal total `3500` USDC. The recorded films use sample fixtures and are not presented as live account activity.
+
+Production live-example captures are [desktop](../screenshots/live-velocity-proof-desktop.png) and [mobile](../screenshots/live-velocity-proof-mobile.png). They show the current Velocity protocol, two modeled positions, USDT contributions, baseline USD metrics, explicit freshness, and the JSON download confirmation.
 
 ## Cloud database and authentication
 
-Dedicated Supabase project `vhbngdatlowfnwaymvuq` has both saved-report migrations applied. Checks run as real `authenticated` and `anon` roles verified owner-only access, forged-owner rejection, denied anonymous access, restricted insert columns, no UPDATE privilege, malformed/oversized report rejection, title bounds, and deletion cascade. A representative newest-50 query used the ownership/date index without sorting. See [database verification](DATABASE-VERIFICATION.md) for SQL and query-plan details.
+Dedicated Supabase project `vhbngdatlowfnwaymvuq` has both saved-report migrations applied. Checks run as real `authenticated` and `anon` roles verified owner-only access, forged-owner rejection, denied anonymous access, restricted insert columns, no UPDATE privilege, malformed/oversized report rejection, title bounds, deletion cascade, and query indexing. See [database evidence](DATABASE-VERIFICATION.md) for SQL and query-plan details.
 
-Actual browser tests used two temporary confirmed `.invalid` email accounts. They tested Supabase password login and report requests, including a delayed first-user response after a second user signs in from another tab. They do not test email delivery. After the production tests, both exact fixture accounts were deleted. A follow-up query confirmed zero test users and zero test reports. Fixture credentials were private and excluded from source control.
+Confirmed-account browser tests covered password login and private report requests, including a delayed first-user response after a second user signs in from another tab. They do not test email delivery. The temporary fixture users and reports were deleted after verification, and credentials were never committed.
 
-Public signup and password-recovery requests are disabled by `NEXT_PUBLIC_AUTH_EMAIL_READY=false`. Production SMTP, exact Auth redirect URLs, and server-enforced password settings still require configuration and verification. Existing confirmed accounts can sign in, and the public explorer works independently. The Auth advisor also reports compromised-password screening disabled; the database's fixed Auth connection allocation is an informational tuning notice. These are recorded configuration gaps, not completed checks.
-
-## Review and dependency findings
-
-Code and TypeScript review informed the original explorer and expanded application. Fixes include consistent freshness UI/calculation limits, complete isolated collateral inventory, final state-buffer coverage, and withholding delayed responses after account or authenticated-user changes. Database review fixed JSON-null CHECK behavior and padded title length validation. Read [database verification](DATABASE-VERIFICATION.md) for the resulting schema constraints.
-
-The selected SDK was validated against actual canonical Drift layouts after the incompatible newer package was identified. The production dependency-resolution failure was repaired by removing 13 stale lockfile lines for nested UUID 14; the selected UUID 11 override and application dependency versions did not change. A clean isolated install and actual SDK/web3/spl/RPC imports passed before the successful deployed API checks. Security overrides pin vulnerable transitive dependencies; the production dependency audit now has zero high/critical and two moderate findings associated with the `stream-json` / Jayson dependency chain. Those unused filter paths remain in the dependency tree; the application does not claim a clean zero-finding audit.
-
-The original browser bundle inspection found no server RPC variable, account loader, wallet-signing implementation, or Pyth SDK implementation in client chunks. Error-path checks verified structured `NOT_CONFIGURED` and sanitized retryable `RPC_ERROR` responses without raw endpoint disclosure or sample fallback.
-
-Final review also made the reported SDK version follow the exact package manifest pin, and strengthened video verification to wait for the completed seek and resumed playback. Type checking, lint, all 60 unit/provider cases, and both affected video browser cases passed afterward.
+`NEXT_PUBLIC_AUTH_EMAIL_READY=false` keeps public signup and password-recovery actions visibly unavailable. Existing confirmed accounts can sign in, and visitors can use live reads, device-local reports, downloads, and samples without an account. Production SMTP, exact Auth redirect URLs, server-enforced password policy, and compromised-password screening still require management access and verification.
 
 ## Reproduce checks
 
@@ -76,10 +80,9 @@ npm run build
 npm run test:e2e
 ```
 
-Playwright starts/reuses the development server on port 3001 unless `PLAYWRIGHT_BASE_URL` points to an existing deployment. `BUFFER_AUTH_FIXTURES` must reference a private JSON array of two disposable confirmed `{ "email": "…", "password": "…" }` records to run the real Auth cases; otherwise those cases skip. Use dedicated fixtures, remove their exact users/sessions/reports after testing, and never include credentials in artifacts or the repository.
+Playwright starts or reuses the development server on port 3001 unless `PLAYWRIGHT_BASE_URL` points to an existing deployment. `BUFFER_AUTH_FIXTURES` must reference a private JSON array of two disposable confirmed `{ "email": "…", "password": "…" }` records to run the real Auth cases; otherwise those cases skip. Use dedicated fixtures, remove their exact users/sessions/reports after testing, and never include credentials in artifacts or the repository.
 
 ## Remaining release checks
 
-- Configure SMTP, Auth redirects, minimum password policy, and compromised-password screening; verify public confirmation and recovery before enabling email actions.
-- Demonstrate an eligible mainnet account with fresh oracle values and assess a dedicated RPC's production capacity.
-- Perform actual device installation checks if physical iOS/Android/desktop installation certification is needed. Native store packages and signed desktop installers are outside this PWA delivery.
+- Configure SMTP, Auth redirects, minimum password policy, and compromised-password screening before enabling public email actions.
+- Assess a dedicated RPC's capacity before sustained traffic. Perform physical device installation checks if native installation certification is needed; native store packages and signed desktop installers are outside this PWA delivery.

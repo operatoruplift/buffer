@@ -64,5 +64,7 @@ test('real Supabase login, save, download, auth-switch race, isolation, delete a
   await expect(dialog.getByText('Report deleted.')).toBeVisible();
   await expect(dialog.locator('li')).toHaveCount(0);
   await dialog.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'My reports', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'My reports', exact: true }).click();
+  await expect(page.getByText('ON THIS DEVICE', { exact: true })).toBeVisible();
 });

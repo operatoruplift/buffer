@@ -17,7 +17,7 @@ function mockSnapshot(id = 0, name = 'Mock main', authority = AUTHORITY): Snapsh
     retrievedAt: new Date(now).toISOString(), expiresAt: new Date(now + 120_000).toISOString(),
     accountSlot: 123, observedSlot: 124,
     warnings: ['Mocked response for UI verification only.'],
-    provenance: ['Synthetic browser-test data. This does not verify Solana or Drift reads.'],
+    provenance: ['Synthetic browser-test data. This does not verify Solana or protocol reads.'],
   };
 }
 
@@ -172,7 +172,7 @@ test('mocked no-account response offers a working sample entry', async ({ page }
   await page.route('**/api/accounts?*', route => route.fulfill({ json: { ...discovery(), subaccounts: [] } }));
   await page.goto('/app');
   await readAddress(page);
-  await expect(page.getByRole('heading', { name: 'No Drift subaccounts found' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No Velocity subaccounts found' })).toBeVisible();
   await page.getByRole('button', { name: 'Explore a sample' }).click();
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
@@ -186,7 +186,7 @@ test('mocked success requires explicit subaccount selection and refresh resets t
   await readAddress(page);
   await expect(page.getByRole('heading', { name: 'Choose one subaccount' })).toBeVisible();
   expect(reads).toBe(0);
-  await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
+  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
@@ -212,7 +212,7 @@ test('mocked selected subaccount with no positions and incomplete baseline shows
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
+  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
   await expect(page.getByRole('heading', { name: 'No open perpetual positions' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Baseline account metrics' })).toContainText('Unavailable');
   await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');
@@ -230,7 +230,7 @@ test('mocked failed refresh retains the original snapshot and pauses calculation
     : route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'Mock refresh failed.', retryable: true } } }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
+  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   const originalTime = await page.locator('.freshness small').textContent();
   await page.getByRole('button', { name: '-10%', exact: true }).click();
@@ -250,7 +250,7 @@ test('mocked live freshness expiry disables the result without replacing the sna
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
+  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.clock.fastForward(121_000);
   await expect(page.getByText('Stale snapshot · calculations paused', { exact: true })).toBeVisible();
@@ -276,7 +276,7 @@ test('mocked late previous subaccount response cannot overwrite the latest selec
   });
   await page.goto('/app');
   await readAddress(page);
-  const selection = page.getByLabel('Drift subaccount', { exact: true });
+  const selection = page.getByLabel('Subaccount', { exact: true });
   await selection.selectOption('0');
   await expect.poll(() => oldRequested).toBe(true);
   await expect(page.getByRole('status').filter({ hasText: 'Reading selected subaccount' })).toBeVisible();
@@ -314,7 +314,7 @@ test('mocked pending old wallet response cannot replace a newly chosen sample', 
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Drift subaccount', { exact: true })).toHaveValue('0');
+  await expect(page.getByLabel('Subaccount', { exact: true })).toHaveValue('0');
 });
 
 test('mocked address copy controls and explorer links expose the full selected public addresses', async ({ page, context }) => {
@@ -323,7 +323,7 @@ test('mocked address copy controls and explorer links expose the full selected p
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
+  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: 'Copy full authority address' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(AUTHORITY);
@@ -331,7 +331,7 @@ test('mocked address copy controls and explorer links expose the full selected p
   await page.getByRole('button', { name: 'Method', exact: true }).click();
   await page.getByRole('button', { name: 'Copy authority from Method' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(AUTHORITY);
-  await page.getByRole('button', { name: 'Copy Drift account address' }).click();
+  await page.getByRole('button', { name: 'Copy subaccount address' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(AUTHORITY);
   await expect(page.getByRole('dialog').getByRole('link', { name: 'Explorer ↗', exact: true })).toHaveAttribute('href', `https://explorer.solana.com/address/${AUTHORITY}`);
   await noOverflow(page);

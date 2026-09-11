@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: '/',
     name: 'Buffer — Understand your exposure',
     short_name: 'Buffer',
-    description: 'Read your Drift perpetual positions, explore price scenarios, and understand what moves your exposure.',
+    description: 'Read your Solana perpetual positions, explore price scenarios, and understand what moves your exposure.',
     lang: 'en',
     start_url: '/app',
     scope: '/',

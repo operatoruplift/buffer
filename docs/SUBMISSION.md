@@ -6,46 +6,49 @@
 
 ## Short description
 
-Buffer is a read-only Solana / Drift explorer that turns a shared market move into clear, precise perpetual-position scenarios—with explicit coverage, exportable reports, and an installable mobile and desktop app.
+Buffer is a read-only Solana / Velocity explorer that turns a shared market move into clear, precise perpetual-position scenarios—with explicit coverage, verified oracle freshness, exportable reports, and an installable mobile and desktop app.
 
 ## Submission description
 
 Buffer answers one practical question: **“What would a market move do to these positions?”**
 
-Paste a public Solana authority, select one Drift subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, and ETH linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, and open orders stay visible outside the model. Baseline account metrics stay separate from the hypothetical price effect.
+Open the public live example or paste a Solana authority, select one **Velocity** subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, and ETH linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, open orders, quote identity, and oracle freshness stay visible outside the model. Current baseline metrics stay separate from the hypothetical price effect. The current Velocity quote asset is USDT; baseline USD metrics come from the SDK's validated quote valuation.
 
-A Method dialog explains assumptions, coverage, and provenance. A local JSON report preserves the selected shock, exact decimal contributions, snapshot observations, and exclusions. Confirmed cloud users can save, download, or delete private historical reports through Supabase, while public exploration and downloads require no sign-in.
+The protocol selector can inspect the paused legacy Drift deployment explicitly. Drift and Velocity use different programs, PDAs, and layouts; Buffer does not imply that Drift balances migrated. The app links to the [official migration guide](https://docs.velocity.exchange/developers/migrate-from-drift) and withholds paused or stale legacy calculations instead of showing invented current prices.
 
-The Solana integration reads Drift user accounts, market state, and oracles through the official server-side SDK. It verifies ownership, market identities, quote currencies, oracle validity, and complete baseline coverage. Seven captured public mainnet account buffers guard against incompatible SDK layouts. There is no signing, custody, transaction, or trading path.
+A Method dialog explains assumptions, fixed program identity, coverage, and provenance. A local JSON report preserves the selected shock, exact decimal contributions, snapshot observations, protocol metadata, and exclusions. Visitors can save historical reports on the device without an account. Confirmed cloud users can also save, download, or delete private historical reports through Supabase, while public exploration and downloads require no sign-in.
+
+The Solana integration reads Velocity State, user accounts, markets, and Pyth Lazer oracles through the official server-side SDK **0.23.1**. It verifies program ownership, canonical PDAs, market identities, quote mint, oracle validity, and complete baseline coverage. The provider uses request-owned loaders, records separate read slots, and expires live snapshots after 120 seconds. There is no signing, custody, transaction, or trading path.
 
 Three labeled deterministic samples make the model immediately understandable. The responsive website includes an interactive preview and a gallery with a product demo, a Higgsfield-assisted pitch, and a technical walkthrough. The installable PWA works on supported mobile and desktop browsers and provides an explicitly labeled offline sample; its service worker does not cache private reports, authentication, or live data.
 
-Built with Next.js, React, TypeScript, precise decimal arithmetic, and Supabase. An original open-gauge identity and restrained responsive interface keep the emphasis on understanding position effects. The source is public and the website is deployed on Vercel.
+Built with Next.js, React, TypeScript, precise decimal arithmetic, the official Velocity and legacy Drift SDKs, and Supabase. An original open-gauge identity and restrained responsive interface keep the emphasis on understanding position effects. The source is public and the website is deployed on Vercel.
 
-**Verification disclosure:** Real local and deployed mainnet authority/subaccount reads decoded a +1 SOL position. Its oracle was stale, so affected calculations were withheld correctly; a fresh-oracle live scenario remains unverified. Real Supabase login and private-report operations passed desktop/mobile testing with confirmed fixtures. Public signup and recovery are disabled until SMTP and Auth settings are verified. Production browser checks passed 42 cases. Both deployed account-discovery and snapshot endpoints returned HTTP 200; see [verification](VERIFICATION.md). No public email-delivery success or native store package is claimed.
+**Verification disclosure:** The current Velocity provider decoded public mainnet State, SOL/BTC/ETH markets, USDT spot identity, and a public example with +0.05 BTC and +2 ETH on subaccount 0. A representative read at observed slot **446228680** had valid external oracles at one-slot lag, USDT collateral, net USD value `2105.213085`, funding-inclusive unrealized P&L `297.289922`, and health `89`; these values can change and are refetched by the UI. The earlier legacy Drift read had a stale oracle and correctly withheld affected values. Real Supabase password sign-in and private-report operations passed with confirmed test fixtures. Public signup and recovery remain disabled until SMTP, Auth redirects, and server-side password settings are verified. No public email-delivery success or native store package is claimed.
 
 ## Demonstration assets
 
 | Asset | Contents |
 | --- | --- |
-| [Interactive explorer](https://buffer-lovat.vercel.app/app) | Three repeatable samples, scenario slider, coverage, Method, JSON report. |
+| [Interactive explorer](https://buffer-lovat.vercel.app/app) | Live Velocity example, explicit subaccount choice, deterministic samples, scenario slider, coverage, Method, device save, and JSON export. |
 | [Product demo](https://buffer-lovat.vercel.app/demo#demo) | About 88 seconds of the actual working sample journey. |
-| [Higgsfield pitch](https://buffer-lovat.vercel.app/demo#pitch) | About 62 seconds, combining real generated brand motion with authentic interface capture. |
+| [Higgsfield pitch](https://buffer-lovat.vercel.app/demo#pitch) | About 62 seconds, combining generated brand motion with authentic interface capture. |
 | [Technical walkthrough](https://buffer-lovat.vercel.app/demo#technical) | About 124 seconds on provider boundaries, math, coverage, freshness, and reproducibility. |
 
-[Video provenance, captions, transcripts, and source materials](VIDEO.md) identify the generation job and production checks. The films show deterministic fixtures; narration does not present them as live account results. [Full product descriptions](DESCRIPTION.md) provide reusable Markdown copy.
+[Video provenance, captions, transcripts, and source materials](VIDEO.md) identify the generation job and production checks. The films show deterministic fixtures; the live example is demonstrated in the interactive app. [Full product descriptions](DESCRIPTION.md) provide reusable Markdown copy.
 
-## 90-second live presentation using Sample
+## 90-second live presentation
 
 | Time | Action and narration |
 | --- | --- |
-| 0–15 seconds | Open `/app` and choose **Long + short**. “Perpetual positions can point in different directions. Buffer shows their incremental response to a shared market move. This is labeled Sample data.” |
-| 15–35 seconds | Point to the subaccount and two positions. “This example has 100 SOL long and half a BTC short. One selected subaccount supplies one frozen snapshot. Current baseline metrics remain separate.” |
-| 35–60 seconds | Select **−10%**. “At fixture prices of 150 and 100,000 USDC, SOL contributes −1,500, the BTC short contributes +5,000, and the combined price P&L change is +3,500 USDC.” Move one keyboard step, then restore −10%. |
-| 60–75 seconds | Open **Method**. “Two positions are modeled. Sizes stay fixed. Collateral-price changes, future fills, funding, fees, interest, and liquidation effects are excluded.” Show coverage and provenance. |
-| 75–90 seconds | Close Method and **Download report**. “The report preserves the precise contributions and assumptions. Buffer can read public Drift accounts; this repeatable demonstration uses clearly labeled fixtures.” Reset to zero. |
+| 0–15 seconds | Open `/app` and choose **Explore a live account**. “Buffer reads one public Velocity account without a wallet. The protocol and current read state stay visible.” |
+| 15–32 seconds | Select the discovered **Subaccount 0**. “This public example currently has a BTC long and an ETH long, with USDT collateral. Balances and prices are live observations and can change.” |
+| 32–50 seconds | Set **−10%**. “The slider applies one move to eligible perpetual prices. Each contribution is shown in verified USDT; the account's USD baseline remains separate.” Point to the scenario total and the position rows. |
+| 50–67 seconds | Open **Method**. “The program, quote mint, oracle slots, validity checks, and 120-second expiry explain exactly what this read means. Account and oracle reads are not an atomic same-slot snapshot.” |
+| 67–80 seconds | Open **My reports**, save the scenario on the device, and close the dialog. “No sign-up is needed for a dated local copy. A confirmed cloud account can store a private copy through Supabase.” |
+| 80–90 seconds | Choose **Long + short**, select **−10%**, and show the deterministic sample arithmetic: −1,500 USDC plus +5,000 USDC equals +3,500 USDC. “Samples are labeled fixtures; live Velocity values keep their USDT denomination.” |
 
-Retain visible source, subaccount, timestamp, and coverage disclosures in both Sample and Live demonstrations. A stale live oracle should be demonstrated as unavailable, never replaced with a plausible number.
+Retain visible source, protocol, subaccount, timestamp, quote currency, and coverage disclosures in both live and sample demonstrations. If a live oracle is stale or a refresh fails, show the unavailable state and retry path; never replace it with a plausible number. The legacy Drift selector should be used only to explain the paused migration boundary.
 
 ## Event eligibility
 

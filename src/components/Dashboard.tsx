@@ -11,12 +11,14 @@ import {
 import { formatDecimal } from "@/lib/format";
 import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
+import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
 import { Icon, Mark } from "./Icons";
 import AccountPanel from './AccountPanel';
 import Link from 'next/link';
 import Image from 'next/image';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
+const PUBLIC_EXAMPLE = "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2";
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
 const tone = (value: string) =>
   new Decimal(value).isZero()
@@ -39,6 +41,8 @@ export default function Dashboard({
     getSampleSnapshot(SAMPLE_ACCOUNTS[1].id),
   );
   const [mode, setMode] = useState<"sample" | "live">("sample");
+  const [protocolId, setProtocolId] = useState<ProtocolId>("velocity");
+  const [publicExample, setPublicExample] = useState(false);
   const [address, setAddress] = useState("");
   const [discovery, setDiscovery] = useState<Discovery | null>(null);
   const [selectedId, setSelectedId] = useState("");
@@ -48,11 +52,17 @@ export default function Dashboard({
   const [stale, setStale] = useState(false);
   const [notice, setNotice] = useState("");
   const [now, setNow] = useState(0);
+  const [guideVisible, setGuideVisible] = useState(true);
   const request = useRef(0);
   const abort = useRef<AbortController | null>(null);
   const retry = useRef<() => void>(() => {});
   const dialog = useRef<HTMLDialogElement>(null);
   const methodButton = useRef<HTMLButtonElement>(null);
+  const methodTrigger = useRef<HTMLElement | null>(null);
+  const scenarioHeading = useRef<HTMLHeadingElement>(null);
+  const contributionsHeading = useRef<HTMLHeadingElement>(null);
+  const protocol = PROTOCOLS[protocolId];
+  const snapshotProtocol = snapshot?.protocol ?? discovery?.protocol ?? protocol;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -77,6 +87,7 @@ export default function Dashboard({
     cancel();
     setSampleId(id);
     setMode("sample");
+    setPublicExample(false);
     setSnapshot(getSampleSnapshot(id));
     setDiscovery(null);
     setSelectedId("");
@@ -85,6 +96,19 @@ export default function Dashboard({
     setStale(false);
     setLoading(null);
     setNotice("Sample loaded. Price move reset to 0%.");
+  }
+  function changeProtocol(id: ProtocolId) {
+    cancel();
+    setProtocolId(id);
+    setDiscovery(null);
+    setSelectedId("");
+    if (mode === "live") setSnapshot(null);
+    setShock(0);
+    setStale(false);
+    setError(null);
+    setLoading(null);
+    setNotice("");
+    setPublicExample(false);
   }
   async function fetchJson<T>(url: string): Promise<T> {
     const response = await fetch(url, {
@@ -118,9 +142,13 @@ export default function Dashboard({
       retryable: true,
     };
   }
-  async function readAccount(event?: FormEvent) {
+  async function readAccount(
+    event?: FormEvent,
+    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean },
+  ) {
     event?.preventDefault();
-    const authority = address.trim();
+    const authority = (options?.authority ?? address).trim();
+    const requestedProtocol = options?.protocol ?? protocolId;
     if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(authority)) {
       setError({
         code: "INVALID_ADDRESS",
@@ -131,6 +159,9 @@ export default function Dashboard({
       return;
     }
     const ticket = cancel();
+    setAddress(authority);
+    setProtocolId(requestedProtocol);
+    setPublicExample(Boolean(options?.publicExample));
     setMode("live");
     setSnapshot(null);
     setDiscovery(null);
@@ -138,16 +169,16 @@ export default function Dashboard({
     setShock(0);
     setStale(false);
     setError(null);
-    setLoading("Finding Drift subaccounts…");
+    setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} subaccounts…`);
     retry.current = () => {
-      void readAccount();
+      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample });
     };
     try {
       const result = await fetchJson<Discovery>(
-        `/api/accounts?authority=${encodeURIComponent(authority)}`,
+        `/api/accounts?authority=${encodeURIComponent(authority)}&protocol=${requestedProtocol}`,
       );
       if (ticket !== request.current) return;
-      setDiscovery(result);
+      setDiscovery({ ...result, protocol: result.protocol ?? PROTOCOLS[requestedProtocol] });
     } catch (e) {
       if (ticket === request.current) setError(safeError(e));
     } finally {
@@ -163,6 +194,7 @@ export default function Dashboard({
       return;
     }
     const ticket = cancel();
+    const requestedProtocol = discovery.protocol?.id ?? protocolId;
     setSelectedId(id);
     setLoading(
       refreshing ? "Refreshing snapshot…" : "Reading selected subaccount…",
@@ -178,10 +210,10 @@ export default function Dashboard({
     };
     try {
       const result = await fetchJson<Snapshot>(
-        `/api/snapshot?authority=${encodeURIComponent(discovery.authority)}&subaccount=${id}`,
+        `/api/snapshot?authority=${encodeURIComponent(discovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}`,
       );
       if (ticket !== request.current) return;
-      setSnapshot(result);
+      setSnapshot({ ...result, protocol: result.protocol ?? PROTOCOLS[requestedProtocol] });
       setNow(Date.now());
       setShock(0);
       setStale(false);
@@ -210,11 +242,26 @@ export default function Dashboard({
     }
   }
   function openMethod() {
+    methodTrigger.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : methodButton.current;
     dialog.current?.showModal();
+  }
+  function restoreMethodFocus() {
+    (methodTrigger.current?.isConnected ? methodTrigger.current : methodButton.current)?.focus();
   }
   function closeMethod() {
     dialog.current?.close();
-    methodButton.current?.focus();
+    restoreMethodFocus();
+  }
+  function focusSection(heading: HTMLHeadingElement | null) {
+    heading?.focus({ preventScroll: true });
+    heading?.scrollIntoView({ block: "start", behavior: "auto" });
+  }
+  function trySampleMove() {
+    if (mode !== "sample") return;
+    setShock(-10);
+    focusSection(scenarioHeading.current);
   }
 
   const scenario = snapshot
@@ -269,7 +316,7 @@ export default function Dashboard({
             <span>Buffer</span>
             <span className="brand-divider" />
             <span className="descriptor">
-              Solana <span>·</span> Drift
+              Solana <span>·</span> {mode === "sample" ? "Samples" : protocol.label}
             </span>
           </Link>
           <div className="header-actions">
@@ -302,11 +349,51 @@ export default function Dashboard({
           </span>
         </div>
 
+        {mode === "sample" && (
+          <section className={`sample-guide ${guideVisible ? "" : "collapsed"}`} aria-label="Sample quick start">
+            <div className="guide-heading">
+              <div>
+                <span className="sample-tag">SAMPLE</span>
+                <strong>See a market move in three steps.</strong>
+              </div>
+              <button
+                className="icon-button"
+                aria-label={guideVisible ? "Hide sample guide" : "Show sample guide"}
+                aria-expanded={guideVisible}
+                aria-controls="sample-guide-steps"
+                onClick={() => setGuideVisible(!guideVisible)}
+              >
+                {guideVisible ? <Icon name="close" size={16} /> : <Icon name="info" size={16} />}
+              </button>
+            </div>
+            {guideVisible && (
+              <ol id="sample-guide-steps" className="guide-steps">
+                <li><button onClick={trySampleMove}><span>1</span>Try a −10% move<Icon name="arrow" size={14} /></button></li>
+                <li><button onClick={() => focusSection(contributionsHeading.current)}><span>2</span>Inspect contributions</button></li>
+                <li><button onClick={openMethod}><span>3</span>Read the method</button></li>
+              </ol>
+            )}
+          </section>
+        )}
+
         <section
           className="surface address-panel"
           aria-labelledby="address-label"
         >
           <form onSubmit={readAccount}>
+            <div className="protocol-picker">
+              <label htmlFor="protocol">Protocol</label>
+              <select id="protocol" value={protocolId} onChange={(e) => changeProtocol(e.target.value as ProtocolId)}>
+                <option value="velocity">Velocity · current</option>
+                <option value="drift">Drift · legacy (paused)</option>
+              </select>
+            </div>
+            {protocol.legacy && (
+              <p className="protocol-notice">
+                Legacy Drift is paused. Balances did not migrate to Velocity.{" "}
+                <a href="https://docs.velocity.exchange/developers/migrate-from-drift" target="_blank" rel="noreferrer">Migration details ↗</a>
+              </p>
+            )}
             <label id="address-label" htmlFor="address">
               Solana wallet address
             </label>
@@ -316,7 +403,10 @@ export default function Dashboard({
                 <input
                   id="address"
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setPublicExample(false);
+                  }}
                   autoComplete="off"
                   autoCapitalize="none"
                   spellCheck={false}
@@ -337,7 +427,7 @@ export default function Dashboard({
           <div className="address-bottom">
             <p id="address-help">
               {liveConfigured
-                ? "Read positions from one Drift subaccount. No wallet connection needed."
+                ? `Read positions from one ${protocol.label} subaccount. No wallet connection needed.`
                 : "Live reads require server RPC configuration. Explore the samples below."}
             </p>
             <div className="sample-picker">
@@ -357,6 +447,16 @@ export default function Dashboard({
                 ))}
               </select>
             </div>
+          </div>
+          <div className="live-example">
+            <button
+              type="button"
+              onClick={() => void readAccount(undefined, { authority: PUBLIC_EXAMPLE, protocol: "velocity", publicExample: true })}
+              disabled={!!loading}
+            >
+              Explore a live account <Icon name="arrow" size={14} />
+            </button>
+            <span>Public example · balances can change</span>
           </div>
         </section>
 
@@ -391,6 +491,9 @@ export default function Dashboard({
             </span>
           </div>
         )}
+        {mode === "live" && publicExample && (
+          <p className="public-example-note">Public example account on Velocity. Balances and positions can change; choose a subaccount to read its current snapshot.</p>
+        )}
         {loading && (
           <div className="loading-status" role="status">
             <span className="loading-dot" />
@@ -400,8 +503,8 @@ export default function Dashboard({
         {mode === "live" && discovery && !discovery.subaccounts.length && (
           <div className="surface empty">
             <Icon name="wallet" size={28} />
-            <h2>No Drift subaccounts found</h2>
-            <p>This authority has no Drift accounts on Solana mainnet.</p>
+            <h2>No {protocol.label} subaccounts found</h2>
+            <p>This authority has no {protocol.label} accounts on Solana mainnet.</p>
             <button
               className="button"
               onClick={() => sample(SAMPLE_ACCOUNTS[1].id)}
@@ -419,7 +522,7 @@ export default function Dashboard({
               </span>
               <div>
                 <div className="eyebrow">
-                  {mode === "sample" ? "EXAMPLE ACCOUNT" : "SELECTED AUTHORITY"}
+                  {mode === "sample" ? "EXAMPLE ACCOUNT" : publicExample ? "PUBLIC EXAMPLE" : "SELECTED AUTHORITY"}
                 </div>
                 <div className="account-name">
                   {mode === "sample"
@@ -449,7 +552,7 @@ export default function Dashboard({
               </div>
             </div>
             <div className="subaccount">
-              <label htmlFor="subaccount">Drift subaccount</label>
+              <label htmlFor="subaccount">Subaccount</label>
               <select
                 id="subaccount"
                 value={
@@ -536,38 +639,222 @@ export default function Dashboard({
                 </button>
               </div>
             )}
-            <div className="section-kicker">
-              ACCOUNT SNAPSHOT{" "}
-              <span>
-                {mode === "sample" ? "Fixture baseline" : "Current baseline"} ·
-                independent of the scenario
-              </span>
-            </div>
-            <section className="metrics" aria-label="Baseline account metrics">
-              {snapshot.metrics.slice(0, 3).map((metric) => (
-                <article className="surface metric" key={metric.label}>
-                  <div className="metric-label">
-                    {metric.label}
-                    <span title={metric.explanation}>
-                      <Icon name="info" size={14} />
-                    </span>
-                  </div>
-                  <div
-                    className={`metric-value ${metric.value === null ? "unavailable" : ""}`}
-                  >
-                    {metric.value === null
-                      ? "Unavailable"
-                      : formatDecimal(
-                          metric.value,
-                          metric.unit === "%" ? 0 : 2,
-                        )}
-                    {metric.value !== null && <span>{metric.unit}</span>}
-                  </div>
-                  <p>{metric.explanation}</p>
-                </article>
-              ))}
-            </section>
             <div className="workspace-grid">
+              <section
+                className="surface scenario"
+                aria-labelledby="scenario-heading"
+              >
+                <div className="panel-heading">
+                  <div className="scenario-title">
+                    <span className="scenario-icon">
+                      <Icon name="sliders" />
+                    </span>
+                    <h2 id="scenario-heading" ref={scenarioHeading} tabIndex={-1}>What if the market moves?</h2>
+                  </div>
+                  <span className="model-tag">PRICE ONLY</span>
+                </div>
+                <div className="scenario-result">
+                  <div className="result-label">Perp price P&amp;L change</div>
+                  <div
+                    aria-live="polite"
+                    aria-atomic="true"
+                    data-testid="scenario-total"
+                  >
+                    {disabled ? (
+                      <div className="result-number unavailable">
+                        Unavailable
+                      </div>
+                    ) : scenario.totals.length ? (
+                      scenario.totals.map((t) => (
+                        <div
+                          className={`result-number ${tone(t.delta)}`}
+                          key={t.quote}
+                        >
+                          {formatDecimal(t.delta, 2, true)}
+                          <span>{t.quote}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="result-number unavailable">
+                        No modeled positions
+                      </div>
+                    )}
+                  </div>
+                  <p>
+                    {disabled || (
+                      <>
+                        {shock === 0
+                          ? "No price move applied."
+                          : `If supported perp prices move ${sign(shock)} together.`}
+                        <br />
+                        Based on snapshot at {time(snapshot.retrievedAt)}.
+                      </>
+                    )}
+                  </p>
+                </div>
+                <div className="shock-control">
+                  <div className="control-label">
+                    <label htmlFor="shock">Shared price move</label>
+                    <output htmlFor="shock">{sign(shock)}</output>
+                  </div>
+                  <input
+                    id="shock"
+                    type="range"
+                    min="-20"
+                    max="20"
+                    step="1"
+                    value={shock}
+                    disabled={!!disabled}
+                    onChange={(e) => setShock(Number(e.target.value))}
+                    aria-valuetext={`${shock > 0 ? "plus " : ""}${shock} percent`}
+                    style={
+                      {
+                        "--range-position": `${(shock + 20) * 2.5}%`,
+                      } as React.CSSProperties
+                    }
+                  />
+                  <div className="range-labels">
+                    <span>−20% market down</span>
+                    <span>Market up +20%</span>
+                  </div>
+                  <div className="presets" aria-label="Price move presets">
+                    {PRESETS.map((p) => (
+                      <button
+                        key={p}
+                        className={p === shock ? "active" : ""}
+                        aria-pressed={p === shock}
+                        disabled={!!disabled}
+                        onClick={() => setShock(p)}
+                      >
+                        {sign(p)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="contributions">
+                  <div className="contribution-heading">
+                    <h3 ref={contributionsHeading} tabIndex={-1}>Position contributions</h3>
+                    <span>Incremental P&amp;L</span>
+                  </div>
+                  {scenario.included.map((c) => (
+                    <div className="contribution" key={c.id}>
+                      <div className="contribution-label">
+                        <span>
+                          {c.market}
+                          <small>
+                            {new Decimal(c.size).isNegative()
+                              ? "Short"
+                              : "Long"}
+                          </small>
+                        </span>
+                        <strong className={disabled ? "" : tone(c.delta)}>
+                          {disabled
+                            ? "—"
+                            : `${formatDecimal(c.delta, 2, true)} ${c.quote}`}
+                        </strong>
+                      </div>
+                      <div className="bar-track">
+                        <span className="bar-center" />
+                        {!disabled && (
+                          <span
+                            className={`bar-fill ${tone(c.delta)}`}
+                            style={{
+                              width: largest.isZero()
+                                ? "0%"
+                                : `${new Decimal(c.delta).abs().div(largest).mul(48).toNumber()}%`,
+                              left: new Decimal(c.delta).isNegative()
+                                ? undefined
+                                : "50%",
+                              right: new Decimal(c.delta).isNegative()
+                                ? "50%"
+                                : undefined,
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {!scenario.included.length && (
+                    <p className="muted">
+                      No eligible price contributions in this snapshot.
+                    </p>
+                  )}
+                </div>
+                <div className="coverage">
+                  <Icon
+                    name={scenario.excluded.length ? "info" : "check"}
+                    size={17}
+                  />
+                  <div>
+                    <strong>
+                      Modeled positions only: {scenario.eligible} of{" "}
+                      {scenario.totalPositions}
+                    </strong>
+                    <p>
+                      {scenario.excluded.length
+                        ? scenario.excluded
+                            .map((e) => `${e.market}: Excluded — ${e.reason}`)
+                            .join(" ")
+                        : "All listed perpetual positions are covered by this price model."}
+                    </p>
+                  </div>
+                </div>
+                <p className="assumption-line">
+                  Fixed position sizes. Excludes collateral-price changes,
+                  future fills, funding, fees, borrowing interest, and
+                  liquidation effects.
+                </p>
+                <div className="scenario-actions">
+                  <button
+                    className="button download"
+                    disabled={!!disabled || !scenario.included.length}
+                    onClick={download}
+                  >
+                    <Icon name="download" size={16} />
+                    Download report <span>JSON</span>
+                  </button>
+                  <button
+                    className="text-button"
+                    disabled={!!disabled || shock === 0}
+                    onClick={() => setShock(0)}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </section>
+              <div className="baseline-section">
+                <div className="section-kicker">
+                  ACCOUNT SNAPSHOT{" "}
+                  <span>
+                    {mode === "sample" ? "Fixture baseline" : "Current baseline"} ·
+                    independent of the scenario
+                  </span>
+                </div>
+                <section className="metrics" aria-label="Baseline account metrics">
+                  {snapshot.metrics.slice(0, 3).map((metric) => (
+                    <article className="surface metric" key={metric.label}>
+                      <div className="metric-label">
+                        {metric.label}
+                        <span title={metric.explanation}>
+                          <Icon name="info" size={14} />
+                        </span>
+                      </div>
+                      <div
+                        className={`metric-value ${metric.value === null ? "unavailable" : ""}`}
+                      >
+                        {metric.value === null
+                          ? "Unavailable"
+                          : formatDecimal(
+                              metric.value,
+                              metric.unit === "%" ? 0 : 2,
+                            )}
+                        {metric.value !== null && <span>{metric.unit}</span>}
+                      </div>
+                      <p>{metric.explanation}</p>
+                    </article>
+                  ))}
+                </section>
+              </div>
               <div className="positions-column">
                 <section
                   className="surface positions"
@@ -721,188 +1008,6 @@ export default function Dashboard({
                   </div>
                 </section>
               </div>
-              <section
-                className="surface scenario"
-                aria-labelledby="scenario-heading"
-              >
-                <div className="panel-heading">
-                  <div className="scenario-title">
-                    <span className="scenario-icon">
-                      <Icon name="sliders" />
-                    </span>
-                    <h2 id="scenario-heading">What if the market moves?</h2>
-                  </div>
-                  <span className="model-tag">PRICE ONLY</span>
-                </div>
-                <div className="scenario-result">
-                  <div className="result-label">Perp price P&amp;L change</div>
-                  <div
-                    aria-live="polite"
-                    aria-atomic="true"
-                    data-testid="scenario-total"
-                  >
-                    {disabled ? (
-                      <div className="result-number unavailable">
-                        Unavailable
-                      </div>
-                    ) : scenario.totals.length ? (
-                      scenario.totals.map((t) => (
-                        <div
-                          className={`result-number ${tone(t.delta)}`}
-                          key={t.quote}
-                        >
-                          {formatDecimal(t.delta, 2, true)}
-                          <span>{t.quote}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="result-number unavailable">
-                        No modeled positions
-                      </div>
-                    )}
-                  </div>
-                  <p>
-                    {disabled || (
-                      <>
-                        {shock === 0
-                          ? "No price move applied."
-                          : `If supported perp prices move ${sign(shock)} together.`}
-                        <br />
-                        Based on snapshot at {time(snapshot.retrievedAt)}.
-                      </>
-                    )}
-                  </p>
-                </div>
-                <div className="shock-control">
-                  <div className="control-label">
-                    <label htmlFor="shock">Shared price move</label>
-                    <output htmlFor="shock">{sign(shock)}</output>
-                  </div>
-                  <input
-                    id="shock"
-                    type="range"
-                    min="-20"
-                    max="20"
-                    step="1"
-                    value={shock}
-                    disabled={!!disabled}
-                    onChange={(e) => setShock(Number(e.target.value))}
-                    aria-valuetext={`${shock > 0 ? "plus " : ""}${shock} percent`}
-                    style={
-                      {
-                        "--range-position": `${(shock + 20) * 2.5}%`,
-                      } as React.CSSProperties
-                    }
-                  />
-                  <div className="range-labels">
-                    <span>−20% market down</span>
-                    <span>Market up +20%</span>
-                  </div>
-                  <div className="presets" aria-label="Price move presets">
-                    {PRESETS.map((p) => (
-                      <button
-                        key={p}
-                        className={p === shock ? "active" : ""}
-                        aria-pressed={p === shock}
-                        disabled={!!disabled}
-                        onClick={() => setShock(p)}
-                      >
-                        {sign(p)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="contributions">
-                  <div className="contribution-heading">
-                    <h3>Position contributions</h3>
-                    <span>Incremental P&amp;L</span>
-                  </div>
-                  {scenario.included.map((c) => (
-                    <div className="contribution" key={c.id}>
-                      <div className="contribution-label">
-                        <span>
-                          {c.market}
-                          <small>
-                            {new Decimal(c.size).isNegative()
-                              ? "Short"
-                              : "Long"}
-                          </small>
-                        </span>
-                        <strong className={disabled ? "" : tone(c.delta)}>
-                          {disabled
-                            ? "—"
-                            : `${formatDecimal(c.delta, 2, true)} ${c.quote}`}
-                        </strong>
-                      </div>
-                      <div className="bar-track">
-                        <span className="bar-center" />
-                        {!disabled && (
-                          <span
-                            className={`bar-fill ${tone(c.delta)}`}
-                            style={{
-                              width: largest.isZero()
-                                ? "0%"
-                                : `${new Decimal(c.delta).abs().div(largest).mul(48).toNumber()}%`,
-                              left: new Decimal(c.delta).isNegative()
-                                ? undefined
-                                : "50%",
-                              right: new Decimal(c.delta).isNegative()
-                                ? "50%"
-                                : undefined,
-                            }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {!scenario.included.length && (
-                    <p className="muted">
-                      No eligible price contributions in this snapshot.
-                    </p>
-                  )}
-                </div>
-                <div className="coverage">
-                  <Icon
-                    name={scenario.excluded.length ? "info" : "check"}
-                    size={17}
-                  />
-                  <div>
-                    <strong>
-                      Modeled positions only: {scenario.eligible} of{" "}
-                      {scenario.totalPositions}
-                    </strong>
-                    <p>
-                      {scenario.excluded.length
-                        ? scenario.excluded
-                            .map((e) => `${e.market}: Excluded — ${e.reason}`)
-                            .join(" ")
-                        : "All listed perpetual positions are covered by this price model."}
-                    </p>
-                  </div>
-                </div>
-                <p className="assumption-line">
-                  Fixed position sizes. Excludes collateral-price changes,
-                  future fills, funding, fees, borrowing interest, and
-                  liquidation effects.
-                </p>
-                <div className="scenario-actions">
-                  <button
-                    className="button download"
-                    disabled={!!disabled || !scenario.included.length}
-                    onClick={download}
-                  >
-                    <Icon name="download" size={16} />
-                    Download report <span>JSON</span>
-                  </button>
-                  <button
-                    className="text-button"
-                    disabled={!!disabled || shock === 0}
-                    onClick={() => setShock(0)}
-                  >
-                    Reset
-                  </button>
-                </div>
-              </section>
             </div>
             {!!snapshot.warnings.length && (
               <div className="source-warnings">
@@ -922,7 +1027,7 @@ export default function Dashboard({
             Made for a clearer view.
           </span>
           <span>
-            Solana · Drift <span className="footer-dot">/</span>{" "}
+            Solana · {mode === "sample" ? "Samples" : protocol.label} <span className="footer-dot">/</span>{" "}
             {mode === "sample" ? "Sample data" : "Mainnet public account data"}
           </span>
         </footer>
@@ -941,7 +1046,7 @@ export default function Dashboard({
         onClick={(e) => {
           if (e.target === e.currentTarget) closeMethod();
         }}
-        onCancel={() => methodButton.current?.focus()}
+        onCancel={restoreMethodFocus}
         aria-labelledby="method-title"
       >
         <div className="drawer-content">
@@ -1019,9 +1124,15 @@ export default function Dashboard({
                     <dd>
                       {snapshot.source === "sample"
                         ? "Sample fixture — not a live read"
-                        : "Drift SDK · Solana RPC"}
+                        : `${snapshotProtocol.label} SDK · Solana RPC`}
                     </dd>
                   </div>
+                  {snapshot.source === "live" && (
+                    <div>
+                      <dt>Program</dt>
+                      <dd className="full-address">{snapshotProtocol.programId}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Network</dt>
                     <dd>{snapshot.network}</dd>
@@ -1066,7 +1177,7 @@ export default function Dashboard({
                         {snapshot.subaccount.address}
                         <button
                           className="icon-button"
-                          aria-label="Copy Drift account address"
+                          aria-label="Copy subaccount address"
                           onClick={() => copy(snapshot.subaccount.address!)}
                         >
                           <Icon name="copy" size={14} />
@@ -1116,19 +1227,24 @@ export default function Dashboard({
           )}
           <section>
             <h3>Official references</h3>
+            {snapshotProtocol.id === "velocity" && (
+              <a href="https://docs.velocity.exchange/developers/migrate-from-drift" target="_blank" rel="noreferrer">
+                Velocity deployment and migration reference ↗
+              </a>
+            )}
             <a
               href="https://drift-labs-protocol-v2.mintlify.app/api/drift-client"
               target="_blank"
               rel="noreferrer"
             >
-              Drift account and market reads ↗
+              Legacy Drift account and market reads ↗
             </a>
             <a
               href="https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/user.ts"
               target="_blank"
               rel="noreferrer"
             >
-              Drift baseline metric semantics ↗
+              SDK baseline metric implementation ↗
             </a>
             <a
               href="https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/constants/numericConstants.ts"
@@ -1149,7 +1265,7 @@ function Market({ position: p }: { position: Position }) {
   return (
     <div className="market">
       <span className={`asset-mark asset-${p.asset.toLowerCase()}`}>
-        {['SOL', 'BTC', 'ETH', 'USDC'].includes(p.asset)
+        {['SOL', 'BTC', 'ETH', 'USDC', 'USDT'].includes(p.asset)
           ? <Image src={`/tokens/${p.asset.toLowerCase()}.png`} alt="" width={34} height={34} unoptimized style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           : p.asset.slice(0, 1)}
       </span>

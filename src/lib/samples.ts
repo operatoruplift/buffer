@@ -33,7 +33,7 @@ export function getSampleSnapshot(id: string): Snapshot {
     subaccount: { id: 0, name: sample.name, address: null },
     retrievedAt: FIXTURE_TIME, expiresAt: null, accountSlot: null, observedSlot: null,
     metrics: [
-      { label: 'Net USD value', value: id === 'sol-long' ? '12000' : id === 'partial-coverage' ? '34375' : '30000', unit: 'USD', explanation: 'Illustrative fixture metric. Not calculated from a live Drift account.' },
+      { label: 'Net USD value', value: id === 'sol-long' ? '12000' : id === 'partial-coverage' ? '34375' : '30000', unit: 'USD', explanation: 'Illustrative fixture metric. Not calculated from a live account.' },
       { label: 'Unrealized perp P&L', value: id === 'sol-long' ? '650' : '1250', unit: 'USDC', explanation: 'Illustrative baseline fixture. Separate from the incremental scenario result.' },
       { label: 'Cross-margin health', value: id === 'sol-long' ? '83' : '76', unit: '%', explanation: 'Illustrative fixture metric. The slider does not recalculate protocol health.' },
     ],

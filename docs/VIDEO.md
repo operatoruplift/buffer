@@ -1,6 +1,8 @@
 # Buffer videos
 
-Three finished films accompany the app: a product demo, a pitch made with Higgsfield, and a technical walkthrough. All interface footage is captured from the working Buffer application using deterministic sample accounts.
+**Last updated:** September 12, 2026.
+
+Three finished films accompany the app: a product demo, a pitch made with Higgsfield, and a technical walkthrough. All interface footage is captured from the working Buffer application using deterministic sample accounts. The current app also has a live Velocity example at `/app`; the films keep deterministic fixtures so every narrated number remains reproducible.
 
 | Film | Runtime | Content |
 | --- | --- | --- |
@@ -15,8 +17,8 @@ Three finished films accompany the app: a product demo, a pitch made with Higgsf
 - Every demonstrated account, oracle price, inventory row, and baseline metric is a deterministic fixture. The videos carry a persistent sample label.
 - In the long-and-short sample, a shared −10% shock gives `100 × 150 × −0.10 = −1,500 USDC` for SOL and `−0.5 × 100,000 × −0.10 = +5,000 USDC` for BTC. The modeled total is `+3,500 USDC`.
 - The result is incremental perpetual price P&L. It excludes collateral-price changes, fills, funding, fees, borrowing interest, and liquidation effects. It is not hypothetical account equity, health, or a liquidation prediction.
-- Narration does not claim successful production authentication or mainnet verification. The technical film explains their configuration and verification requirements.
-- Footage documents the explorer core captured on September 11, 2026. The surrounding landing page and optional account screens can evolve independently.
+- Narration does not present the fixture footage as a live account or claim successful production authentication. The technical film explains provider boundaries and verification requirements. Current live Velocity reads are documented separately in [PROVIDER.md](PROVIDER.md) and [VERIFICATION.md](VERIFICATION.md).
+- Footage documents the explorer core captured on September 11, 2026. The surrounding landing page, live Velocity provider, and optional account screens can evolve independently.
 
 ## Higgsfield provenance
 
@@ -32,7 +34,7 @@ The pitch uses an actual generated eight-second opening shot, followed by captur
 
 ## Production and sources
 
-Buffer's U mark, interface, diagrams, captions, and scripts are original project assets. The abstract generated object is a visual motif; the precise logo is drawn separately. Solana and Drift names describe the implemented integration and do not imply endorsement.
+Buffer's U mark, interface, diagrams, captions, and scripts are original project assets. The abstract generated object is a visual motif; the precise logo is drawn separately. Solana, Velocity, and legacy Drift names describe the implemented integrations and do not imply endorsement.
 
 Narration is synthetic speech using the installed macOS Samantha voice, at 158 words per minute for demo/pitch and 180 for the technical film. No person's voice was cloned. No stock soundtrack or unlicensed music is used.
 

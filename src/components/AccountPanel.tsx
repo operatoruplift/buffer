@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { getSupabase } from '@/lib/supabase';
 import type { createReport } from '@/lib/report';
 import styles from './AccountPanel.module.css';
+import DeviceReportsPanel from './DeviceReportsPanel';
 
 type Report = ReturnType<typeof createReport>;
 type SavedReport = { id: string; title: string; created_at: string; report: Report };
@@ -51,7 +52,7 @@ export default function AccountPanel({ report }: { report: Report | null }) {
     if (!db || !user || !report || busy || identity.current !== user.id) return;
     const ticket = generation.current;
     setBusy(true);
-    const title = `${report.sampleName || 'Drift account'} · ${report.scenario.shockPercent}% move`;
+    const title = `${report.sampleName || 'Public account'} · ${report.scenario.shockPercent}% move`;
     const { error } = await db.from('saved_reports').insert({ user_id: user.id, title, report });
     if (ticket !== generation.current) return;
     setBusy(false);
@@ -75,7 +76,7 @@ export default function AccountPanel({ report }: { report: Report | null }) {
     link.href = url; link.download = `buffer-saved-${item.id}.json`; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  if (!user) return <a className="button subtle" href="/auth">Sign in</a>;
+  if (!user) return <><DeviceReportsPanel report={report} /><a className="button subtle cloud-sign-in" href="/auth">Sign in</a></>;
   return <>
     <button className="button subtle" ref={trigger} onClick={() => { dialog.current?.showModal(); void load(); }}>My reports</button>
     <dialog className={styles.dialog} ref={dialog} aria-labelledby="saved-reports-title" onClose={() => trigger.current?.focus()}>
