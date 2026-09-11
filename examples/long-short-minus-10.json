@@ -1,0 +1,146 @@
+{
+  "report": "Buffer perpetual price scenario",
+  "version": 1,
+  "sourceMode": "sample",
+  "network": "fixture",
+  "sampleName": "Long + short",
+  "authority": null,
+  "selectedSubaccount": {
+    "id": 0,
+    "name": "Long + short",
+    "address": null
+  },
+  "snapshotTime": "2026-09-11T12:00:00.000Z",
+  "snapshotExpiresAt": null,
+  "observedSlots": {
+    "account": null,
+    "observed": null,
+    "atomicSameSlotRead": false
+  },
+  "scenario": {
+    "label": "Perp price P&L change",
+    "shockPercent": -10,
+    "disabledReason": null,
+    "modeledPositions": 2,
+    "totalPositions": 2,
+    "includedPositions": [
+      {
+        "id": "fixture-sol",
+        "market": "SOL-PERP",
+        "quote": "USDC",
+        "size": "100",
+        "baselinePrice": "150",
+        "hypotheticalPrice": "135",
+        "delta": "-1500"
+      },
+      {
+        "id": "fixture-btc",
+        "market": "BTC-PERP",
+        "quote": "USDC",
+        "size": "-0.5",
+        "baselinePrice": "100000",
+        "hypotheticalPrice": "90000",
+        "delta": "5000"
+      }
+    ],
+    "excludedPositions": [],
+    "totalsByQuoteCurrency": [
+      {
+        "quote": "USDC",
+        "delta": "3500"
+      }
+    ]
+  },
+  "baselineMetrics": [
+    {
+      "label": "Net USD value",
+      "value": "30000",
+      "unit": "USD",
+      "explanation": "Illustrative fixture metric. Not calculated from a live Drift account."
+    },
+    {
+      "label": "Unrealized perp P&L",
+      "value": "1250",
+      "unit": "USDC",
+      "explanation": "Illustrative baseline fixture. Separate from the incremental scenario result."
+    },
+    {
+      "label": "Cross-margin health",
+      "value": "76",
+      "unit": "%",
+      "explanation": "Illustrative fixture metric. The slider does not recalculate protocol health."
+    }
+  ],
+  "positions": [
+    {
+      "id": "fixture-sol",
+      "marketIndex": 0,
+      "market": "SOL-PERP",
+      "asset": "SOL",
+      "size": "100",
+      "price": "150",
+      "quote": "USDC",
+      "notional": "15000",
+      "modeled": true,
+      "exclusionReason": null,
+      "isolated": false,
+      "oracle": {
+        "slot": null,
+        "readSlot": null,
+        "valid": true,
+        "reason": "Deterministic sample price; no live oracle was read."
+      }
+    },
+    {
+      "id": "fixture-btc",
+      "marketIndex": 1,
+      "market": "BTC-PERP",
+      "asset": "BTC",
+      "size": "-0.5",
+      "price": "100000",
+      "quote": "USDC",
+      "notional": "50000",
+      "modeled": true,
+      "exclusionReason": null,
+      "isolated": false,
+      "oracle": {
+        "slot": null,
+        "readSlot": null,
+        "valid": true,
+        "reason": "Deterministic sample price; no live oracle was read."
+      }
+    }
+  ],
+  "inventoryOutsideScenario": {
+    "available": true,
+    "spotBalances": [
+      {
+        "market": "USDC",
+        "kind": "Collateral",
+        "amount": "28750"
+      }
+    ],
+    "openOrdersByMarket": []
+  },
+  "assumptions": [
+    "Position sizes are fixed; the selected percentage move applies together to eligible SOL, BTC, and ETH linear perpetual oracle prices.",
+    "Price P&L change = signed base quantity × frozen baseline oracle price × shock fraction.",
+    "Excludes collateral-price changes, future fills, funding, fees, borrowing interest, and liquidation effects.",
+    "This is a perpetual price effect, not hypothetical account equity, health, liquidation risk, or a trading recommendation.",
+    "Only contributions with the same verified quote currency are added. Different quote currencies have separate totals.",
+    "Unsupported contracts, LP exposure, undecodable positions, and missing, nonpositive, or invalid oracle prices are excluded with a reason.",
+    "Live calculations expire 120 seconds after retrieval, or earlier when the provider marks them expired. This is a conservative app rule, not a protocol liquidation rule.",
+    "Account, market, and oracle reads may have different observed slots; the snapshot is not an atomic same-slot read.",
+    "Sample accounts, metrics, and prices are deterministic fixtures; they are not live on-chain observations."
+  ],
+  "appFreshnessSeconds": 120,
+  "provenance": [
+    "Buffer built-in sample provider. No public wallet address, on-chain account, or RPC slot is associated with this fixture.",
+    "Fixture values are fixed at 2026-09-11 12:00 UTC for reproducible demonstrations.",
+    "Sample labels and market indices are fixture identifiers, not evidence of a decoded mainnet market."
+  ],
+  "warnings": [
+    "Sample account: all positions, prices, inventory, and baseline metrics are deterministic fixtures."
+  ],
+  "numericEncoding": "Financial values are decimal strings. No presentation rounding is applied to scenario contributions or totals."
+}

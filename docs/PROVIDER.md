@@ -1,0 +1,31 @@
+# Drift provider implementation and verification
+
+Pinned package inspected: `@drift-labs/sdk` 2.163.0-beta.13, actual installed manifest requires Node ^24.0.0, web3.js 1.98.0 and spl-token 0.4.13. App pins Node 24.16.0. Source under node_modules/@drift-labs/sdk/src and installed .d.ts files was inspected; the repository master manifest is not assumed identical (the published package now aliases Anchor 1.0.1).
+
+Live verification incomplete: SOLANA_RPC_URL is absent and no suitable public test authority was supplied. No successful mainnet snapshot was claimed. Boundary/normalization/loader tests exercise fixtures and mocked RPC responses. They are not a mainnet integration test.
+
+Read path: validate canonical address and explicit u16 subaccount -> verify configured RPC genesis is mainnet-beta -> derive the fixed Drift User PDA -> check program owner and decoded authority/subaccount -> collect *all* active perp/spot/order references (including zero-base perp state) -> decode those market accounts and collect each perp's quote-market reference -> load required markets, protocol state and oracles through a request-owned manual loader -> reread selected account -> verify final coverage -> normalize BN amounts and calculate supported current metrics with User methods. Changed/new market references in the final selected account cause unavailable baseline metrics instead of partial account values.
+
+SDK signatures verified: getUserAccountsForAuthority(PublicKey): Promise<UserAccount[]>; createUser(subaccount, subscriptionConfig, authority?): User; getPerpMarketAccount/getSpotMarketAccount(index); getOracleDataForPerpMarket(index); fetchAccounts(); getUserAccountAndSlot(). Manual BulkAccountLoader polling frequency 0 does not start an interval. The stock loader catches some RPC errors and logs raw responses, so SnapshotAccountLoader overrides load with public getMultipleAccountsInfoAndContext, explicit program ownership checks, propagated failure, and fresh read slots even when bytes have not changed. Clients/users/listeners/loader maps are disposed in finally; transport is cancelled with an 18-second AbortController deadline. No persistent websocket or keypair/signing is used. Every wallet signing method throws. SDK imports are behind server-only drift provider/Node API routes.
+
+Only server SOLANA_RPC_URL is accepted. No browser RPC/program overrides. Per-process cap is 60 reads/minute and 4 concurrent reads; no stored wallet cache. The endpoint is never returned or logged by app code. Unknown errors are translated to safe structured API errors. Production RPC should permit filtered getProgramAccounts for discovery.
+
+Baseline semantics (installed User source): getNetUsdValue() = net spot USD value + getUnrealizedPNL(true) + total isolated position deposit USD value. getUnrealizedPNL(true) is current unrealized perp P&L including accrued funding, converted through each quote spot oracle into USD; QUOTE_PRECISION normalizes its return value. Neither is a hypothetical result. getHealth() is SDK maintenance cross-margin health [0,100]; Buffer withholds it when isolated positions exist to avoid describing those positions with a cross-margin score. LP exposure, nondefault pools, unknown/nonlinear/inactive markets, missing quote identity, missing required markets and invalid oracle data withhold baseline metrics. Spot balances use getTokenAmount plus market decimal precision, including an explicit isolated quote-collateral inventory row when present.
+
+Scenario identity: SOL/BTC/ETH are resolved from MainnetPerpMarkets then checked against decoded market index/PDA/name, oracle pubkey and source. Quote identities come from market.quoteSpotMarketIndex, matched MainnetSpotMarkets name and mint. Raw prices normalize through PRICE_PRECISION and base sizes through BASE_PRECISION. Values stay BN/80-digit Decimal strings; no large raw integer float conversion. Distinct verified quote identities remain distinct strings/totals. Ordinary other markets remain in baseline coverage but are excluded from the scenario.
+
+Oracle policy: external perps pass SDK isOracleValid (documented as the AMM-only-fill validity helper, used here conservatively); zero/negative/missing/insufficient/future prices fail first. Added app maximum oracle lag is 150 observed slots. Spot valuation checks protocol margin staleness and volatility plus a conservative 1% app confidence cap. Fixed quoteAsset oracle has slot 0 and is explicitly exempted from the lag requirement. SDK MM valuation oracle is separately checked before baseline metrics. Snapshot expires 120 seconds after completion and UI stops calculation until refresh. These app freshness rules are not liquidation criteria. Separate account, market, oracle and current-slot reads are explicitly not atomic; actual User read slot, observed latest slot and perp oracle data/read slots are preserved separately.
+
+Network verification uses full mainnet-beta genesis hash 5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d, checked against the official Solana source:
+https://github.com/solana-labs/solana/blob/master/sdk/src/genesis_config.rs
+https://solana.com/docs/rpc/http/getgenesishash
+
+Official Drift references inspected:
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/package.json
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/driftClient.ts
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/user.ts
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/accounts/bulkAccountLoader.ts
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/math/oracles.ts
+https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/constants/numericConstants.ts
+
+Tests: provider.test.ts covers address/u16 validation, prohibited RPC query controls, no accounts, authority/subaccount mismatch, unconfigured server, error redaction, debt/spot/order/full baseline coverage, zero-base/LP/isolated cases, oracle validity and missing SDK valuation data, verified market identity, large BN normalization, strict loader propagation, cleanup, and unchanged-byte read slots. All 19 tests passed, including isolated quote-collateral and zero-base isolated residual-state regressions added after reviewer feedback.
