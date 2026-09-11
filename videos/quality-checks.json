@@ -1,0 +1,21 @@
+{
+  "fullDecode": "passed for all 3 MP4 files",
+  "visualReview": "9-frame contact sheet plus full-size generated opener and end card reviewed; no clipped labels or unsupported app claims",
+  "audioReview": "Actual pitch audio transcribed with faster-whisper tiny.en and reviewed against narration; complete narration present",
+  "audioLevels": {
+    "buffer-demo": {
+      "meanDb": -18.8,
+      "peakDb": -4.1
+    },
+    "buffer-pitch": {
+      "meanDb": -18.8,
+      "peakDb": -4.0
+    },
+    "buffer-technical": {
+      "meanDb": -18.7,
+      "peakDb": -3.9
+    }
+  },
+  "higgsfieldCreditsUsed": 52,
+  "higgsfieldCreditsRemaining": 48
+}

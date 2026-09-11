@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:00.350 --> 00:00:05.326
+Buffer separates the interface, scenario engine, and live provider. Next J S
+
+00:00:05.326 --> 00:00:10.302
+renders normalized snapshots. Server routes contain Drift and Solana access. Reading positions
+
+00:00:10.302 --> 00:00:14.033
+uses no private key and requests no transaction signature.
+
+00:00:14.933 --> 00:00:20.053
+The provider validates the public authority and selected subaccount, then verifies mainnet,
+
+00:00:20.053 --> 00:00:25.173
+account ownership, and decoded identity. It gathers required markets and oracles before
+
+00:00:25.173 --> 00:00:29.867
+normalization. Incomplete coverage stays visible instead of becoming a partial baseline.
+
+00:00:30.767 --> 00:00:35.581
+The formula is signed base quantity, times frozen oracle price, times shock
+
+00:00:35.581 --> 00:00:40.396
+fraction. Decimal strings preserve precision. Only contributions with the same verified quote
+
+00:00:40.396 --> 00:00:44.408
+currency are added. Position sizes stay fixed throughout the scenario.
+
+00:00:45.308 --> 00:00:49.856
+In this sample, the SOL long contributes negative fifteen hundred U S
+
+00:00:49.856 --> 00:00:54.403
+D C at minus ten percent. The Bitcoin short contributes positive five
+
+00:00:54.403 --> 00:00:58.950
+thousand. Together, positive thirty five hundred. These are fixtures, not market observations.
+
+00:00:59.850 --> 00:01:05.444
+Eligible SOL, Bitcoin, and Ether linear perpetuals enter the model. Excluded contracts
+
+00:01:05.444 --> 00:01:11.038
+keep their reasons. Collateral, debt, and orders remain separate inventory. Baseline metrics
+
+00:01:11.038 --> 00:01:15.700
+do not become hypothetical equity, future health, or liquidation thresholds.
+
+00:01:16.600 --> 00:01:21.334
+Live snapshots expire after one hundred twenty seconds. A failed refresh pauses
+
+00:01:21.334 --> 00:01:26.069
+calculation. Account, market, and oracle observations can come from different slots. Buffer
+
+00:01:26.069 --> 00:01:30.408
+preserves that provenance instead of claiming an atomic same slot read.
+
+00:01:31.308 --> 00:01:37.360
+The JSON export includes source, snapshot, shock, contributions, exclusions, quote totals, and
+
+00:01:37.360 --> 00:01:43.411
+assumptions. Tests cover the scenario, provider boundaries, and browser flows. Mocked tests
+
+00:01:43.411 --> 00:01:47.950
+validate behavior; they do not establish successful mainnet integration.
+
+00:01:48.850 --> 00:01:54.047
+Live verification requires a working server side Solana endpoint and a suitable
+
+00:01:54.047 --> 00:01:59.244
+public Drift authority. Optional account services require their configured backend. This walkthrough
+
+00:01:59.244 --> 00:02:03.575
+uses deterministic samples, keeping implemented behavior and integration limits explicit.

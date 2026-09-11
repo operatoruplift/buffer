@@ -1,0 +1,35 @@
+{
+  "buffer-demo": {
+    "duration": 87.858,
+    "bytes": 2987755,
+    "resolution": [
+      1600,
+      900
+    ],
+    "fps": 24,
+    "audio": "AAC stereo 48kHz",
+    "sampleData": true
+  },
+  "buffer-pitch": {
+    "duration": 62.524,
+    "bytes": 2473761,
+    "resolution": [
+      1600,
+      900
+    ],
+    "fps": 24,
+    "audio": "AAC stereo 48kHz",
+    "sampleData": true
+  },
+  "buffer-technical": {
+    "duration": 124.15,
+    "bytes": 3307691,
+    "resolution": [
+      1600,
+      900
+    ],
+    "fps": 24,
+    "audio": "AAC stereo 48kHz",
+    "sampleData": true
+  }
+}
