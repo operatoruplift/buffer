@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import { dependencies } from '../../package.json';
 import {
   BASE_PRECISION, PRICE_PRECISION, QUOTE_PRECISION, QUOTE_SPOT_MARKET_INDEX, BN,
   MainnetPerpMarkets, MainnetSpotMarkets, PositionFlag, SpotBalanceType, decodeName, isVariant,
@@ -200,7 +201,7 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
     expiresAt: new Date(Date.parse(input.retrievedAt) + LIVE_SNAPSHOT_TTL_MS).toISOString(),
     accountSlot: input.accountSlot, observedSlot: input.observedSlot, metrics, positions, spots: spotInventory,
     orders: [...orderCounts].map(([market, count]) => ({ market, count })), inventoryAvailable, warnings,
-    provenance: ['Solana mainnet-beta · confirmed commitment · Drift SDK 2.163.0-beta.13.',
+    provenance: [`Solana mainnet-beta · confirmed commitment · Drift SDK ${dependencies['@drift-labs/sdk']}.`,
       'Separate account, market, and oracle reads are not an atomic same-slot snapshot.',
       'Perp oracle prices pass the SDK AMM validity helper and Buffer’s 150-slot lag limit; spot valuation adds a 1% confidence cap. These are conservative read rules, not liquidation rules.',
       'Snapshots expire after 120 seconds. The scenario uses the external oracle; SDK baseline valuation may use its validated MM oracle.',

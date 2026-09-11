@@ -12,6 +12,9 @@ import { formatDecimal } from "@/lib/format";
 import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { Icon, Mark } from "./Icons";
+import AccountPanel from './AccountPanel';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
@@ -259,7 +262,7 @@ export default function Dashboard({
       </a>
       <header className="header">
         <div className="header-inner">
-          <div className="brand">
+          <Link className="brand" href="/" aria-label="Buffer home" style={{ textDecoration: 'none', color: 'inherit' }}>
             <span className="logo">
               <Mark />
             </span>
@@ -268,8 +271,9 @@ export default function Dashboard({
             <span className="descriptor">
               Solana <span>·</span> Drift
             </span>
-          </div>
+          </Link>
           <div className="header-actions">
+            <AccountPanel report={snapshot && scenario && !disabled ? createReport(snapshot, scenario) : null} />
             <span className={`mode ${mode}`}>
               <i />
               {mode === "sample" ? "Sample mode" : "Live mode"}
@@ -1145,13 +1149,9 @@ function Market({ position: p }: { position: Position }) {
   return (
     <div className="market">
       <span className={`asset-mark asset-${p.asset.toLowerCase()}`}>
-        {p.asset === "SOL"
-          ? "≋"
-          : p.asset === "BTC"
-            ? "₿"
-            : p.asset === "ETH"
-              ? "Ξ"
-              : p.asset.slice(0, 1)}
+        {['SOL', 'BTC', 'ETH', 'USDC'].includes(p.asset)
+          ? <Image src={`/tokens/${p.asset.toLowerCase()}.png`} alt="" width={34} height={34} unoptimized style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          : p.asset.slice(0, 1)}
       </span>
       <div>
         <strong>{p.market}</strong>

@@ -1,6 +1,22 @@
 # Buffer
 
-A read-only Solana / Drift position explorer. Paste a public authority, choose one subaccount, inspect its baseline and exposure inventory, then apply a shared −20% to +20% price move to eligible SOL, BTC, and ETH perpetuals. A complete deterministic Sample experience opens without configuration.
+**Understand what a market move would do to your perpetual positions.** Buffer is a read-only Solana / Drift explorer with precise price scenarios, clear coverage, private saved reports, and an installable mobile and desktop web app.
+
+**Last updated:** September 12, 2026.
+
+[Website](https://buffer-lovat.vercel.app) · [Open the app](https://buffer-lovat.vercel.app/app) · [Watch the demos](https://buffer-lovat.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
+
+Paste a public authority, select one Drift subaccount, and explore a shared −20% to +20% price move on eligible SOL, BTC, and ETH perpetual positions. Buffer keeps the current baseline separate from modeled price P&L and explains what is excluded. Three deterministic samples work immediately, without an account or RPC configuration.
+
+## What is included
+
+- A responsive website with an interactive sample, feature and method explanations, installation guidance, and a video gallery.
+- Public account discovery, explicit subaccount selection, position contributions, collateral/debt/order inventory, freshness checks, and a Method dialog.
+- Precise JSON downloads and optional Supabase sign-in to save, download, and delete private historical reports.
+- A PWA for supported mobile and desktop browsers, with original app icons and a clearly labeled offline sample.
+- A narrated product demo, an actual Higgsfield-assisted pitch, and a technical walkthrough, with captions and transcripts.
+
+The Vercel site is deployed and its public routes and media respond successfully. The production browser checks passed 42 cases, including real Supabase sign-in and report operations on desktop and mobile with temporary confirmed accounts. The deployed account-discovery and snapshot endpoints also passed real mainnet reads, including correct rejection of a stale oracle. **Public signup and password-recovery email actions remain disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.** The public explorer needs no sign-in. See [deployment status](docs/DEPLOYMENT.md) and [verification](docs/VERIFICATION.md) for the remaining release checks.
 
 ## Run locally
 
@@ -12,49 +28,84 @@ cp .env.example .env.local
 npm run dev -- --port 3001
 ```
 
-Open http://127.0.0.1:3001. Use Node **24.16.0**, pinned in `.nvmrc` and `package.json`. No RPC credentials are needed for Sample. For live reads, set server-only `SOLANA_RPC_URL` to a Solana **mainnet** endpoint supporting `getProgramAccounts`, `getAccountInfo`, `getMultipleAccounts`, and `getSlot`, then restart the server. Never prefix this variable with `NEXT_PUBLIC_`. `BUFFER_TEST_AUTHORITY` documents the optional public authority for a manual live check; the app does not use it automatically.
+Open `http://127.0.0.1:3001`; the explorer is at `/app`. Local Node is pinned to **24.16.0** in `.nvmrc`; `package.json` accepts Node **24.x**. Vercel selects a supported 24.x patch; the verified deployment used **24.19.0**.
 
-Verified installed versions: Next.js **16.3.4**, React **19.3.0**, `@drift-labs/sdk` **2.163.0-beta.13**, `@solana/web3.js` **1.98.0**, `@solana/spl-token` **0.4.13**, decimal.js **10.6.0**. The npm SDK manifest requires Node `^24.0.0`. Its Anchor dependency changed from the master manifest referenced in the brief; implementation uses the installed package's source and typings. Dependencies are exact at the application boundary and the npm lockfile fixes the resolved tree. The initial install used a shell-selected Node 22; installation was rerun and checks were executed with the explicit Node 24 path.
+| Environment variable | Purpose |
+| --- | --- |
+| `SOLANA_RPC_URL` | Server-only Solana mainnet RPC. Leave blank for Sample-only use. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional dedicated Supabase project URL. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Optional public Supabase key; never a service-role key. |
+| `NEXT_PUBLIC_AUTH_EMAIL_READY` | Keep `false` until public confirmation and recovery email flows are verified. |
+| `BUFFER_TEST_AUTHORITY` | Optional public authority for manual verification; not automatically loaded by the app. |
 
-## Use
+The RPC must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccountInfo`, `getMultipleAccounts`, and `getSlot`. Do not expose its URL through a `NEXT_PUBLIC_` variable. Public Supabase settings are embedded at build time, so rebuild after changing them. No wallet private key, application AI key, or service-role key is needed. Setup-only credentials shown in `.env.example` are not read by the application.
 
-- Select **SOL long**, **Long + short**, or **Partial coverage** for repeatable examples. Their fixed date, prices, baseline metrics, and inventory are labeled fixtures. They have no invented public addresses or slots.
-- A live authority read discovers sorted subaccounts. Select one explicitly; separate subaccounts are never combined.
-- The three baseline metrics come from official SDK methods only when complete required state can be valued. Unavailable metrics explain the missing coverage. Cross-margin health is withheld when isolated positions are present.
-- Move the slider, select a preset, or use arrow keys in 1% steps. **Reset** returns the shock to zero. **Refresh** reads all inputs together and resets the shock after success; Sample refresh restores the same fixture.
-- **Method** shows the formula, exclusions, addresses, source and slot observations. **Download report** produces a local JSON file with precise numeric strings and complete coverage/provenance. Nothing is uploaded.
+## Use Buffer
 
-## Arithmetic and limits
+1. Choose **SOL long**, **Long + short**, or **Partial coverage**, or read a public authority and explicitly select a discovered subaccount. Accounts are never combined.
+2. Inspect the frozen baseline, positions, and inventory. Unavailable metrics explain missing or invalid coverage.
+3. Move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful **Refresh** reloads the snapshot and resets the shock.
+4. Open **Method** for assumptions, exclusions, addresses, source, and separate slot observations. **Download report** saves precise JSON locally.
+5. With a confirmed cloud account, open **My reports** to save the current report or download/delete a saved copy. The library shows the newest 50 reports. Saved copies are historical records and never refresh with the market.
 
-For signed base quantity `q`, frozen external oracle price `p`, and shock fraction `s`, incremental price P&L is `q × p × s`; hypothetical price is `p × (1+s)`. Notional is `abs(q × p)`. Calculations use decimal strings with locally sufficient precision; SDK BNs normalize using exported precision constants. Only presentation is rounded. Quotes are verified through their quote market and mint, and different currencies retain separate totals.
+Public exploration does not upload a report. Cloud storage occurs only when a signed-in user selects **Save current scenario**. Supabase row-level security limits records to their owner; report downloads and deterministic samples remain available without an account.
 
-At −10%, 100 SOL at 150 USDC produces −1,500 USDC; −0.5 BTC at 100,000 produces +5,000 USDC; the combined change is **+3,500 USDC**. Zero shock produces zero.
+## Arithmetic and boundaries
 
-The model holds sizes fixed and excludes collateral-price changes, future fills, funding, fees, borrowing interest, and liquidation effects. Spot deposits, debts, and market order counts remain visible. Unsupported markets, nonlinear/unknown contracts, LP exposure, undecodable flags, inactive markets, and invalid/missing oracle prices are explicitly excluded. Zero-base residual protocol state remains part of baseline coverage. This is not hypothetical account equity, health, a liquidation threshold, or a trading recommendation.
-
-Live external oracle data must pass the SDK's applicable validity helper and an additional **150-slot maximum lag**. Spot valuation also checks margin staleness, volatility, data-point sufficiency, and a conservative **1% confidence cap**. Live calculations expire **120 seconds after retrieval**, or earlier when explicitly expired. These are app freshness rules, not liquidation rules. Oracle publication slots, oracle read slots, user account slots and the observed RPC slot are preserved separately; the reads are **not atomic**. SDK baseline calculations may use their separately validated MM valuation oracle.
-
-## Small architecture
+For signed base quantity `q`, frozen external oracle price `p`, and shock fraction `s`:
 
 ```text
-Address + explicit subaccount
-  → Node route validation / process rate cap
-  → request-owned Drift client + manual RPC snapshot loader
-  → account / markets / oracle coverage checks
-  → normalized Snapshot of decimal strings
-  → dashboard + pure scenario calculation
-  → local JSON report
-
-Deterministic sample provider → the same Snapshot type
+Incremental price P&L = q × p × s
+Hypothetical price   = p × (1 + s)
+Position notional    = abs(q × p)
 ```
 
-`src/server/drift.ts` owns read-only SDK acquisition and cleanup. `normalize.ts` gates metrics and normalizes account state. `boundary.ts` validates public keys, bounded unsigned subaccount IDs, and permitted query keys. `src/lib` contains types, samples, scenario math, formatting and report generation. `Dashboard.tsx` owns the single screen and native accessible Method dialog.
+At −10%, 100 SOL at 150 USDC contributes −1,500 USDC; −0.5 BTC at 100,000 contributes +5,000 USDC; the combined change is **+3,500 USDC**. Zero shock produces zero. Decimal strings preserve precision; rounding occurs only for presentation. Verified quote currencies retain separate totals.
 
-No signing keys, wallet connection, transactions, trading, program deployment, database, authentication, paid AI, or background monitoring are used. SDK dependencies and RPC credentials stay on the Node server. Read-only wallet methods throw if invoked. Requests use an 18-second abort deadline; loaders have no polling timer and are disposed with clients/listeners. Structured errors exclude raw provider messages and credentials. Per-process caps allow 60 requests/minute and 4 concurrent reads; no wallet-address cache is retained. A scaled deployment should enforce its own shared ingress limit because process-local limits are per instance.
+The scenario holds sizes fixed and excludes collateral-price changes, future fills, funding, fees, borrowing interest, and liquidation effects. Spot deposits, debts, and order counts remain visible. Unsupported or nonlinear contracts, LP exposure, unknown flags, inactive markets, and invalid oracle prices receive explicit exclusions. This result is incremental perpetual price P&L, not hypothetical account equity, health, or a liquidation threshold.
 
-Errors never fall back to fixtures. A failed refresh retains the original snapshot with a prominent stale state and disables scenario calculations. Request cancellation and generation checks prevent late wallet/subaccount responses from replacing a newer selection.
+Live perps use the SDK's applicable oracle validity helper plus Buffer's **150-slot maximum lag**. Spot valuation also checks protocol margin staleness, volatility, sufficient data, and a **1% confidence cap**. Live snapshots expire **120 seconds after retrieval**, or earlier when specified. Account, market, oracle, and current-slot reads are not atomic; their observations are retained separately. SDK baseline valuation may use a separately validated MM oracle. Cross-margin health is withheld for isolated positions.
 
-## Verify
+Real local and deployed mainnet authority/subaccount reads succeeded with the pinned SDK. Its external oracle was stale, so Buffer correctly withheld the affected scenario and baseline values. This verifies the read and rejection path; a fresh-price live scenario remains a separate check. See [provider evidence](docs/PROVIDER.md).
+
+## Architecture
+
+```text
+Website / demo gallery                    Optional email/password sign-in
+            │                                           │
+            ▼                                           ▼
+/app: public explorer                         Supabase Auth session
+   ├─ deterministic samples                           │
+   └─ /api/accounts → explicit subaccount              ▼
+      /api/snapshot → Node Drift provider      saved_reports + owner RLS
+                      │                       ▲  save / download / delete
+              mainnet account/market/oracle checks    │
+                      ▼                              │
+              decimal-string Snapshot               │
+                      ▼                              │
+              pure scenario calculation → JSON report
+
+PWA service worker → public offline sample and icon allowlist only
+```
+
+| Area | Source |
+| --- | --- |
+| Website, explorer, account screen, videos | `src/app/{page,app/page,auth/page,demo/page}.tsx` |
+| Interactive UI | `src/components/Landing.tsx`, `Dashboard.tsx`, `AccountPanel.tsx`, `AuthForm.tsx` |
+| SDK acquisition and cleanup | `src/server/drift.ts` |
+| Coverage and precise normalization | `src/server/normalize.ts` |
+| Request validation and limits | `src/server/boundary.ts` |
+| Types, scenario math, fixtures, reports | `src/lib/` |
+| Private report schema and policies | `supabase/migrations/` |
+| Installation and offline sample | `src/app/manifest.ts`, `src/components/PwaClient.tsx`, `public/sw.js`, `public/offline.html` |
+
+The application uses Next.js **16.3.4**, React **19.3.0**, TypeScript **5.9.3**, Drift SDK **2.161.0-beta.5**, web3.js **1.98.0**, spl-token **0.4.13**, decimal.js **10.6.0**, and Supabase JS **2.116.0**. Direct versions and the lockfile are pinned. Seven captured public mainnet buffers test compatibility with the canonical Drift account layouts before future SDK upgrades.
+
+RPC requests have an 18-second abort deadline and request-owned loaders without polling timers. Client/listener cleanup runs on completion or failure. The process cap is 60 reads/minute and four concurrent reads; a scaled service needs a shared ingress limit. Provider errors are sanitized and never silently replaced by samples. A failed refresh retains the old snapshot visibly as stale and disables calculations. Generation checks prevent late account, subaccount, or previous-user responses from replacing current state.
+
+There is no wallet signing, custody, transaction, trading, or background monitoring path. The PWA caches only its explicit public offline assets; API responses, Supabase requests, auth, saved reports, and live page data bypass that cache. Browser-supported installation is included; native store packages and signed desktop installers are not.
+
+## Verify and deploy
 
 ```sh
 npm run typecheck
@@ -64,27 +115,17 @@ npm run build
 npm run test:e2e
 ```
 
-Playwright uses Chromium at port 3001, reusing a running app or launching the development server. Run `npx playwright install chromium` if needed. Unit tests cover arithmetic/coverage/precision and provider boundaries/normalization. Browser API fixtures are explicitly mocked UI-state tests, **not proof of a mainnet read**. See [verification](docs/VERIFICATION.md) for executed results and limitations. Desktop and 375px mobile screenshots in `screenshots/` show the production Sample UI at −10%. A real browser download is preserved in [the example JSON report](examples/long-short-minus-10.json).
+Install Chromium with `npx playwright install chromium` if necessary. Playwright normally launches or reuses port 3001. Set `PLAYWRIGHT_BASE_URL` to exercise an already running deployment. The real Auth suite additionally needs `BUFFER_AUTH_FIXTURES` pointing to a private JSON array of two disposable confirmed accounts (`email` and `password`); otherwise those two desktop/mobile cases are skipped. Never commit fixture credentials. Most live UI state cases deliberately mock API responses and do not prove RPC success.
 
-**Live verification incomplete.** This environment provides neither `SOLANA_RPC_URL` nor a suitable public Drift test authority with positions. The real SDK provider is implemented; a successful mainnet account snapshot has not been claimed. Configure both prerequisites and manually verify discovery, ownership, baseline coverage, oracle slots and expiry before demonstrating Live.
+Vercel uses the explicit Next.js framework setting in `vercel.json`, Node route execution, and 30-second RPC function limits. The dedicated Supabase project and both saved-report migrations are deployed. The initial server RPC uses Solana's shared mainnet endpoint; use a dedicated endpoint for sustained production capacity. Follow [deployment](docs/DEPLOYMENT.md) for cloud configuration and email setup, [database verification](docs/DATABASE-VERIFICATION.md) for ownership checks, and [PWA documentation](docs/PWA.md) for installation limitations.
 
-## Deploy (not published)
+## Descriptions, design, and videos
 
-Use a Node 24 server/container or a hosting platform configured for Node 24 and Node route execution. Run `npm ci`, set server-only `SOLANA_RPC_URL` if live reads are desired, run `npm run build`, then `npm run start -- --port 3001`. The default scripts bind to loopback; behind a container ingress, invoke `npx next start --hostname 0.0.0.0 --port 3000`. Allow at least 30 seconds for Node route execution. Static export and edge-only hosting cannot execute this integration. No deployment or event submission was performed.
+- [Short and full Markdown descriptions](docs/DESCRIPTION.md)
+- [Design references and MotionSites recommendations](docs/DESIGN.md)
+- [Video files, transcripts, and Higgsfield provenance](docs/VIDEO.md)
+- [Submission draft and sample demonstration](docs/SUBMISSION.md)
 
-## Assets and event
+Buffer's original gauge mark, wordmark, favicon, and monochrome variants live in `public/brand/`; install icons are in `public/icons/`. The UI and media distinguish product identity from descriptive protocol names and sample data.
 
-Original vector artwork is in `public/brand/`: mark, horizontal wordmark, favicon, and monochrome mark/wordmark. The mark is an open U gauge and a detached vertical tick, 32 × 32 with 3px rounded strokes. Wordmarks use the local system sans stack.
-
-[Submission copy and the 90-second demo](docs/SUBMISSION.md) describe only implemented functionality. The official event page checked September 11, 2026 confirms September 18–25, 2026. Detailed rules and judging criteria were not published there; **perps-only eligibility and pre-event development eligibility remain unverified**.
-
-## Official sources
-
-- [Event page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets)
-- [Official SDK manifest](https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/package.json) and [pinned npm package](https://www.npmjs.com/package/@drift-labs/sdk/v/2.163.0-beta.13)
-- [Drift client docs](https://drift-labs-protocol-v2.mintlify.app/api/drift-client) and [client source](https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/driftClient.ts)
-- [Account-loader source](https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/accounts/bulkAccountLoader.ts)
-- [User metric source](https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/user.ts)
-- [Precision constants](https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/constants/numericConstants.ts)
-
-The package's installed `lib/node` typings and bundled `src` are authoritative for the pinned implementation; master reference URLs may subsequently change.
+The [official event page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, lists September 18–25, 2026. Perps-only eligibility and pre-event development eligibility remain unverified. No event submission or acceptance is claimed.

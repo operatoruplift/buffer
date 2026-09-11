@@ -7,3 +7,5 @@ playwright-report/
 test-results/
 work/
 .DS_Store
+.vercel/
+supabase/.temp/

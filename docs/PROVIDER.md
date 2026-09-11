@@ -1,31 +1,78 @@
-# Drift provider implementation and verification
+# Drift provider
 
-Pinned package inspected: `@drift-labs/sdk` 2.163.0-beta.13, actual installed manifest requires Node ^24.0.0, web3.js 1.98.0 and spl-token 0.4.13. App pins Node 24.16.0. Source under node_modules/@drift-labs/sdk/src and installed .d.ts files was inspected; the repository master manifest is not assumed identical (the published package now aliases Anchor 1.0.1).
+**Last updated:** September 12, 2026.
 
-Live verification incomplete: SOLANA_RPC_URL is absent and no suitable public test authority was supplied. No successful mainnet snapshot was claimed. Boundary/normalization/loader tests exercise fixtures and mocked RPC responses. They are not a mainnet integration test.
+Buffer uses the official `@drift-labs/sdk` **2.161.0-beta.5**, with Anchor **0.29**, web3.js **1.98.0**, and spl-token **0.4.13**. Local Node is **24.16.0**; hosting uses Node **24.x**. The installed source and typings are authoritative for this pinned implementation.
 
-Read path: validate canonical address and explicit u16 subaccount -> verify configured RPC genesis is mainnet-beta -> derive the fixed Drift User PDA -> check program owner and decoded authority/subaccount -> collect *all* active perp/spot/order references (including zero-base perp state) -> decode those market accounts and collect each perp's quote-market reference -> load required markets, protocol state and oracles through a request-owned manual loader -> reread selected account -> verify final coverage -> normalize BN amounts and calculate supported current metrics with User methods. Changed/new market references in the final selected account cause unavailable baseline metrics instead of partial account values.
+## Mainnet evidence and SDK compatibility
 
-SDK signatures verified: getUserAccountsForAuthority(PublicKey): Promise<UserAccount[]>; createUser(subaccount, subscriptionConfig, authority?): User; getPerpMarketAccount/getSpotMarketAccount(index); getOracleDataForPerpMarket(index); fetchAccounts(); getUserAccountAndSlot(). Manual BulkAccountLoader polling frequency 0 does not start an interval. The stock loader catches some RPC errors and logs raw responses, so SnapshotAccountLoader overrides load with public getMultipleAccountsInfoAndContext, explicit program ownership checks, propagated failure, and fresh read slots even when bytes have not changed. Clients/users/listeners/loader maps are disposed in finally; transport is cancelled with an 18-second AbortController deadline. No persistent websocket or keypair/signing is used. Every wallet signing method throws. SDK imports are behind server-only drift provider/Node API routes.
+The deployed `/api/accounts` and `/api/snapshot` endpoints both returned **HTTP 200** for public authority `7WigdYd1qdbPofUKhzbvtVPYdo8wAUEZMWBZp8MtyAb`. Discovery returned **Main Account**, subaccount `0`, with User account `9P7Y41yQPacZtcsyKzBBT2FZmQe6RDxn7AQBMxZXoYz7`. The snapshot retrieved at **2026-09-11T17:39:43.278Z** decoded **+1 SOL-PERP**, **31.732475 USDC debt**, and **0.855627563 SOL collateral**. Account read slot was **446215843** and observed RPC slot was **446215844**. The external oracle publication slot was **410366404**, outside Buffer's freshness limit; price, affected scenario values, and baseline metrics were correctly withheld.
 
-Only server SOLANA_RPC_URL is accepted. No browser RPC/program overrides. Per-process cap is 60 reads/minute and 4 concurrent reads; no stored wallet cache. The endpoint is never returned or logged by app code. Unknown errors are translated to safe structured API errors. Production RPC should permit filtered getProgramAccounts for discovery.
+An earlier local SDK read of the same authority/subaccount also succeeded at account/observed slot **446213278**. The deployed check independently verifies the hosted provider and its server dependencies.
 
-Baseline semantics (installed User source): getNetUsdValue() = net spot USD value + getUnrealizedPNL(true) + total isolated position deposit USD value. getUnrealizedPNL(true) is current unrealized perp P&L including accrued funding, converted through each quote spot oracle into USD; QUOTE_PRECISION normalizes its return value. Neither is a hypothetical result. getHealth() is SDK maintenance cross-margin health [0,100]; Buffer withholds it when isolated positions exist to avoid describing those positions with a cross-margin score. LP exposure, nondefault pools, unknown/nonlinear/inactive markets, missing quote identity, missing required markets and invalid oracle data withhold baseline metrics. Spot balances use getTokenAmount plus market decimal precision, including an explicit isolated quote-collateral inventory row when present.
+This verifies actual mainnet acquisition, decoding, identity checks, and stale-data handling. It does not verify a fresh-oracle live scenario or imply that the account remains unchanged. The public account was read only; no owner credentials or transaction permissions were used.
 
-Scenario identity: SOL/BTC/ETH are resolved from MainnetPerpMarkets then checked against decoded market index/PDA/name, oracle pubkey and source. Quote identities come from market.quoteSpotMarketIndex, matched MainnetSpotMarkets name and mint. Raw prices normalize through PRICE_PRECISION and base sizes through BASE_PRECISION. Values stay BN/80-digit Decimal strings; no large raw integer float conversion. Distinct verified quote identities remain distinct strings/totals. Ordinary other markets remain in baseline coverage but are excluded from the scenario.
+Seven raw public State, SpotMarket, and PerpMarket buffers captured at observed slot **446212035** are preserved in [the decoder fixtures](../tests/fixtures/drift-mainnet/README.md). One compatibility test decodes all seven. They are layout fixtures, not live price evidence. The selected SDK also decoded the actual User account during the live check.
 
-Oracle policy: external perps pass SDK isOracleValid (documented as the AMM-only-fill validity helper, used here conservatively); zero/negative/missing/insufficient/future prices fail first. Added app maximum oracle lag is 150 observed slots. Spot valuation checks protocol margin staleness and volatility plus a conservative 1% app confidence cap. Fixed quoteAsset oracle has slot 0 and is explicitly exempted from the lag requirement. SDK MM valuation oracle is separately checked before baseline metrics. Snapshot expires 120 seconds after completion and UI stops calculation until refresh. These app freshness rules are not liquidation criteria. Separate account, market, oracle and current-slot reads are explicitly not atomic; actual User read slot, observed latest slot and perp oracle data/read slots are preserved separately.
+SDK `2.163.0-beta.13` was unsuitable for canonical Drift: its bundled Velocity IDL could not decode the 776-byte SpotMarket layout. The application therefore pins `2.161.0-beta.5`. Future upgrades must pass the binary-layout fixtures and repeat an actual mainnet read; a newer version number alone is not sufficient validation.
 
-Network verification uses full mainnet-beta genesis hash 5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d, checked against the official Solana source:
-https://github.com/solana-labs/solana/blob/master/sdk/src/genesis_config.rs
-https://solana.com/docs/rpc/http/getgenesishash
+## Acquisition flow
 
-Official Drift references inspected:
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/package.json
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/driftClient.ts
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/user.ts
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/accounts/bulkAccountLoader.ts
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/math/oracles.ts
-https://raw.githubusercontent.com/drift-labs/protocol-v2/master/sdk/src/constants/numericConstants.ts
+1. Validate the canonical authority, explicit unsigned 16-bit subaccount ID, and allowed query parameters.
+2. Verify the configured endpoint's full mainnet-beta genesis hash: `5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d`.
+3. Derive the canonical Drift User PDA and verify account owner, decoded authority, and subaccount ID.
+4. Collect all active perp, spot, and order references, including zero-base residual perp state. Load each perp's quote-market reference.
+5. Read protocol state, required markets, and oracles through a request-owned manual loader, then reread the selected account.
+6. Gate baseline metrics on complete final coverage and normalize values into decimal strings. New or changed market references cause unavailable metrics instead of partially valued baselines.
 
-Tests: provider.test.ts covers address/u16 validation, prohibited RPC query controls, no accounts, authority/subaccount mismatch, unconfigured server, error redaction, debt/spot/order/full baseline coverage, zero-base/LP/isolated cases, oracle validity and missing SDK valuation data, verified market identity, large BN normalization, strict loader propagation, cleanup, and unchanged-byte read slots. All 19 tests passed, including isolated quote-collateral and zero-base isolated residual-state regressions added after reviewer feedback.
+`src/server/drift.ts` owns acquisition and cleanup; `src/server/normalize.ts` owns coverage and values; `src/server/boundary.ts` owns request validation and limits. Node API routes are `/api/accounts`, `/api/snapshot`, and `/api/config`.
+
+The integration uses `getUserAccountsForAuthority`, `createUser`, market/oracle accessors, `fetchAccounts`, and `getUserAccountAndSlot` from the installed SDK. `SnapshotAccountLoader` extends `BulkAccountLoader` with manual `getMultipleAccountsInfoAndContext` reads. It propagates transport errors, verifies program ownership, and updates read slots even when bytes are unchanged. Polling frequency is zero; there is no recurring timer or persistent websocket. Clients, users, listeners, and loader maps are disposed in `finally`.
+
+## Baseline metrics
+
+| Metric | SDK meaning and Buffer handling |
+| --- | --- |
+| Account net USD value | `getNetUsdValue()`: net spot USD value, unrealized perp P&L including accrued funding, and isolated-position deposits. |
+| Unrealized perp P&L | `getUnrealizedPNL(true)`: current perp P&L including accrued funding, converted through the quote spot oracle into USD. |
+| Health | `getHealth()`: maintenance cross-margin health from 0 to 100. Withheld when isolated positions exist. |
+
+These are current baseline values, never hypothetical scenario results. Returned quote amounts normalize with `QUOTE_PRECISION`. LP exposure, nondefault pools, unknown/nonlinear/inactive markets, missing quote identity, missing required state, and invalid valuation oracles withhold baseline metrics. Spot amounts use `getTokenAmount` and market decimals. Isolated quote collateral receives its own labeled inventory row, including residual state with zero base size.
+
+## Scenario identity and precision
+
+SOL, BTC, and ETH eligibility comes from pinned `MainnetPerpMarkets` plus decoded market index/PDA/name, oracle public key, and oracle source. Quote identity follows `quoteSpotMarketIndex` and matches the pinned spot name and mint. Supported current ordinary markets can contribute to baseline coverage while remaining excluded from the restricted scenario.
+
+Raw sizes and prices normalize through exported `BASE_PRECISION` and `PRICE_PRECISION`. BN integers are converted directly to decimal strings, never first to floating-point numbers. The decimal calculation retains sufficient precision for multiplication; display formatting alone rounds values. Different verified quote currencies are never added into an unlabeled mixed total.
+
+## Oracle and snapshot policy
+
+- Reject missing, nonpositive, insufficient-data, future, or older-than-150-slot external oracle observations.
+- Apply the SDK's `isOracleValid` AMM validity helper to perps as a conservative read check.
+- Apply protocol margin staleness and volatility checks to spot valuation, plus Buffer's 1% confidence cap. The fixed `quoteAsset` oracle explicitly uses slot zero and is exempt from lag checks.
+- Validate the SDK's MM valuation oracle separately before using baseline methods.
+- Expire live snapshots 120 seconds after retrieval, or at an earlier explicit expiry. A stale or failed-refresh snapshot cannot produce a new scenario total.
+
+These are application read/freshness rules, not liquidation criteria. Separate account, market, and oracle reads are not an atomic same-slot snapshot. User read slot, observed RPC slot, and oracle publication/read slots remain separate in the normalized data and exported report.
+
+## Transport and deployment
+
+Only server-side `SOLANA_RPC_URL` configures the RPC. The browser cannot supply an endpoint or program override. Discovery needs filtered `getProgramAccounts`; other methods are listed in [deployment documentation](DEPLOYMENT.md).
+
+Requests abort after 18 seconds; RPC routes allow 30 seconds of function execution. Each process permits 60 reads/minute and four concurrent reads. No wallet-address cache is retained. Provider URLs and raw exceptions are not returned to the browser. Errors are structured and never cause a fallback to sample data. All wallet signing methods throw; there is no transaction path.
+
+The deployed initial RPC is Solana's shared mainnet endpoint, which does not provide application-specific capacity. The deployed account and snapshot endpoints have passed actual mainnet reads. A dedicated endpoint is the remaining capacity improvement before sustained traffic. Process-local limits also need a shared hosting/ingress limit when scaled across instances.
+
+## Tests and references
+
+`tests/provider.test.ts` covers address/u16 boundaries, unsupported query controls, missing accounts, ownership and subaccount mismatch, redacted failures, coverage, collateral/debt/orders, zero-base and isolated cases, oracle validity, market identity, BN normalization, loader propagation/cleanup/read slots, and the seven canonical account buffers. See [verification](VERIFICATION.md) for executed results.
+
+- [Pinned SDK package](https://www.npmjs.com/package/@drift-labs/sdk/v/2.161.0-beta.5)
+- [Official Drift client source](https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/driftClient.ts)
+- [Official User metric source](https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/user.ts)
+- [Official account-loader source](https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/accounts/bulkAccountLoader.ts)
+- [Official oracle helpers](https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/math/oracles.ts)
+- [Official precision constants](https://github.com/drift-labs/protocol-v2/blob/master/sdk/src/constants/numericConstants.ts)
+- [Solana genesis-hash RPC reference](https://solana.com/docs/rpc/http/getgenesishash)
+
+Master-branch references can change. They explain the integration, while the installed pinned package and captured compatibility fixtures define this release's tested behavior.

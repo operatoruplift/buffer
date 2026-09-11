@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#315fe8">
+  <meta name="robots" content="noindex">
+  <title>Buffer — Offline sample</title>
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172332; background: #f7f8fa; font-synthesis: none; font-variant-numeric: tabular-nums; }
+    * { box-sizing: border-box; } body { margin: 0; font-size: 14px; line-height: 1.6; } a { color: #315fe8; } button, input { font: inherit; } button, summary { cursor: pointer; } button:disabled { cursor: default; opacity: .45; } a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #7b9af4; outline-offset: 4px; }
+    header { background: #fff; border-bottom: 1px solid #dde3ea; } .header-inner { max-width: 1024px; min-height: 80px; margin: auto; padding: 18px 24px; display: flex; gap: 16px; justify-content: space-between; align-items: center; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 25px; letter-spacing: -1px; font-weight: 550; color: #172332; text-decoration: none; } .brand svg { color: #315fe8; } .badge { background: #fff6e6; color: #865b13; border: 1px solid #ebd9b4; border-radius: 99px; padding: 5px 11px; font-size: 11px; white-space: nowrap; }
+    main { max-width: 1024px; margin: auto; padding: 48px max(24px, env(safe-area-inset-right)) 48px max(24px, env(safe-area-inset-left)); } h1 { font-weight: 550; font-size: clamp(30px, 6vw, 44px); letter-spacing: -1.8px; line-height: 1.16; margin: 0 0 14px; max-width: 700px; } h2 { font-size: 17px; letter-spacing: -.4px; font-weight: 600; margin: 0; } p { margin: 0; } .intro { max-width: 640px; color: #5b6878; } .notice { margin: 25px 0; color: #79571c; background: #fff9ed; border: 1px solid #e8dab9; border-radius: 12px; padding: 16px 20px; font-size: 12px; }
+    .grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: start; } .card { border: 1px solid #dde3ea; border-radius: 14px; background: #fff; overflow: hidden; } .card-head { padding: 22px 24px; border-bottom: 1px solid #e8edf2; } .eyebrow { color: #647185; font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; font-weight: 650; margin-bottom: 8px; } .card-body { padding: 24px; } .table-wrap { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 12px; } th, td { text-align: right; padding: 16px 0; border-bottom: 1px solid #edf0f4; } th { font-size: 10px; color: #68768a; font-weight: 550; } th:first-child, td:first-child { text-align: left; } tr:last-child td { border-bottom: 0; } td span { display: block; font-size: 10px; color: #68768a; }
+    .small { font-size: 11px; color: #68768a; line-height: 1.65; } .slider-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 16px; } .move { font-size: 30px; letter-spacing: -1px; font-weight: 550; } .controls { display: flex; align-items: center; gap: 12px; } input[type=range] { width: 100%; min-width: 0; min-height: 44px; accent-color: #315fe8; } .step { flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #d9e0eb; background: #fff; border-radius: 9px; font-size: 24px; } .scale { display: flex; justify-content: space-between; font-size: 10px; color: #718096; padding: 0 55px; } .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; } .presets button { border: 1px solid #d9e0eb; border-radius: 7px; background: #f7f8fa; padding: 8px 13px; min-height: 44px; font-size: 12px; } .presets button[aria-pressed=true] { border-color: #315fe8; color: #254dca; background: #edf2ff; }
+    .result { padding: 24px; background: #f4f7ff; border-top: 1px solid #e0e7f8; } .total { display: block; margin: 8px 0 4px; font-size: clamp(28px, 5vw, 40px); letter-spacing: -1.3px; line-height: 1.2; font-weight: 550; color: #172332; } .total[data-direction=positive] { color: #12796c; } .total[data-direction=negative] { color: #b74448; } .contributions { margin-top: 20px; display: grid; gap: 8px; font-size: 12px; } .contributions div { display: flex; justify-content: space-between; gap: 12px; } details { margin-top: 24px; padding: 18px 22px; border: 1px solid #dde3ea; border-radius: 12px; background: #fff; } summary { padding: 4px 0; min-height: 32px; font-size: 13px; font-weight: 550; } details p { margin-top: 12px; font-size: 12px; color: #5b6878; } code { font-size: 11px; white-space: normal; }
+    .footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 28px; padding-bottom: env(safe-area-inset-bottom); } .return { padding: 12px 18px; background: #315fe8; color: #fff; text-decoration: none; border-radius: 9px; white-space: nowrap; font-weight: 550; font-size: 12px; } .return:hover { background: #254dca; } .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } main { padding-top: 32px; } .card-head, .card-body, .result { padding: 20px; } .header-inner { padding: 16px 20px; } .footer { align-items: flex-start; flex-direction: column; } .badge { font-size: 10px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <header><div class="header-inner"><a href="/app" class="brand" aria-label="Buffer workspace"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 8v10a10 10 0 0 0 20 0V8M16 5v8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Buffer</a><span class="badge">Offline sample · fixed data</span></div></header>
+  <main>
+    <p class="eyebrow">Room to understand</p><h1>A little clarity.<br>Even without a connection.</h1>
+    <p class="intro">Explore a fixed example of a SOL long and a BTC short. Move both prices together and see how each position contributes.</p>
+    <p class="notice"><strong>This is a deterministic sample, not your account.</strong> No wallet, live prices, account metrics, or saved reports are loaded. Live reads and cloud saves require an internet connection.</p>
+    <div class="grid">
+      <section class="card" aria-labelledby="positions-title"><div class="card-head"><p class="eyebrow">Long + short</p><h2 id="positions-title">Two positions. One scenario.</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th scope="col">Market</th><th scope="col">Signed size</th><th scope="col">Fixed price</th></tr></thead><tbody><tr><td><strong>SOL-PERP</strong><span>Long</span></td><td>+100 SOL</td><td>150 USDC</td></tr><tr><td><strong>BTC-PERP</strong><span>Short</span></td><td>−0.5 BTC</td><td>100,000 USDC</td></tr></tbody></table></div><p class="small" style="margin-top:16px">Built-in fixture dated September 11, 2026. Prices and sizes are illustrative and never refresh on this page.</p></div></section>
+      <section class="card" aria-labelledby="scenario-title"><div class="card-head"><p class="eyebrow">What if?</p><h2 id="scenario-title">Explore a shared price move</h2></div><div class="card-body"><div class="slider-head"><label for="price-move">Shared price move</label><output id="move-label" class="move" for="price-move">0%</output></div><div class="controls"><button type="button" class="step" id="decrease" aria-label="Decrease price move">−</button><input id="price-move" type="range" min="-20" max="20" step="1" value="0" aria-describedby="slider-description"><button type="button" class="step" id="increase" aria-label="Increase price move">+</button></div><div class="scale" aria-hidden="true"><span>−20%</span><span>0%</span><span>+20%</span></div><p id="slider-description" class="sr-only">Moves both fixed market prices from minus twenty to plus twenty percent, one percent per step.</p><div class="presets" aria-label="Price move presets"><button type="button" data-move="-10" aria-pressed="false">−10%</button><button type="button" data-move="-5" aria-pressed="false">−5%</button><button type="button" data-move="5" aria-pressed="false">+5%</button><button type="button" data-move="10" aria-pressed="false">+10%</button><button type="button" id="reset">Reset</button></div></div><div class="result"><p class="eyebrow">Modeled incremental P&amp;L</p><output id="scenario-total" class="total" data-direction="neutral" aria-live="polite">0.00 USDC</output><p class="small">Price-only change across these two sample positions.</p><div class="contributions"><div><span>SOL-PERP · long</span><output id="sol-delta">0.00 USDC</output></div><div><span>BTC-PERP · short</span><output id="btc-delta">0.00 USDC</output></div></div></div></section>
+    </div>
+    <details><summary>How this sample works</summary><p><code>Incremental P&amp;L = signed size × fixed price × (price move ÷ 100)</code></p><p>A −10% move produces −1,500 USDC for the SOL long and +5,000 USDC for the BTC short, totaling +3,500 USDC. A +10% move reverses those signs.</p><p>Both prices move by the same percentage. Size stays fixed. This excludes funding, fees, slippage, orders, collateral price changes, debt, margin changes and liquidation. It is not a forecast, account valuation, or liquidation estimate.</p></details>
+    <div class="footer"><p class="small" id="connection-status" role="status">The offline sample is available. Reconnect to read accounts and use saved reports.</p><a class="return" href="/app">Return to the app <span aria-hidden="true">→</span></a></div>
+    <noscript><p class="notice">Turn on JavaScript to use the scenario slider. At a −10% move, this fixed example changes by +3,500 USDC.</p></noscript>
+  </main>
+  <script>
+    (() => {
+      const slider = document.getElementById('price-move');
+      const decrease = document.getElementById('decrease');
+      const increase = document.getElementById('increase');
+      const reset = document.getElementById('reset');
+      const presets = document.querySelectorAll('[data-move]');
+      const format = (value) => (value > 0 ? '+' : value < 0 ? '−' : '') + Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDC';
+      function render(raw) {
+        const number = Number(raw);
+        const move = Number.isFinite(number) ? Math.max(-20, Math.min(20, Math.round(number))) : 0;
+        slider.value = String(move);
+        document.getElementById('move-label').value = (move > 0 ? '+' : move < 0 ? '−' : '') + Math.abs(move) + '%';
+        slider.setAttribute('aria-valuetext', (move > 0 ? 'plus ' : move < 0 ? 'minus ' : '') + Math.abs(move) + ' percent');
+        // These fixture coefficients are exact integers: 100×150÷100 and −0.5×100000÷100.
+        const sol = 150 * move;
+        const btc = -500 * move;
+        const total = document.getElementById('scenario-total');
+        total.value = format(sol + btc);
+        total.dataset.direction = sol + btc > 0 ? 'positive' : sol + btc < 0 ? 'negative' : 'neutral';
+        document.getElementById('sol-delta').value = format(sol);
+        document.getElementById('btc-delta').value = format(btc);
+        decrease.disabled = move === -20;
+        increase.disabled = move === 20;
+        reset.disabled = move === 0;
+        presets.forEach((button) => button.setAttribute('aria-pressed', String(Number(button.dataset.move) === move)));
+      }
+      slider.addEventListener('input', () => render(slider.value));
+      decrease.addEventListener('click', () => render(Number(slider.value) - 1));
+      increase.addEventListener('click', () => render(Number(slider.value) + 1));
+      reset.addEventListener('click', () => render(0));
+      presets.forEach((button) => button.addEventListener('click', () => render(button.dataset.move)));
+      function connection() {
+        document.getElementById('connection-status').textContent = navigator.onLine
+          ? 'Your browser reports a connection. Return to the app to try a fresh account read.'
+          : 'You are offline. This fixed sample works; live reads and saved reports need a connection.';
+      }
+      window.addEventListener('online', connection);
+      window.addEventListener('offline', connection);
+      render(0);
+      connection();
+    })();
+  </script>
+</body>
+</html>

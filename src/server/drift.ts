@@ -1,7 +1,7 @@
 import 'server-only';
 import { Connection, PublicKey } from '@solana/web3.js';
 import {
-  BulkAccountLoader, DriftClient, DelistedMarketSetting, DRIFT_PROGRAM_ID,
+  BulkAccountLoader, DriftClient, DelistedMarketSetting, DRIFT_PROGRAM_ID, PollingDriftClientAccountSubscriber,
   getUserAccountPublicKeySync, getPerpMarketPublicKeySync, getSpotMarketPublicKeySync,
   type UserAccount, type PerpMarketAccount, type SpotMarketAccount, type User,
   type OracleInfo, type IWallet, type DataAndSlot, type OraclePriceData,
@@ -52,15 +52,24 @@ interface Scope {
   authority: PublicKey;
 }
 
+/** Fail closed if a future SDK changes the program or subscriber binding. */
+export function bindCanonicalDriftProgram(client: DriftClient): void {
+  if (!(client.accountSubscriber instanceof PollingDriftClientAccountSubscriber)) {
+    throw new ProviderFailure('INVALID_CONFIGURATION', 'The read-only account subscriber is unavailable.', 503, false);
+  }
+  if (!client.program.programId.equals(PROGRAM) || client.accountSubscriber.program !== client.program) throw new ProviderFailure('INVALID_CONFIGURATION', 'The Drift program could not be verified.', 503, false);
+}
+
 function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as number[] }, oracleInfos: OracleInfo[] = []): DriftClient {
   const wallet: IWallet = {
     publicKey: scope.authority,
     async signTransaction() { throw new Error('Buffer is read-only.'); },
     async signAllTransactions() { throw new Error('Buffer is read-only.'); },
   };
-  const client = new DriftClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta',
+  const client = new DriftClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta', programID: PROGRAM,
     skipLoadUsers: true, userStats: false, perpMarketIndexes: markets.perp, spotMarketIndexes: markets.spot, oracleInfos,
     accountSubscription: { type: 'polling', accountLoader: scope.loader }, delistedMarketSetting: DelistedMarketSetting.Subscribe });
+  bindCanonicalDriftProgram(client);
   // Request-owned listener: never allow SDK error events to become uncaught errors.
   client.eventEmitter.on('error', () => { /* All fetch failures propagate through the strict loader. */ });
   scope.clients.push(client);

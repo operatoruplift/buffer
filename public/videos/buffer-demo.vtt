@@ -1,0 +1,64 @@
+WEBVTT
+
+00:00:00.350 --> 00:00:05.265
+Meet Buffer, a read only explorer for Drift perpetual positions on Solana.
+
+00:00:05.265 --> 00:00:10.180
+This walkthrough uses a deterministic sample. Every balance and price you see
+
+00:00:10.180 --> 00:00:11.408
+here is illustrative.
+
+00:00:12.308 --> 00:00:16.779
+The long and short sample holds one hundred SOL long, and half
+
+00:00:16.779 --> 00:00:21.249
+a Bitcoin short. Choose a shared ten percent price decline to explore
+
+00:00:21.249 --> 00:00:22.367
+both positions together.
+
+00:00:23.267 --> 00:00:27.998
+The SOL position loses fifteen hundred U S D C. The Bitcoin
+
+00:00:27.998 --> 00:00:32.729
+short gains five thousand. Together, that is thirty five hundred of incremental
+
+00:00:32.729 --> 00:00:34.700
+perpetual price profit and loss.
+
+00:00:35.600 --> 00:00:40.954
+Switch to partial coverage. Buffer keeps the excluded contract, collateral, debt, and
+
+00:00:40.954 --> 00:00:46.308
+open orders visible. The modeled result never pretends to include everything in
+
+00:00:46.308 --> 00:00:47.200
+the account.
+
+00:00:48.100 --> 00:00:53.959
+Open Method to inspect the calculation and its limits. Position sizes stay
+
+00:00:53.959 --> 00:00:59.819
+fixed. Funding, fees, fills, collateral changes, and liquidation effects are outside this
+
+00:00:59.819 --> 00:01:01.283
+simple price model.
+
+00:01:02.183 --> 00:01:08.306
+Download a JSON report with the sample source, scenario inputs, position contributions,
+
+00:01:08.306 --> 00:01:14.429
+exclusions, and assumptions. It is a reproducible explanation of this specific modeled
+
+00:01:14.429 --> 00:01:15.450
+price move.
+
+00:01:16.350 --> 00:01:20.723
+The same explorer adapts to a smaller screen. Change the price move
+
+00:01:20.723 --> 00:01:25.097
+and review the result. Start with a sample, then explore a public
+
+00:01:25.097 --> 00:01:27.283
+account when live reads are configured.

@@ -10,7 +10,7 @@ export default defineConfig({
   expect: { timeout: 8_000 },
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:3001',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3001',
     browserName: 'chromium',
     reducedMotion: 'reduce',
     trace: 'retain-on-failure',
@@ -22,7 +22,7 @@ export default defineConfig({
     { name: 'desktop', use: { viewport: { width: 1280, height: 1000 } } },
     { name: 'mobile', use: { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true } },
   ],
-  webServer: {
+  webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {
     command: 'npm run dev -- --port 3001',
     url: 'http://127.0.0.1:3001',
     reuseExistingServer: true,

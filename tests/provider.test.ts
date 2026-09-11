@@ -1,18 +1,45 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFileSync, readdirSync } from 'node:fs';
 vi.mock('server-only', () => ({}));
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';
 import {
   BN, BASE_PRECISION, PRICE_PRECISION, QUOTE_PRECISION, SPOT_MARKET_BALANCE_PRECISION,
   SPOT_MARKET_CUMULATIVE_INTEREST_PRECISION, MainnetPerpMarkets, MainnetSpotMarkets,
   type PerpPosition, type SpotPosition, type UserAccount, type PerpMarketAccount,
-  type SpotMarketAccount, type StateAccount, type Order,
+  type SpotMarketAccount, type StateAccount, type Order, DriftClient, DRIFT_PROGRAM_ID, PollingDriftClientAccountSubscriber, getPerpMarketPublicKeySync, getSpotMarketPublicKeySync,
 } from '@drift-labs/sdk';
 import { ProviderFailure, serveRead, validateAuthority, validateSubaccount, type LiveProvider } from '../src/server/boundary';
 import { baselineCoverageIssues, normalizeRaw, normalizeSnapshot, observeOracle, requiredMarkets, type ReadData } from '../src/server/normalize';
-import { liveProvider, requireSelectedAccount, SnapshotAccountLoader } from '../src/server/drift';
-import type { Connection } from '@solana/web3.js';
+import { liveProvider, requireSelectedAccount, SnapshotAccountLoader, bindCanonicalDriftProgram } from '../src/server/drift';
 
 const authority = '11111111111111111111111111111111';
+it('binds actual SDK reads and subscriptions to the canonical Drift deployment with matching coder names', async () => {
+  const connection = new Connection('http://127.0.0.1:1');
+  const wallet = { publicKey: new PublicKey(authority), async signTransaction<T>(): Promise<T> { throw new Error('Read only'); }, async signAllTransactions<T>(): Promise<T[]> { throw new Error('Read only'); } };
+  const loader = new SnapshotAccountLoader(connection, new Set());
+  const client = new DriftClient({ connection, wallet, env: 'mainnet-beta', skipLoadUsers: true, userStats: false, perpMarketIndexes: [], spotMarketIndexes: [], accountSubscription: { type: 'polling', accountLoader: loader } });
+  bindCanonicalDriftProgram(client);
+  expect(client.program.programId.toBase58()).toBe(DRIFT_PROGRAM_ID);
+  expect(client.accountSubscriber).toBeInstanceOf(PollingDriftClientAccountSubscriber);
+  expect((client.accountSubscriber as PollingDriftClientAccountSubscriber).program).toBe(client.program);
+  for (const name of ['User', 'PerpMarket', 'SpotMarket', 'State']) expect(client.program.idl.accounts?.some(account => account.name === name)).toBe(true);
+  expect((await client.getStatePublicKey()).toBase58()).toBe(PublicKey.findProgramAddressSync([Buffer.from('drift_state')], new PublicKey(DRIFT_PROGRAM_ID))[0].toBase58());
+  const fixtures = new URL('./fixtures/drift-mainnet/', import.meta.url);
+  for (const file of readdirSync(fixtures).filter(name => name.endsWith('.bin'))) {
+    const [kind, address] = file.slice(0, -4).split('-');
+    const data = readFileSync(new URL(file, fixtures));
+    if (kind === 'State') {
+      const state = client.program.coder.accounts.decode<StateAccount>('State', data);
+      expect(state.numberOfMarkets, file).toBeGreaterThan(0);
+    } else {
+      const market = client.program.coder.accounts.decode<PerpMarketAccount | SpotMarketAccount>(kind, data);
+      expect(market.pubkey.toBase58(), file).toBe(address);
+      const derived = kind === 'PerpMarket' ? getPerpMarketPublicKeySync(client.program.programId, market.marketIndex) : getSpotMarketPublicKeySync(client.program.programId, market.marketIndex);
+      expect(derived.toBase58(), file).toBe(address);
+    }
+  }
+  loader.dispose();
+});
 const zero = () => new BN(0);
 const encoded = (value: string) => [...Buffer.from(value.padEnd(32, '\0'))];
 function perpPosition(marketIndex = 0, quantity = '100'): PerpPosition {

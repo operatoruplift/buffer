@@ -1,0 +1,173 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { Icon, Mark } from "@/components/Icons";
+import { formatDecimal } from "@/lib/format";
+import { getSampleSnapshot } from "@/lib/samples";
+import { calculateScenario } from "@/lib/scenario";
+import "@/app/landing.css";
+
+const demoSnapshot = getSampleSnapshot("long-short");
+
+// MediaQueryList subscription adapted from World IDKit's MIT-licensed useMedia.
+// Uses useSyncExternalStore for a consistent server render. See docs/DESIGN.md.
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+function subscribeToMotionPreference(onChange: () => void) {
+  const media = window.matchMedia(reducedMotionQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+const motionPreference = () => window.matchMedia(reducedMotionQuery).matches;
+const serverMotionPreference = () => true;
+
+function Brand({ large = false }: { large?: boolean }) {
+  return (
+    <span className={`buffer-brand${large ? " buffer-brand-large" : ""}`}>
+      <Mark size={large ? 92 : 33} />
+      <span>Buffer</span>
+    </span>
+  );
+}
+
+function ArrowLink({ href, children, secondary = false }: {
+  href: string;
+  children: ReactNode;
+  secondary?: boolean;
+}) {
+  return <Link className={`buffer-cta${secondary ? " buffer-cta-secondary" : ""}`} href={href}>
+    {children}<span><Icon name="arrow" size={18} /></span>
+  </Link>;
+}
+
+function ScenarioPreview() {
+  const [shock, setShock] = useState(-10);
+  const scenario = calculateScenario(demoSnapshot, shock);
+  const total = scenario.totals[0];
+  return (
+    <div className="buffer-preview" aria-label="Interactive sample scenario">
+      <div className="buffer-preview-top">
+        <span className="buffer-preview-title"><Mark size={23} /> Scenario explorer</span>
+        <span className="buffer-sample-badge">SAMPLE</span>
+      </div>
+      <div className="buffer-preview-result">
+        <div className="buffer-preview-label">Perp price P&amp;L change</div>
+        <div className="buffer-preview-value" aria-live="polite" aria-atomic="true">
+          {formatDecimal(total.delta, 2, true)}<span>{total.quote}</span>
+        </div>
+        <p>Same move. Two different sides.</p>
+      </div>
+      <div className="buffer-preview-controls">
+        <div className="buffer-preview-control-label">
+          <label htmlFor="landing-shock">What if prices move…</label>
+          <output htmlFor="landing-shock">{shock > 0 ? "+" : ""}{shock}%</output>
+        </div>
+        <input id="landing-shock" type="range" min={-20} max={20} step={1} value={shock}
+          aria-valuetext={`${shock > 0 ? "+" : ""}${shock} percent price move`}
+          style={{ "--range-position": `${((shock + 20) / 40) * 100}%` } as CSSProperties}
+          onChange={(event) => setShock(Number(event.target.value))} />
+        <div className="buffer-preview-range-labels"><span>−20%</span><span>0%</span><span>+20%</span></div>
+        <div className="buffer-preview-presets" aria-label="Sample price moves">
+          {[-20, -10, 0, 10, 20].map((value) => <button key={value} type="button"
+            aria-pressed={shock === value} onClick={() => setShock(value)}>
+            {value > 0 ? "+" : ""}{value}%
+          </button>)}
+        </div>
+      </div>
+      <div className="buffer-preview-positions">
+        {scenario.included.map((position, index) => (
+          <div className="buffer-preview-position" key={position.id}>
+            <span className="buffer-position-index">0{index + 1}</span>
+            <span><strong>{position.market}</strong><small>{index === 0 ? "Long · 100 SOL at $150" : "Short · 0.5 BTC at $100,000"}</small></span>
+            <strong className={position.delta.startsWith("-") ? "buffer-down" : "buffer-up"}>{formatDecimal(position.delta, 2, true)}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="buffer-preview-note"><Icon name="info" size={14} /><p>Fixed sample prices. Price effect only; excludes funding, fees, collateral changes, and liquidations.</p></div>
+    </div>
+  );
+}
+
+const questions = [
+  ["What does Buffer calculate?", "Buffer models the incremental price P&L of eligible linear perpetual positions. It multiplies each signed position size by its frozen baseline oracle price and your chosen percentage move, then totals contributions with the same quote currency."],
+  ["Do I need a wallet or an account?", "You can explore sample accounts immediately without signing in or connecting a wallet. For a live lookup, enter a public Solana authority address. Optional sign-in lets you save scenarios; it never grants Buffer trading permissions."],
+  ["Is this a liquidation or account-equity forecast?", "No. The result covers the modeled perpetual price effect. It does not recalculate account equity, margin health, or liquidation thresholds. Collateral changes, funding, fees, future fills, and borrowing interest remain outside the model."],
+  ["Which positions are supported?", "The model supports verified SOL, BTC, and ETH linear perpetual markets through the Drift provider. Unsupported contracts, LP exposure, and positions without usable oracle data are excluded with an explanation. The app displays its coverage instead of treating excluded exposure as zero."],
+  ["Are the sample numbers live market prices?", "No. Samples are deterministic fixtures, clearly labeled in the app. Live account lookups use the configured Solana RPC provider, depend on its availability, and show source and freshness information. Live calculations expire after at most two minutes and require a refresh."],
+  ["Can I use Buffer on my phone or desktop?", "Yes. The responsive web app adapts to phones, tablets, and desktop browsers. Where supported, use your browser’s install or Add to Home Screen option for an app window. Live account data and account sync require an internet connection."],
+];
+
+export default function Landing() {
+  const reducedMotion = useSyncExternalStore(subscribeToMotionPreference, motionPreference, serverMotionPreference);
+  const [motionPaused, setMotionPaused] = useState(false);
+  return (
+    <div className="buffer-site" data-motion={reducedMotion || motionPaused ? "paused" : "running"}>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <header className="buffer-nav">
+        <Link href="/" aria-label="Buffer home"><Brand /></Link>
+        <nav className="buffer-nav-links" aria-label="Main navigation">
+          <a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><a href="#install">Get the app</a>
+        </nav>
+        <div className="buffer-nav-actions"><Link className="buffer-signin" href="/auth">Sign in</Link><Link className="buffer-nav-open" href="/app">Open Buffer <Icon name="arrow" size={15} /></Link></div>
+        <details className="buffer-mobile-menu"><summary aria-label="Open navigation"><span /><span /></summary><nav aria-label="Mobile navigation"><a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><a href="#install">Get the app</a><Link href="/auth">Sign in</Link></nav></details>
+      </header>
+
+      <main id="main">
+        <section className="buffer-hero">
+          <div className="buffer-hero-copy">
+            <div className="buffer-kicker"><span /> A clearer view of your perps</div>
+            <h1>Every move.<br />A little more<br /><em>perspective.</em></h1>
+            <p>Explore what a price move could mean for your perpetual positions. One clear scenario, with the math in plain sight.</p>
+            <div className="buffer-hero-actions"><ArrowLink href="/app">Explore a sample</ArrowLink><a className="buffer-text-link" href="#method">See how it works <Icon name="arrow" size={16} /></a></div>
+            <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
+          </div>
+          <div className="buffer-hero-stage">
+            <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
+            <div className="buffer-stage-caption"><span>LOOK AT THE WHAT-IF.</span><button type="button" disabled={reducedMotion} onClick={() => setMotionPaused(!motionPaused)} aria-pressed={motionPaused || reducedMotion}>{reducedMotion ? "REDUCED MOTION" : motionPaused ? "PLAY MOTION" : "PAUSE MOTION"}</button></div>
+            <ScenarioPreview />
+            <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span><span className="buffer-tiny-cross" aria-hidden="true">+</span></div>
+          </div>
+        </section>
+
+        <div className="buffer-facts" aria-label="Product essentials"><span>Built for curious humans.</span><div><span>Read-only by design</span><span>Transparent calculations</span><span>Drift on Solana</span></div></div>
+
+        <section id="features" className="buffer-section buffer-features">
+          <div className="buffer-section-heading"><span className="buffer-kicker">01 / A little clarity goes a long way</span><h2>A busy account.<br />A clear picture.</h2><p>Positions tell you where you are.<br />A scenario helps you explore what changes.</p></div>
+          <div className="buffer-feature-list">
+            <article><span className="buffer-feature-number">01</span><div><h3>One move. Every included position.</h3><p>Move prices from −20% to +20%. See how long and short positions contribute to the modeled change, individually and together.</p></div><Icon name="sliders" size={23} /></article>
+            <article><span className="buffer-feature-number">02</span><div><h3>Know what’s in the picture.</h3><p>Review included positions, excluded exposure, collateral, debt, and open orders. Coverage and limitations stay beside the result.</p></div><Icon name="info" size={23} /></article>
+            <article><span className="buffer-feature-number">03</span><div><h3>Take the explanation with you.</h3><p>Open the Method panel for assumptions and data provenance. Export a JSON report with the snapshot, scenario, and calculation details.</p></div><Icon name="download" size={23} /></article>
+          </div>
+        </section>
+
+        <section className="buffer-coverage-story" aria-labelledby="coverage-heading">
+          <div className="buffer-coverage-art">
+            <div className="buffer-coverage-card"><div className="buffer-coverage-card-title"><Icon name="check" size={19} /><span>Coverage, made visible.</span></div><div className="buffer-coverage-big">2 <span>of 3 positions modeled</span></div><div className="buffer-coverage-track" aria-hidden="true"><span /><span /><span /></div><div className="buffer-coverage-row"><span>SOL-PERP</span><span>Included</span></div><div className="buffer-coverage-row"><span>BTC-PERP</span><span>Included</span></div><div className="buffer-coverage-row buffer-coverage-excluded"><span>OTHER-PERP</span><span>Unsupported market</span></div><p>Illustrative partial-coverage sample</p></div>
+            <span className="buffer-art-coordinate">SCOPE / ALWAYS VISIBLE</span>
+          </div>
+          <div className="buffer-coverage-copy"><span className="buffer-kicker">The whole story includes the limits</span><h2>Clarity is knowing<br />what’s left out.</h2><p>A precise number is only useful when you know what it means. Buffer keeps the modeled price effect separate from your account’s equity, health, and liquidation risk.</p><a className="buffer-text-link" href="#method">Read the method <Icon name="arrow" size={17} /></a></div>
+        </section>
+
+        <section id="method" className="buffer-section buffer-method">
+          <div className="buffer-method-top"><div><span className="buffer-kicker">02 / From positions to perspective</span><h2>A simple question.<br />An explainable answer.</h2></div><p>Start with a sample or a public address.<br />The account stays yours. The math stays visible.</p></div>
+          <div className="buffer-steps"><article><span>01</span><h3>Choose an account</h3><p>Explore fixed samples or look up a public Drift authority and select a subaccount.</p></article><article><span>02</span><h3>Set the price move</h3><p>Apply one percentage move to eligible perpetual prices. Position quantities stay fixed.</p></article><article><span>03</span><h3>Follow the contribution</h3><p>Read the per-position effect, quote-currency totals, and exclusions. Export the details.</p></article></div>
+          <div className="buffer-formula"><div><span>THE CORE CALCULATION</span><p>Signed size <b>×</b> Baseline price <b>×</b> Price move</p></div><span>=</span><strong>Price P&amp;L change</strong></div>
+          <p className="buffer-method-note">A first-order price scenario, with fixed sizes. Funding, fees, collateral changes, future fills, borrowing interest, and liquidation effects are outside the model.</p>
+        </section>
+
+        <section id="install" className="buffer-install">
+          <div className="buffer-install-copy"><span className="buffer-kicker">03 / A little more room to think</span><h2>Your perspective.<br />Wherever you are.</h2><p>A focused workspace for your phone, tablet, or desktop. Open it in your browser, or install Buffer for a place of its own.</p><ArrowLink href="/app">Open the app</ArrowLink><div className="buffer-install-platforms"><span>Mobile</span><span>Tablet</span><span>Desktop</span></div><details className="buffer-install-help"><summary>How to install Buffer <span>+</span></summary><p>On a supported desktop browser, choose its install-app option. On iPhone or iPad, open Buffer in Safari, tap Share, then Add to Home Screen. On Android, open the browser menu and choose Install app or Add to Home screen. Availability depends on your browser.</p></details></div>
+          <div className="buffer-install-art" aria-hidden="true"><div className="buffer-install-ring ring-one" /><div className="buffer-install-ring ring-two" /><div className="buffer-install-ring ring-three" /><div className="buffer-app-icon"><Mark size={112} /></div><span>BUFFER, WITH YOU.</span></div>
+        </section>
+
+        <section id="privacy" className="buffer-privacy"><div className="buffer-privacy-mark"><Mark size={43} /></div><h2>Curiosity shouldn’t<br />need your keys.</h2><div><p>Buffer never asks for a seed phrase, private key, or trading approval. Public account reads use an RPC provider. Signing in is optional and keeps your saved scenarios tied to your account.</p><Link className="buffer-text-link" href="/auth">Save your perspective <Icon name="arrow" size={17} /></Link></div></section>
+
+        <section id="faq" className="buffer-section buffer-faq"><div><span className="buffer-kicker">A few good questions</span><h2>Before you<br />dive in.</h2><Link className="buffer-text-link" href="/app">Try a sample <Icon name="arrow" size={17} /></Link></div><div className="buffer-faq-list">{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+
+        <section className="buffer-last-call"><span className="buffer-kicker">Make space for understanding.</span><h2>See the move<br />from a new angle.</h2><ArrowLink href="/app">Explore Buffer</ArrowLink></section>
+      </main>
+
+      <footer className="buffer-footer"><div className="buffer-footer-top"><p>A little more perspective<br />on your perpetual positions.</p><nav aria-label="Footer product navigation"><a href="#features">Features</a><a href="#method">Method</a><a href="#install">Get the app</a></nav><nav aria-label="Footer account navigation"><Link href="/app">Open Buffer</Link><Link href="/demo">Watch the demo</Link><Link href="/auth">Sign in / sign up</Link><a href="https://github.com/operatoruplift/buffer" target="_blank" rel="noreferrer">Source on GitHub <Icon name="external" size={11} /></a><a href="#faq">Questions</a></nav></div><Link className="buffer-footer-wordmark" href="/" aria-label="Buffer home"><Brand large /></Link><div className="buffer-footer-bottom"><span>© 2026 Buffer</span><p>Read-only scenario exploration. Not trading advice or a liquidation forecast.</p><a href="#privacy">Privacy by design <Icon name="arrow" size={13} /></a></div></footer>
+    </div>
+  );
+}

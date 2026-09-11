@@ -56,7 +56,7 @@ test.afterEach(async ({ page }) => {
 });
 
 test('complete deterministic sample journey: positions, preset, keyboard slider, Method, JSON, reset, refresh', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app');
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByLabel('Try a sample', { exact: true }).selectOption('sol-long');
@@ -114,7 +114,7 @@ test('complete deterministic sample journey: positions, preset, keyboard slider,
 });
 
 test('partial sample keeps excluded exposure, spot collateral/debt, and orders visible', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app');
   await page.getByLabel('Try a sample', { exact: true }).selectOption('partial-coverage');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
@@ -130,7 +130,7 @@ test('partial sample keeps excluded exposure, spot collateral/debt, and orders v
 });
 
 test('sample layout has responsive positions and result above controls; capture delivery screenshot', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/app');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
   const mobile = testInfo.project.name === 'mobile';
@@ -146,7 +146,7 @@ test('sample layout has responsive positions and result above controls; capture 
 });
 
 test('invalid address has an explicit error and keeps the sample intact', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page, 'invalid address');
   await expect(page.getByRole('alert').filter({ hasText: 'Check the address' })).toContainText('Check the address');
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
@@ -158,7 +158,7 @@ test('mocked live provider error is honest, retryable, and never swaps in fixtur
     reads++;
     return route.fulfill({ status: 503, json: { error: { code: 'RPC_UNAVAILABLE', message: 'Mock RPC unavailable. Retry this read.', retryable: true } } });
   });
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await expect(page.getByRole('alert').filter({ hasText: 'Mock RPC unavailable' })).toContainText('Mock RPC unavailable');
   await expect(page.getByText('Live mode', { exact: true })).toBeVisible();
@@ -170,7 +170,7 @@ test('mocked live provider error is honest, retryable, and never swaps in fixtur
 
 test('mocked no-account response offers a working sample entry', async ({ page }) => {
   await page.route('**/api/accounts?*', route => route.fulfill({ json: { ...discovery(), subaccounts: [] } }));
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await expect(page.getByRole('heading', { name: 'No Drift subaccounts found' })).toBeVisible();
   await page.getByRole('button', { name: 'Explore a sample' }).click();
@@ -182,7 +182,7 @@ test('mocked success requires explicit subaccount selection and refresh resets t
   await mockedDiscovery(page);
   let reads = 0;
   await page.route('**/api/snapshot?*', route => { reads++; return route.fulfill({ json: mockSnapshot() }); });
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await expect(page.getByRole('heading', { name: 'Choose one subaccount' })).toBeVisible();
   expect(reads).toBe(0);
@@ -210,7 +210,7 @@ test('mocked selected subaccount with no positions and incomplete baseline shows
   snapshot.spots = [];
   snapshot.orders = [];
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
   await expect(page.getByRole('heading', { name: 'No open perpetual positions' })).toBeVisible();
@@ -228,7 +228,7 @@ test('mocked failed refresh retains the original snapshot and pauses calculation
   await page.route('**/api/snapshot?*', route => ++reads === 1
     ? route.fulfill({ json: snapshot })
     : route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'Mock refresh failed.', retryable: true } } }));
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
@@ -248,7 +248,7 @@ test('mocked live freshness expiry disables the result without replacing the sna
   await mockedDiscovery(page);
   const snapshot = mockSnapshot();
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
@@ -274,7 +274,7 @@ test('mocked late previous subaccount response cannot overwrite the latest selec
       if (id === '0') finishOld!();
     }
   });
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   const selection = page.getByLabel('Drift subaccount', { exact: true });
   await selection.selectOption('0');
@@ -305,7 +305,7 @@ test('mocked pending old wallet response cannot replace a newly chosen sample', 
       finishOld!();
     }
   });
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page, OTHER_AUTHORITY);
   await expect.poll(() => requested).toBe(true);
   await page.getByLabel('Try a sample', { exact: true }).selectOption('sol-long');
@@ -321,7 +321,7 @@ test('mocked address copy controls and explorer links expose the full selected p
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await mockedDiscovery(page);
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
-  await page.goto('/');
+  await page.goto('/app');
   await readAddress(page);
   await page.getByLabel('Drift subaccount', { exact: true }).selectOption('0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');

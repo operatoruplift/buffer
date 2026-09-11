@@ -1284,7 +1284,12 @@ footer {
     margin-right: 18px;
   }
   .header-inner {
-    height: 68px;
+    min-height: 68px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
   .brand {
     font-size: 24px;
@@ -1295,7 +1300,12 @@ footer {
     display: none;
   }
   .header-actions {
-    gap: 15px;
+    gap: 6px;
+  }
+  .header-actions .button {
+    padding: 7px 8px;
+    gap: 5px;
+    font-size: 11px;
   }
   .mode {
     font-size: 9px;

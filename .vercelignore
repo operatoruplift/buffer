@@ -1,0 +1,9 @@
+/videos/
+e2e/
+screenshots/
+docs/
+examples/
+test-results/
+playwright-report/
+supabase/
+*.tsbuildinfo
