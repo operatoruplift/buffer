@@ -245,4 +245,16 @@ describe('request-owned manual loader', () => {
     expect(callback).toHaveBeenCalledTimes(1);
     loader.dispose();
   });
+  it('ignores a lower-slot wrong-owner response after a verified account', async () => {
+    const newer = { data: Buffer.from('newer'), owner: new PublicKey(DRIFT_PROGRAM_ID) };
+    const older = { data: Buffer.from('older'), owner: PublicKey.default };
+    const callback = vi.fn();
+    const rpc = vi.fn().mockResolvedValueOnce({ context: { slot: 20 }, value: [newer] }).mockResolvedValueOnce({ context: { slot: 19 }, value: [older] });
+    const loader = new SnapshotAccountLoader({ getMultipleAccountsInfoAndContext: rpc } as unknown as Connection, new Set([authority]));
+    await loader.addAccount(new PublicKey(authority), callback);
+    await loader.load(); await expect(loader.load()).resolves.toBeUndefined();
+    expect(loader.getBufferAndSlot(new PublicKey(authority))).toMatchObject({ slot: 20, buffer: newer.data });
+    expect(callback).toHaveBeenCalledTimes(1);
+    loader.dispose();
+  });
 });

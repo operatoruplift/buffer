@@ -33,14 +33,15 @@ export class SnapshotAccountLoader extends BulkAccountLoader {
       this.mostRecentSlot = Math.max(this.mostRecentSlot, result.context.slot);
       result.value.forEach((account, index) => {
         const target = batch[index];
-        if (account && this.programAccounts.has(target.publicKey.toBase58()) && !account.owner.equals(PROGRAM)) {
-          throw new ProviderFailure('INVALID_ACCOUNT', 'The account owner does not match the fixed Drift program.', 502, false);
-        }
         const address = target.publicKey.toBase58();
         const previous = this.bufferAndSlotMap.get(address);
         // Load-balanced RPCs can answer out of order. Keep the newest bytes and
-        // slot together so a late response cannot regress the SDK's view.
+        // slot together so a late response cannot regress the SDK's view or
+        // cause a stale owner check to reject a valid cached account.
         if (previous && result.context.slot < previous.slot) return;
+        if (account && this.programAccounts.has(target.publicKey.toBase58()) && !account.owner.equals(PROGRAM)) {
+          throw new ProviderFailure('INVALID_ACCOUNT', 'The account owner does not match the fixed Drift program.', 502, false);
+        }
         this.bufferAndSlotMap.set(address, { slot: result.context.slot, buffer: account?.data });
         if (account) for (const callback of target.callbacks.values()) callback(account.data, result.context.slot);
       });

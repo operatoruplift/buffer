@@ -6,7 +6,7 @@
 
 | Check | Result |
 | --- | --- |
-| Unit and provider suite | **88 passed** across scenario, provider, device-report, and Velocity compatibility tests. |
+| Unit and provider suite | **90 passed** across scenario, provider, device-report, and Velocity compatibility tests. |
 | TypeScript and ESLint | Passed on the current working tree. |
 | Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
 | Local judge-experience browser run | **16 passed** across the new quick-start guide, scenario-first mobile layout, device reports, PWA, website, and API-failure paths. |
