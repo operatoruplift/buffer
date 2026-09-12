@@ -164,7 +164,7 @@
 .buffer-app-icon { width: 167px; height: 167px; background: var(--cobalt); color: #fff; border: 1px solid #5378ef; border-radius: 38px; display: grid; place-items: center; box-shadow: 9px 20px 40px #3659b52b, inset 0 0 0 3px #ffffff0b; transform: rotate(-9deg); animation: buffer-float 8s ease-in-out infinite; }
 .buffer-install-art > span { position: absolute; bottom: 5px; font-size: 8px; letter-spacing: 1.9px; color: #657aa6; }
 .buffer-privacy { max-width: 1296px; margin: 0 auto; padding: 76px 0; display: grid; grid-template-columns: 90px 1fr 1fr; gap: 32px; align-items: start; border-bottom: 1px solid var(--line); }
-.buffer-privacy-mark { width: 71px; height: 71px; background: #e7eadf; border-radius: 50%; display: grid; place-items: center; color: #66805b; }
+.buffer-privacy-mark { width: 71px; height: 71px; background: #e7eadf; border-radius: 50%; display: grid; place-items: center; color: var(--cobalt); }
 .buffer-privacy h2 { font-size: 34px; letter-spacing: -1.4px; margin-top: 6px; }
 .buffer-privacy p { font-size: 12px; line-height: 1.85; color: var(--quiet); max-width: 392px; }
 .buffer-privacy .buffer-text-link { margin-top: 19px; }
@@ -189,7 +189,7 @@
 .buffer-footer nav a:hover { color: var(--cobalt); }
 .buffer-footer nav a { display: inline-flex; gap: 6px; align-items: center; }
 .buffer-footer-wordmark { display: block; margin-top: 57px; padding-bottom: 31px; }
-.buffer-brand-large { gap: 20px; font-size: clamp(88px,16vw,210px); letter-spacing: -.075em; line-height: .95; color: var(--ink); font-weight: 450; }
+.buffer-brand-large { gap: 20px; font-size: clamp(88px,16vw,210px); letter-spacing: -.075em; line-height: .95; color: var(--cobalt); font-weight: 450; }
 .buffer-brand-large svg { width: clamp(68px, 12vw, 150px); height: auto; margin-top: .13em; }
 .buffer-footer-bottom { border-top: 1px solid #d5d8cd; padding-top: 19px; display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 8px; color: #65705f; }
 .buffer-footer-bottom > a { display: inline-flex; align-items: center; gap: 10px; }

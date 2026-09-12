@@ -8,6 +8,7 @@
 | --- | --- |
 | Unit and provider suite | **90 passed** across scenario, provider, device-report, and Velocity compatibility tests. |
 | TypeScript and ESLint | Passed on the current working tree. |
+| B monogram rollout | Production build, TypeScript, ESLint, and **14 local browser checks passed** across desktop/mobile layouts, website interactions, install assets, offline arithmetic, and public cache isolation. A separate browser migration check confirmed that activation replaces the v1 cache with v2 and serves the new icon. All nine vector sources share the same geometry; the standalone PNG is transparent and the maskable mark fits the safe circle. Landing and sample-app screenshots were refreshed. |
 | Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
 | Local judge-experience browser run | **16 passed** across the new quick-start guide, scenario-first mobile layout, device reports, PWA, website, and API-failure paths. |
 | Vercel public routes and media | Passed on `https://bufferonsolana.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |

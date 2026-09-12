@@ -34,7 +34,7 @@ The pitch uses an actual generated eight-second opening shot, followed by captur
 
 ## Production and sources
 
-Buffer's U mark, interface, diagrams, captions, and scripts are original project assets. The abstract generated object is a visual motif; the precise logo is drawn separately. Solana, Velocity, and legacy Drift names describe the implemented integrations and do not imply endorsement.
+The films retain Buffer's previous U mark from their September 11 capture; the website and app now use the cobalt B monogram. The recorded mark, interface, diagrams, captions, and scripts are original project assets. The abstract generated object is a visual motif; the precise logo is drawn separately. Solana, Velocity, and legacy Drift names describe the implemented integrations and do not imply endorsement.
 
 Narration is synthetic speech using the installed macOS Samantha voice, at 158 words per minute for demo/pitch and 180 for the technical film. No person's voice was cloned. No stock soundtrack or unlicensed music is used.
 

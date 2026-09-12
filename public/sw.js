@@ -1,5 +1,5 @@
 /* Buffer caches only this explicit public asset list. No account data enters Cache Storage. */
-const CACHE_NAME = 'buffer-public-v1';
+const CACHE_NAME = 'buffer-public-v2';
 const OFFLINE_URL = '/offline.html';
 const PUBLIC_ASSETS = [
   OFFLINE_URL,
