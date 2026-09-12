@@ -12,6 +12,8 @@ import { formatDecimal } from "@/lib/format";
 import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
+import { CONFIGURED_PERP_MARKETS } from "@/lib/perp-markets";
+import { PACIFICA_TOKEN_LOGOS } from "@/lib/token-logos";
 import { Icon, Mark } from "./Icons";
 import Select from "./Select";
 import AccountPanel from './AccountPanel';
@@ -19,8 +21,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
-const PUBLIC_EXAMPLE = "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2";
+const PUBLIC_EXAMPLES: Partial<Record<ProtocolId, string>> = {
+  velocity: "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+  pacifica: "Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
+};
 const TOKEN_LOGOS: Record<string, string> = {
+  ...PACIFICA_TOKEN_LOGOS,
   SOL: "/tokens/sol.svg",
   BTC: "/tokens/btc.png",
   ETH: "/tokens/eth.png",
@@ -52,6 +58,7 @@ export default function Dashboard({
   const [mode, setMode] = useState<"sample" | "live">("sample");
   const [protocolId, setProtocolId] = useState<ProtocolId>("velocity");
   const [publicExample, setPublicExample] = useState(false);
+  const [marketSearch, setMarketSearch] = useState("");
   const [address, setAddress] = useState("");
   const [discovery, setDiscovery] = useState<Discovery | null>(null);
   const [selectedId, setSelectedId] = useState("");
@@ -71,7 +78,12 @@ export default function Dashboard({
   const scenarioHeading = useRef<HTMLHeadingElement>(null);
   const contributionsHeading = useRef<HTMLHeadingElement>(null);
   const protocol = PROTOCOLS[protocolId];
-  const snapshotProtocol = snapshot?.protocol ?? discovery?.protocol ?? protocol;
+  const snapshotProtocol = snapshot ? snapshot.protocol ?? PROTOCOLS.velocity : discovery?.protocol ?? protocol;
+  const apiSnapshot = snapshotProtocol.id === "pacifica";
+  const availableMarkets = CONFIGURED_PERP_MARKETS[protocolId];
+  const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
+  const exampleAuthority = PUBLIC_EXAMPLES[protocolId];
+  const accountLabel = mode === "live" && protocolId === "pacifica" ? "Account" : "Subaccount";
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -109,6 +121,7 @@ export default function Dashboard({
   function changeProtocol(id: ProtocolId) {
     cancel();
     setProtocolId(id);
+    setMarketSearch("");
     setDiscovery(null);
     setSelectedId("");
     if (mode === "live") setSnapshot(null);
@@ -178,7 +191,7 @@ export default function Dashboard({
     setShock(0);
     setStale(false);
     setError(null);
-    setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} subaccounts…`);
+    setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} accounts…`);
     retry.current = () => {
       void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample });
     };
@@ -399,6 +412,7 @@ export default function Dashboard({
                 onChange={(value) => changeProtocol(value as ProtocolId)}
                 options={[
                   { value: "velocity", label: "Velocity", description: "Current protocol · Solana mainnet" },
+                  { value: "pacifica", label: "Pacifica", description: `${CONFIGURED_PERP_MARKETS.pacifica.length} perpetual markets · Public API` },
                   { value: "drift", label: "Drift · legacy", description: "Paused protocol · balances did not migrate" },
                 ]}
               />
@@ -441,7 +455,9 @@ export default function Dashboard({
           </form>
           <div className="address-bottom">
             <p id="address-help">
-              {liveConfigured
+              {protocolId === "pacifica"
+                ? "Read your Pacifica wallet account. No wallet connection needed."
+                : liveConfigured
                 ? `Read positions from one ${protocol.label} subaccount. No wallet connection needed.`
                 : "Live reads require server RPC configuration. Explore the samples below."}
             </p>
@@ -457,16 +473,30 @@ export default function Dashboard({
               />
             </div>
           </div>
-          <div className="live-example">
+          {!protocol.legacy && (
+            <details className="market-directory" key={protocolId}>
+              <summary>{availableMarkets.length} perpetual markets on {protocol.label}<Icon name="arrow" size={14} /></summary>
+              <div className="market-directory-content">
+                <label className="market-search-label" htmlFor="market-search">Find a market</label>
+                <input id="market-search" type="search" placeholder="Search symbols…" value={marketSearch} onChange={event => setMarketSearch(event.target.value)} />
+                <div className="market-symbols" aria-live="polite">
+                  {filteredMarkets.map(market => <span key={market.marketIndex}>{market.asset}</span>)}
+                  {!filteredMarkets.length && <p>No matching markets.</p>}
+                </div>
+                <p>Each position needs current, usable price data. Market availability can change.</p>
+              </div>
+            </details>
+          )}
+          {exampleAuthority && <div className="live-example">
             <button
               type="button"
-              onClick={() => void readAccount(undefined, { authority: PUBLIC_EXAMPLE, protocol: "velocity", publicExample: true })}
+              onClick={() => void readAccount(undefined, { authority: exampleAuthority, protocol: protocolId, publicExample: true })}
               disabled={!!loading}
             >
               Explore a live account <Icon name="arrow" size={14} />
             </button>
-            <span>Public example · balances can change</span>
-          </div>
+            <span>{protocol.label} public example · balances can change</span>
+          </div>}
         </section>
 
         {error && (
@@ -501,7 +531,7 @@ export default function Dashboard({
           </div>
         )}
         {mode === "live" && publicExample && (
-          <p className="public-example-note">Public example account on Velocity. Balances and positions can change; choose a subaccount to read its current snapshot.</p>
+          <p className="public-example-note">Public example account on {protocol.label}. Balances and positions can change; choose an account to read its current snapshot.</p>
         )}
         {loading && (
           <div className="loading-status" role="status">
@@ -512,8 +542,8 @@ export default function Dashboard({
         {mode === "live" && discovery && !discovery.subaccounts.length && (
           <div className="surface empty">
             <Icon name="wallet" size={28} />
-            <h2>No {protocol.label} subaccounts found</h2>
-            <p>This authority has no {protocol.label} accounts on Solana mainnet.</p>
+            <h2>No {protocol.label} {protocolId === "pacifica" ? "accounts" : "subaccounts"} found</h2>
+            <p>No {protocol.label} account was returned for this wallet address.</p>
             <button
               className="button"
               onClick={() => sample(SAMPLE_ACCOUNTS[1].id)}
@@ -561,20 +591,20 @@ export default function Dashboard({
               </div>
             </div>
             <div className="subaccount">
-              <label htmlFor="subaccount">Subaccount</label>
+              <label htmlFor="subaccount">{accountLabel}</label>
               <Select
                 id="subaccount"
-                label="Subaccount"
+                label={accountLabel}
                 value={
                   mode === "sample"
                     ? String(snapshot?.subaccount.id)
                     : selectedId
                 }
                 onChange={(value) => void readSnapshot(value)}
-                placeholder="Select a subaccount"
+                placeholder={`Select ${accountLabel === "Account" ? "an account" : "a subaccount"}`}
                 options={mode === "live"
                   ? [
-                    { value: "", label: "Select a subaccount" },
+                    { value: "", label: `Select ${accountLabel === "Account" ? "an account" : "a subaccount"}` },
                     ...(discovery?.subaccounts.map((s) => ({ value: String(s.id), label: `${s.name} · #${s.id}` })) ?? []),
                   ]
                   : [{ value: String(snapshot?.subaccount.id), label: `${snapshot?.subaccount.name} · #${snapshot?.subaccount.id}` }]
@@ -1093,7 +1123,7 @@ export default function Dashboard({
             </ul>
             <p>
               The result is an incremental perp price effect. Baseline account
-              metrics are separate SDK calculations; no hypothetical account
+              metrics come from the selected provider; no hypothetical account
               equity, liquidation threshold, or future health is calculated.
             </p>
           </section>
@@ -1127,14 +1157,17 @@ export default function Dashboard({
                     <dd>
                       {snapshot.source === "sample"
                         ? "Sample fixture — not a live read"
-                        : `${snapshotProtocol.label} SDK · Solana RPC`}
+                        : apiSnapshot ? "Pacifica public API" : `${snapshotProtocol.label} SDK · Solana RPC`}
                     </dd>
                   </div>
-                  {snapshot.source === "live" && (
+                  {snapshot.source === "live" && snapshotProtocol.programId && (
                     <div>
                       <dt>Program</dt>
                       <dd className="full-address">{snapshotProtocol.programId}</dd>
                     </div>
+                  )}
+                  {snapshot.source === "live" && apiSnapshot && (
+                    <div><dt>API source</dt><dd>https://api.pacifica.fi</dd></div>
                   )}
                   <div>
                     <dt>Network</dt>
@@ -1152,11 +1185,11 @@ export default function Dashboard({
                   </div>
                   <div>
                     <dt>Account read slot</dt>
-                    <dd>{snapshot.accountSlot ?? "Unavailable (sample)"}</dd>
+                    <dd>{snapshot.accountSlot ?? (snapshot.source === "sample" ? "Unavailable (sample)" : "Not supplied by provider")}</dd>
                   </div>
                   <div>
                     <dt>Observed RPC slot</dt>
-                    <dd>{snapshot.observedSlot ?? "Unavailable (sample)"}</dd>
+                    <dd>{snapshot.observedSlot ?? (snapshot.source === "sample" ? "Unavailable (sample)" : "Not supplied by provider")}</dd>
                   </div>
                   {snapshot.authority && (
                     <div>
@@ -1202,9 +1235,9 @@ export default function Dashboard({
                   ))}
                 </ul>
                 <p>
-                  Reads may come from different slots; this is not an atomic
-                  same-slot snapshot. Live scenarios expire 120 seconds after
-                  retrieval. Oracle age is checked separately by the provider.
+                  {apiSnapshot ? "Account and price data are separate public API reads. Pacifica does not supply Solana observation slots or oracle confidence intervals. " : "Reads may come from different slots; this is not an atomic same-slot snapshot. "}
+                  Live scenarios expire at most 120 seconds after retrieval.
+                  Price age is checked separately and can require an earlier refresh.
                   These are conservative app freshness rules, not protocol
                   liquidation rules.
                 </p>
@@ -1215,8 +1248,7 @@ export default function Dashboard({
                   <div className="oracle-row" key={p.id}>
                     <strong>{p.market}</strong>
                     <p>
-                      Oracle slot: {p.oracle.slot ?? "Unavailable"} · Read slot:{" "}
-                      {p.oracle.readSlot ?? "Unavailable"}
+                      {apiSnapshot ? `API price timestamp: ${p.oracle.observedAt ? time(p.oracle.observedAt) : "Unavailable"}` : `Oracle slot: ${p.oracle.slot ?? "Unavailable"} · Read slot: ${p.oracle.readSlot ?? "Unavailable"}`}
                       <br />
                       {p.oracle.valid
                         ? "Accepted for this snapshot"
@@ -1230,6 +1262,10 @@ export default function Dashboard({
           )}
           <section>
             <h3>Official references</h3>
+            {apiSnapshot && (
+              <a href="https://docs.pacifica.fi/api-documentation/api/rest-api" target="_blank" rel="noreferrer">Pacifica public API documentation ↗</a>
+            )}
+            {!apiSnapshot && <>
             {snapshotProtocol.id === "velocity" && (
               <a href="https://docs.velocity.exchange/developers/migrate-from-drift" target="_blank" rel="noreferrer">
                 Velocity deployment and migration reference ↗
@@ -1256,6 +1292,7 @@ export default function Dashboard({
             >
               SDK precision constants ↗
             </a>
+            </>}
           </section>
         </div>
       </dialog>

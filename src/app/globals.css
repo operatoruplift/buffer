@@ -628,6 +628,17 @@ td > small {
   background: #072723;
   padding: 5px;
 }
+.market-directory { margin-top: 15px; border-top: 1px solid #edf0f6; }
+.market-directory summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; color: var(--blue); font-size: 12px; font-weight: 600; cursor: pointer; list-style: none; }
+.market-directory summary::-webkit-details-marker { display: none; }
+.market-directory summary > svg { flex-shrink: 0; transform: rotate(90deg); }
+.market-directory[open] summary > svg { transform: rotate(-90deg); }
+.market-directory-content { padding: 0 0 16px; }
+.market-search-label { display: block; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
+.market-directory input { width: 100%; min-height: 44px; border: 1px solid #dbe3f1; border-radius: 9px; padding: 10px 12px; background: #f8faff; color: var(--text); font: inherit; font-size: 16px; }
+.market-symbols { display: flex; flex-wrap: wrap; gap: 7px; max-height: 205px; overflow-y: auto; margin: 13px 0; padding: 1px; }
+.market-symbols > span { padding: 7px 9px; border: 1px solid #e3e9f4; border-radius: 6px; background: #f8faff; font-size: 11px; font-weight: 600; }
+.market-directory-content p { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 0; }
 .live-example {
   display: flex;
   flex-wrap: wrap;

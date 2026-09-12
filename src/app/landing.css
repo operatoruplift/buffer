@@ -152,8 +152,9 @@
 .buffer-install-ring { position: absolute; border: 1px solid #c0cef8; border-radius: 50%; width: 280px; height: 280px; }
 .buffer-install-ring.ring-two { width: 390px; height: 390px; }
 .buffer-install-ring.ring-three { width: 500px; height: 500px; }
-.buffer-app-icon { width: 167px; height: 167px; background: var(--cobalt); color: #fff; border: 1px solid #5378ef; border-radius: 38px; display: grid; place-items: center; box-shadow: 9px 20px 40px #3659b52b, inset 0 0 0 3px #ffffff0b; transform: rotate(-9deg); animation: buffer-float 4.5s ease-in-out both; }
-.buffer-install-art > span { position: absolute; bottom: 5px; font-size: 8px; letter-spacing: 1.9px; color: #657aa6; }
+.buffer-app-lockup { position: relative; transform: rotate(-9deg); animation: buffer-float 4.5s ease-in-out both; }
+.buffer-app-icon { width: 167px; height: 167px; background: var(--cobalt); color: #fff; border: 1px solid #5378ef; border-radius: 38px; display: grid; place-items: center; box-shadow: 9px 20px 40px #3659b52b, inset 0 0 0 3px #ffffff0b; }
+.buffer-app-caption { position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%); width: max-content; font-size: 8px; font-weight: 600; letter-spacing: 1.9px; line-height: 1.4; color: #536b9b; }
 .buffer-privacy { max-width: 1296px; margin: 0 auto; padding: 76px 0; display: grid; grid-template-columns: 90px 1fr 1fr; gap: 32px; align-items: start; border-bottom: 1px solid var(--line); }
 .buffer-privacy-mark { width: 71px; height: 71px; background: #e7eadf; border-radius: 50%; display: grid; place-items: center; color: var(--cobalt); }
 .buffer-privacy h2 { font-size: 34px; letter-spacing: -1.4px; margin-top: 6px; }
@@ -340,7 +341,7 @@
   .buffer-install h2 { margin-top: 22px; }
   .buffer-install-copy > p { font-size: 12px; }
   .buffer-install-art { min-height: 315px; margin-top: 19px; }
-  .buffer-install-art > span { bottom: 2px; }
+  .buffer-app-caption { top: calc(100% + 15px); font-size: 7px; letter-spacing: 1.5px; }
   .buffer-privacy { gap: 17px; grid-template-columns: 53px 1fr; }
   .buffer-privacy-mark { width: 49px; height: 49px; }
   .buffer-privacy-mark svg { width: 33px; }

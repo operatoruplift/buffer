@@ -6,13 +6,15 @@
 
 ## Short description
 
-Buffer is a read-only Solana / Velocity explorer that turns a shared market move into clear, precise perpetual-position scenarios—with explicit coverage, verified oracle freshness, exportable reports, and an installable mobile and desktop app.
+Buffer turns public Pacifica and Velocity positions into precise price scenarios, with explicit coverage, source freshness, exportable reports, and an installable mobile and desktop app.
 
 ## Submission description
 
 Buffer answers one practical question: **“What would a market move do to these positions?”**
 
 Open the public live example or paste a Solana authority, select one **Velocity** subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, ETH, and HYPE linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, open orders, quote identity, and oracle freshness stay visible outside the model. Current baseline metrics stay separate from the hypothetical price effect. The current Velocity quote asset is USDT; baseline USD metrics come from the SDK's validated quote valuation.
+
+Select **Pacifica** for **76 configured perpetual markets** across crypto, equities, commodities, indexes, and FX. A searchable market list and a separate public example make the expanded coverage easy to try. The read-only adapter checks exact current market metadata and API price timestamps; it requires no key, signature, or RPC environment variable. API price effects use USD, with USDC margin kept separate. Pacifica observations are explicitly API-reported, with no fabricated Solana program ID or oracle slot. See [provider evidence](PACIFICA.md).
 
 The protocol selector can inspect the paused legacy Drift deployment explicitly. Drift and Velocity use different programs, PDAs, and layouts; Buffer does not imply that Drift balances migrated. The app links to the [official migration guide](https://docs.velocity.exchange/developers/migrate-from-drift) and withholds paused or stale legacy calculations instead of showing invented current prices.
 

@@ -2,7 +2,7 @@
 
 **Last updated:** September 12, 2026.
 
-Buffer reads the current **Velocity** deployment by default. The provider is read-only, server-side, and bound to a fixed Solana mainnet program ID. A protocol selector exposes the old Drift deployment as an explicit legacy path; Buffer never combines accounts, prices, or balances from the two programs.
+Buffer reads **Velocity** by default and also supports **Pacifica's 76 configured perpetual markets** through its public REST API. See [Pacifica acquisition, coverage, and timestamp policy](PACIFICA.md) for that adapter. The Velocity provider is read-only, server-side, and bound to a fixed Solana mainnet program ID. A protocol selector exposes old Drift as an explicit legacy path; accounts and balances from different providers are never combined. The RPC-specific sections below describe Velocity and Drift; Pacifica never invents a program ID or chain slot for its API reads.
 
 | Protocol | Program | Package | Status | Current quote asset |
 | --- | --- | --- | --- | --- |

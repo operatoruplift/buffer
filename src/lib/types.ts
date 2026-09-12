@@ -2,7 +2,11 @@ import type { ProtocolInfo } from './protocols';
 export type SourceMode = 'sample' | 'live';
 export interface Subaccount { id: number; name: string; address: string | null }
 export interface Metric { label: string; value: string | null; unit: string; explanation: string }
-export interface OracleObservation { slot: number | null; readSlot: number | null; valid: boolean; reason: string | null }
+export interface OracleObservation {
+  slot: number | null; readSlot: number | null; valid: boolean; reason: string | null;
+  /** Provider-reported price timestamp, when exposed by a public API. */
+  observedAt?: string | null;
+}
 export interface Position {
   id: string; marketIndex: number; market: string; asset: string;
   size: string; price: string | null; quote: string; notional: string | null;

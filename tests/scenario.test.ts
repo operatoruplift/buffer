@@ -5,6 +5,7 @@ import { formatDecimal } from '../src/lib/format';
 import { createReport } from '../src/lib/report';
 import type { Position, Snapshot } from '../src/lib/types';
 import { PROTOCOLS } from '../src/lib/protocols';
+import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
 
 function snapshotWith(...changes: Partial<Position>[]): Snapshot {
   const snapshot = getSampleSnapshot('sol-long');
@@ -56,6 +57,39 @@ describe('linear price-shock arithmetic', () => {
   it('handles fractional quantities without binary floating-point error', () => {
     expect(total(snapshotWith({ size: '0.1', price: '0.2' }), 1)).toBe('0.0002');
     expect(total(snapshotWith({ size: '-0.1', price: '0.2' }), -1)).toBe('0.0002');
+  });
+
+  it('models API market units without converting k-prefixed assets or combining USD with USDC', () => {
+    const bonk = CONFIGURED_PERP_MARKETS.pacifica.find((market) => market.asset === 'kBONK')!;
+    const gold = CONFIGURED_PERP_MARKETS.pacifica.find((market) => market.asset === 'XAU')!;
+    const snapshot = snapshotWith(
+      { ...bonk, size: '1000', price: '0.02', quote: 'USD' },
+      { ...gold, size: '-2', price: '2500', quote: 'USDC' },
+    );
+    snapshot.protocol = { ...PROTOCOLS.pacifica };
+    expect(calculateScenario(snapshot, -10).totals).toEqual([
+      { quote: 'USD', delta: '-2' },
+      { quote: 'USDC', delta: '500' },
+    ]);
+    snapshot.positions[0].asset = 'KBONK';
+    expect(calculateScenario(snapshot, -10).excluded[0].reason).toContain('market identity');
+  });
+
+  it('requires canonical API identity before accepting Pacifica market positions', () => {
+    const market = CONFIGURED_PERP_MARKETS.pacifica.find((entry) => entry.asset === 'BTC')!;
+    const snapshot = snapshotWith({ ...market, size: '1', price: '100000', quote: 'USD' });
+    snapshot.protocol = { ...PROTOCOLS.pacifica };
+    expect(calculateScenario(snapshot, -10).eligible).toBe(1);
+    for (const changed of [
+      { ...PROTOCOLS.pacifica, apiOrigin: 'https://untrusted.example' },
+      { ...PROTOCOLS.pacifica, programId: PROTOCOLS.velocity.programId },
+      { ...PROTOCOLS.pacifica, transport: undefined },
+    ]) {
+      snapshot.protocol = changed;
+      const result = calculateScenario(snapshot, -10);
+      expect(result.eligible).toBe(0);
+      expect(result.totals).toEqual([]);
+    }
   });
 
   it('preserves integers larger than Number.MAX_SAFE_INTEGER', () => {

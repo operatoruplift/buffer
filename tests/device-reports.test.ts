@@ -63,7 +63,7 @@ describe('device report library', () => {
     expect(decodeDeviceReports(encodeDeviceReports([item]))[0].report).toEqual(item.report);
   });
 
-  it('round-trips both known protocols and rejects altered deployment identities or labels', () => {
+  it('round-trips known protocols and rejects altered deployment identities or labels', () => {
     for (const protocol of Object.values(PROTOCOLS)) {
       const item = record();
       item.report.protocol = { ...protocol };
@@ -73,6 +73,29 @@ describe('device report library', () => {
       item.report.protocol = { ...protocol, label: 'x'.repeat(1000) };
       expect(() => encodeDeviceReports([item])).toThrow(DeviceReportsError);
     }
+  });
+
+  it('preserves API provenance and price timestamps without inventing chain slots', () => {
+    const snapshot = getSampleSnapshot('sol-long');
+    snapshot.protocol = { ...PROTOCOLS.pacifica };
+    snapshot.positions[0].oracle = { slot: null, readSlot: null, valid: true, reason: null, observedAt: '2026-09-11T11:59:59.000Z' };
+    const item = record();
+    item.report = createReport(snapshot, calculateScenario(snapshot, -10));
+    const saved = decodeDeviceReports(encodeDeviceReports([item]))[0].report;
+    expect(saved.protocol).toEqual(PROTOCOLS.pacifica);
+    expect(saved.observedSlots).toEqual({ account: null, observed: null, atomicSameSlotRead: false });
+    expect(saved.positions[0].oracle).toEqual(snapshot.positions[0].oracle);
+    for (const changed of [
+      { ...PROTOCOLS.pacifica, apiOrigin: 'https://untrusted.example' },
+      { ...PROTOCOLS.pacifica, transport: undefined },
+      { ...PROTOCOLS.pacifica, programId: PROTOCOLS.velocity.programId },
+    ]) {
+      item.report.protocol = changed;
+      expect(() => encodeDeviceReports([item])).toThrow(DeviceReportsError);
+    }
+    item.report.protocol = { ...PROTOCOLS.pacifica };
+    item.report.positions[0].oracle.observedAt = 'not-a-timestamp';
+    expect(() => encodeDeviceReports([item])).toThrow(DeviceReportsError);
   });
 
   it('starts empty only when the key is absent; corrupt JSON cannot be overwritten or deleted', () => {

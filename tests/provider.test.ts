@@ -12,6 +12,7 @@ import { ProviderFailure, serveRead, validateAuthority, validateProtocol, valida
 import { baselineCoverageIssues, normalizeRaw, normalizeSnapshot, observeOracle, requiredMarkets, type ReadData } from '../src/server/normalize';
 import { liveProvider, requireSelectedAccount, SnapshotAccountLoader, bindCanonicalDriftProgram } from '../src/server/drift';
 import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
+import type { ProtocolId } from '../src/lib/protocols';
 
 const authority = '11111111111111111111111111111111';
 it('binds actual SDK reads and subscriptions to the canonical Drift deployment with matching coder names', async () => {
@@ -70,21 +71,30 @@ function fixture(): ReadData {
 const mockProvider = (): LiveProvider => ({ discover: vi.fn(async () => ({ authority, subaccounts: [], retrievedAt: '2026-09-11T00:00:00.000Z' })), snapshot: vi.fn(async () => normalizeSnapshot(fixture())) });
 
 describe('read API boundaries', () => {
-  it('defaults to Velocity and accepts only the explicit legacy protocol', () => {
+  it('defaults to Velocity and accepts only the supported protocol identifiers', () => {
     expect(validateProtocol(null)).toBe('velocity');
     expect(validateProtocol('velocity')).toBe('velocity');
+    expect(validateProtocol('pacifica')).toBe('pacifica');
     expect(validateProtocol('drift')).toBe('drift');
     expect(() => validateProtocol('arbitrary')).toThrow(ProviderFailure);
   });
   it('passes the selected protocol to a provider resolver', async () => {
     const velocity = mockProvider();
     const drift = mockProvider();
-    const resolver = vi.fn(async (protocol: 'velocity' | 'drift') => protocol === 'velocity' ? velocity : drift);
+    const resolver = vi.fn(async (protocol: ProtocolId) => protocol === 'velocity' ? velocity : drift);
     const response = await serveRead(new Request(`http://localhost/api/accounts?authority=${authority}&protocol=drift`), 'discovery', resolver);
     expect(response.status).toBe(200);
     expect(resolver).toHaveBeenCalledWith('drift');
     expect(drift.discover).toHaveBeenCalledWith(authority);
     expect(velocity.discover).not.toHaveBeenCalled();
+  });
+  it('routes a Pacifica request without requiring server RPC configuration', async () => {
+    const provider = mockProvider();
+    const resolver = vi.fn(async () => provider);
+    const response = await serveRead(new Request(`http://localhost/api/accounts?authority=${authority}&protocol=pacifica`), 'discovery', resolver);
+    expect(response.status).toBe(200);
+    expect(resolver).toHaveBeenCalledWith('pacifica');
+    expect(provider.discover).toHaveBeenCalledWith(authority);
   });
   it('accepts canonical addresses and rejects malformed addresses', () => {
     expect(validateAuthority(` ${authority} `)).toBe(authority);

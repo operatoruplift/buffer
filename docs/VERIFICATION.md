@@ -1,22 +1,24 @@
 # Verification record
 
-**Last updated:** September 12, 2026. Checks ran September 12 in Vietnam. Local runtime: Node **24.16.0**. Current live provider: Velocity SDK **0.23.1**. Legacy compatibility provider: Drift SDK **2.161.0-beta.5**.
+**Last updated:** September 12, 2026. Checks ran September 12 in Vietnam. Local runtime: Node **24.16.0**. Live providers: Velocity SDK **0.23.1** and Pacifica public REST API. Legacy compatibility provider: Drift SDK **2.161.0-beta.5**.
 
 ## Current results
 
 | Check | Result |
 | --- | --- |
-| Unit and provider suite | **125 passed** across scenario, provider, device-report, and Velocity compatibility tests, including all four configured Velocity markets, HYPE exclusions, full identity checks, and twelve sample scenarios. |
+| Unit and provider suite | **246 passed** across five suites, including 117 Pacifica adapter tests, all 76 Pacifica identities, all four Velocity identities, scaled units, source/quote separation, malformed data, freshness, timeouts, and historical reports. |
 | TypeScript and ESLint | Passed on the current working tree. |
 | Ribbon B monogram rollout | Production build, TypeScript, ESLint, and **14 local browser checks passed** across desktop/mobile layouts, website interactions, install assets, offline arithmetic, and public cache isolation. A separate browser migration check confirmed that activation replaces the v2 cache with v3 and serves the ribbon icon. All nine vector sources share the same geometry; the standalone PNG is transparent and the maskable mark fits the safe circle. Landing and sample-app screenshots were refreshed. |
 | Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
-| Local production-build browser run | **46 passed, 2 skipped** across desktop/mobile selectors, quick-start guide, scenarios, account-switch races, device reports, PWA, videos, website, and API-failure paths. The skipped cases require disposable Supabase authentication fixtures. |
+| Local production-build browser run | **48 passed, 2 skipped** across desktop/mobile selectors, Pacifica market search and account workflow, provenance, quick-start guide, scenarios, account-switch races, device reports, PWA, videos, website, and API-failure paths. The skipped cases require disposable Supabase authentication fixtures. |
+| Pacifica real public API | Direct provider smoke and desktop/mobile browser reads succeeded with 22 of 22 positions eligible, USD scenarios, null chain slots, current API timestamps, and aggregate order inventory. Browser reads at `2026-09-12T10:16:33.155Z` and `10:16:37.112Z` produced nonzero −10% scenarios; all 36 rendered position/contribution images decoded, with no JavaScript errors or horizontal overflow. |
+| Install caption | At animation times 0, 2250, and 4500ms, the icon and caption share their rotation/translation. Caption stays centered with an 18px desktop / 15px mobile gap; reduced motion and unique installation anchors remain intact. |
 | Selector, market, and favicon review | Frontend and backend security reviews passed. A real mobile touch swipe scrolled the twelve-option menu. Additional browser checks verified the four-market −10% fixture total of `−7500` USDT, removed decorative labels, and fresh SVG/ICO favicon metadata; ICO includes 16/32/48px images. |
 | Vercel public routes and media | Passed on `https://bufferonsolana.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
 | Supabase database | Dedicated Buffer project and both saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. |
 | Authentication | Confirmed-account password sign-in and report operations passed with disposable fixtures. Public signup and recovery remain gated until SMTP and Auth settings are verified. |
 
-The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The last full production browser run before this selector/market revision completed **44 passed, 2 skipped**. This revision passed **46 local production-build browser tests**, with the two opt-in Supabase fixture tests skipped.
+The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The selector/market revision passed **46 local production-build browser tests**. This Pacifica and caption revision passed **48**, with the two opt-in Supabase fixture tests skipped.
 
 ## Arithmetic and account coverage
 

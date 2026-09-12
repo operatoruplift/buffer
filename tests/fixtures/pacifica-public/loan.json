@@ -1,0 +1,19 @@
+{
+  "requestedAt": "2026-09-12T10:02:23.929Z",
+  "fetchedAt": "2026-09-12T10:02:24.200Z",
+  "source": "https://api.pacifica.fi/api/v1/account/loan?account=Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
+  "payload": {
+    "success": true,
+    "data": {
+      "borrowed": "0",
+      "pending_interest": "0",
+      "collateral_utilization": "0",
+      "total_interest_earned": "0.971975",
+      "total_interest_paid": "0",
+      "spot_balances": [],
+      "updated_at": 1789207347914
+    },
+    "error": null,
+    "code": null
+  }
+}

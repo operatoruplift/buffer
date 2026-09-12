@@ -47,8 +47,9 @@ let readsInWindow = 0;
 let concurrentReads = 0;
 export function validateProtocol(value: string | null): ProtocolId {
   if (value === null || value === 'velocity') return 'velocity';
+  if (value === 'pacifica') return 'pacifica';
   if (value === 'drift') return 'drift';
-  throw new ProviderFailure('INVALID_PROTOCOL', 'Choose Velocity or legacy Drift.', 400, false);
+  throw new ProviderFailure('INVALID_PROTOCOL', 'Choose Velocity, Pacifica, or legacy Drift.', 400, false);
 }
 
 export async function serveRead(request: Request, kind: 'discovery' | 'snapshot', provider: LiveProvider | ((protocol: ProtocolId) => Promise<LiveProvider>)): Promise<Response> {

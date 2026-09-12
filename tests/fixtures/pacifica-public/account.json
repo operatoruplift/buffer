@@ -1,0 +1,31 @@
+{
+  "requestedAt": "2026-09-12T10:02:23.569Z",
+  "fetchedAt": "2026-09-12T10:02:23.926Z",
+  "source": "https://api.pacifica.fi/api/v1/account?account=Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
+  "payload": {
+    "success": true,
+    "data": {
+      "balance": "568688.285136",
+      "fee_level": 1,
+      "maker_fee": "-0.00005",
+      "taker_fee": "0.00038",
+      "account_equity": "572623.245968",
+      "cross_account_equity": "572623.245968",
+      "spot_market_value": "0",
+      "spot_collateral": "0",
+      "available_to_spend": "300064.066726",
+      "available_to_withdraw": "274999.846125",
+      "pending_balance": "0",
+      "pending_interest": "0",
+      "total_margin_used": "272559.179242",
+      "cross_mmr": "20476.284817",
+      "positions_count": 22,
+      "orders_count": 692,
+      "stop_orders_count": 0,
+      "spot_balances": [],
+      "updated_at": 1789207346604
+    },
+    "error": null,
+    "code": null
+  }
+}

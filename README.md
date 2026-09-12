@@ -1,17 +1,18 @@
 # Buffer
 
-**Understand what a market move would do to your perpetual positions.** Buffer is a read-only Solana / Velocity explorer with precise price scenarios, clear coverage, private saved reports, and an installable mobile and desktop web app. Legacy Drift reads remain available behind an explicit paused-deployment selector.
+**Understand what a market move would do to your perpetual positions.** Buffer reads Pacifica and Velocity accounts for precise price scenarios, clear coverage, private saved reports, and an installable mobile and desktop web app. Legacy Drift reads remain available behind an explicit paused-deployment selector.
 
 **Last updated:** September 12, 2026.
 
 [Website](https://bufferonsolana.vercel.app) · [Open the app](https://bufferonsolana.vercel.app/app) · [Watch the demos](https://bufferonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
 
-Paste a public authority, select one Velocity subaccount, and explore a shared −20% to +20% price move on eligible SOL, BTC, ETH, and HYPE perpetual positions. The current Velocity deployment settles in USDT; baseline SDK metrics remain USD. Buffer keeps the current baseline separate from modeled price P&L and explains what is excluded. Twelve deterministic sample scenarios work immediately, without an account or RPC configuration. The **Explore a live account** button opens a public example without a wallet connection.
+Paste a public Solana wallet address, select an account, and explore a shared −20% to +20% price move. Pacifica adds **76 perpetual markets**, spanning crypto, equities, commodities, FX, and indexes. Velocity supports its four current SOL, BTC, ETH, and HYPE markets. The searchable market list shows coverage for each provider. Twelve deterministic sample scenarios work immediately; **Explore a live account** loads a public example for the selected provider without a wallet connection. Market counts describe provider listings, not unique assets across exchanges.
 
 ## What is included
 
 - A responsive website with an interactive sample, feature and method explanations, installation guidance, and a video gallery.
 - Live Velocity account discovery through the official `@velocity-exchange/sdk` **0.23.1**, explicit subaccount selection, position contributions, collateral/debt/order inventory, freshness checks, and a Method dialog.
+- Public Pacifica account and position reads through its fixed official REST API. All 76 configured perpetual identities are checked against current market metadata, with API price timestamps and USD scenario totals. No API key or RPC configuration is required for Pacifica. See [Pacifica integration](docs/PACIFICA.md).
 - An explicit legacy Drift provider for historical reads. Drift is paused and its balances do not migrate to Velocity; the app links to the official migration reference instead of silently mixing deployments.
 - Precise JSON downloads, device-local saved reports with no account, and optional Supabase sign-in to save, download, and delete private historical reports.
 - A PWA for supported mobile and desktop browsers, with original app icons and a clearly labeled offline sample.
@@ -33,7 +34,7 @@ Open `http://127.0.0.1:3001`; the explorer is at `/app`. Local Node is pinned to
 
 | Environment variable | Purpose |
 | --- | --- |
-| `SOLANA_RPC_URL` | Server-only Solana mainnet RPC. Leave blank for Sample-only use. |
+| `SOLANA_RPC_URL` | Server-only Solana mainnet RPC for Velocity and legacy Drift. Samples and Pacifica work without it. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional dedicated Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Optional public Supabase key; never a service-role key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Keep `false` until public confirmation and recovery email flows are verified. |
@@ -43,10 +44,10 @@ The RPC must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccoun
 
 ## Use Buffer
 
-1. Choose among **12 fixed scenarios**, including individual SOL/BTC/ETH/HYPE longs and shorts, four-market portfolios, **Long + short**, and **Partial coverage**, or use **Explore a live account** / enter a public authority and explicitly select a discovered subaccount. The protocol selector defaults to current Velocity; legacy Drift is clearly marked paused. Accounts are never combined.
+1. Choose among **12 fixed scenarios**, or select **Pacifica** or **Velocity**, use **Explore a live account** / enter a public wallet address, and select a discovered account. Expand the searchable market list to see the selected provider's coverage. Legacy Drift is clearly marked paused. Accounts are never combined.
 2. Inspect the frozen baseline, positions, and inventory. Unavailable metrics explain missing or invalid coverage.
 3. Move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful **Refresh** reloads the snapshot and resets the shock.
-4. Open **Method** for assumptions, exclusions, addresses, source, and separate slot observations. **Download report** saves precise JSON locally.
+4. Open **Method** for assumptions, exclusions, addresses, source, and RPC slots or API price timestamps. **Download report** saves precise JSON locally.
 5. Open **My reports** to save the current report on this device with no sign-up. With a confirmed cloud account, the same screen also saves, downloads, and deletes private cloud copies. Saved copies are historical records and never refresh with the market.
 
 Public exploration does not upload a report. Device storage occurs only when a visitor selects **Save current scenario**; cloud storage occurs only when a signed-in user selects it. Supabase row-level security limits cloud records to their owner; report downloads and deterministic samples remain available without an account.
@@ -65,7 +66,7 @@ At −10%, 100 SOL at 150 USDC contributes −1,500 USDC; −0.5 BTC at 100,000 
 
 The scenario holds sizes fixed and excludes collateral-price changes, future fills, funding, fees, borrowing interest, and liquidation effects. Spot deposits, debts, and order counts remain visible. Unsupported or nonlinear contracts, LP exposure, unknown flags, inactive markets, and invalid oracle prices receive explicit exclusions. This result is incremental perpetual price P&L, not hypothetical account equity, health, or a liquidation threshold.
 
-Live perps use the SDK's applicable oracle validity helper plus Buffer's **150-slot maximum lag**. Spot valuation also checks protocol margin staleness, volatility, sufficient data, and a **1% confidence cap**. Live snapshots expire **120 seconds after retrieval**, or earlier when specified. Account, market, oracle, and current-slot reads are not atomic; their observations are retained separately. SDK baseline valuation may use a separately validated MM oracle. Cross-margin health is withheld for isolated positions.
+Velocity perps use the SDK's applicable oracle validity helper plus Buffer's **150-slot maximum lag**. Spot valuation also checks protocol margin staleness, volatility, sufficient data, and a **1% confidence cap**. Pacifica uses its API's USD oracle prices, with a **120-second price-age limit** and explicit API provenance; these are not independently verified Solana oracle reads. USDC margin balances are distinct from USD scenario totals, with no assumed peg conversion. Live snapshots expire at most **120 seconds after retrieval**, or earlier when the source price expires. Reads are not atomic. SDK baseline valuation may use a separately validated MM oracle; cross-margin health is withheld for isolated positions.
 
 Real local and deployed mainnet authority/subaccount reads succeeded with the pinned Velocity SDK. A fresh public example read had +0.05 BTC and +2 ETH, USDT collateral, and oracle lag of one slot; the scenario remains live and refetches on every read. The legacy Drift path still rejects stale or paused data rather than borrowing prices from Velocity. See [provider evidence](docs/PROVIDER.md).
 
@@ -78,10 +79,10 @@ Website / demo gallery                    Optional email/password sign-in
 /app: public explorer                         Supabase Auth session
    ├─ deterministic samples                           │
    └─ /api/accounts → explicit subaccount              ▼
-      /api/snapshot → Velocity (default) or     saved_reports + owner RLS
-                      legacy Drift provider    ▲  save / download / delete
+      /api/snapshot → Velocity (default),      saved_reports + owner RLS
+                      Pacifica, legacy Drift  ▲  save / download / delete
                       │
-              mainnet account/market/oracle checks
+              RPC or public API validation
                       ▼                              │
               decimal-string Snapshot               │
                       ▼                              │
@@ -97,6 +98,7 @@ PWA service worker → public offline sample and icon allowlist only
 | Provider selection and query validation | `src/server/providers.ts`, `src/server/boundary.ts` |
 | Velocity acquisition and cleanup | `src/server/velocity.ts` |
 | Velocity coverage and normalization | `src/server/velocity-normalize.ts` |
+| Pacifica public API acquisition and normalization | `src/server/pacifica.ts`, `src/server/pacifica-normalize.ts` |
 | Legacy Drift compatibility | `src/server/drift.ts`, `src/server/normalize.ts` |
 | Request validation and limits | `src/server/boundary.ts` |
 | Types, scenario math, fixtures, reports | `src/lib/` |

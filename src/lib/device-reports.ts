@@ -1,5 +1,5 @@
 import type { createReport } from './report';
-import { PROTOCOLS } from './protocols';
+import { isCanonicalProtocol } from './protocols';
 
 export type Report = ReturnType<typeof createReport>;
 export type DeviceReport = { id: string; title: string; created_at: string; report: Report };
@@ -33,10 +33,7 @@ const uuid = (value: unknown) => text(value) && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a
 const title = (value: unknown) => text(value) && value.trim().length > 0 && value.length <= 180;
 
 function protocol(value: unknown) {
-  if (value === undefined) return true;
-  if (!object(value) || (value.id !== 'velocity' && value.id !== 'drift')) return false;
-  const expected = PROTOCOLS[value.id];
-  return value.label === expected.label && value.programId === expected.programId && value.legacy === expected.legacy;
+  return value === undefined || isCanonicalProtocol(value);
 }
 
 /** Validate stored JSON before it can be rendered or downloaded as a report. */
@@ -66,7 +63,8 @@ function isReport(value: unknown): value is Report {
     array(value.positions, item => object(item) && fields(item, ['id', 'market', 'asset', 'quote'], text) &&
       integer(item.marketIndex) && decimal(item.size) && nullableDecimal(item.price) && nullableDecimal(item.notional) &&
       typeof item.modeled === 'boolean' && typeof item.isolated === 'boolean' && nullableText(item.exclusionReason) &&
-      object(item.oracle) && slot(item.oracle.slot) && slot(item.oracle.readSlot) && typeof item.oracle.valid === 'boolean' && nullableText(item.oracle.reason)) &&
+      object(item.oracle) && slot(item.oracle.slot) && slot(item.oracle.readSlot) && typeof item.oracle.valid === 'boolean' && nullableText(item.oracle.reason) &&
+      (item.oracle.observedAt === undefined || nullableTime(item.oracle.observedAt))) &&
     scenario.totalPositions === value.positions.length &&
     array(inventory.spotBalances, item => object(item) && text(item.market) && (item.kind === 'Collateral' || item.kind === 'Debt') &&
       nullableDecimal(item.amount) && (item.explanation === undefined || text(item.explanation))) &&

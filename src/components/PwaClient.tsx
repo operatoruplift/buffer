@@ -119,7 +119,7 @@ export default function PwaClient() {
   }
 
   return (
-    <aside className={styles.panel} aria-label="Buffer app installation" id="install">
+    <aside className={styles.panel} aria-label="Buffer app installation" id="app-installation">
       <div className={styles.row}>
         <span className={styles.brand}><Mark size={22} /><strong>Buffer, within reach.</strong></span>
         <div className={styles.actions}>
