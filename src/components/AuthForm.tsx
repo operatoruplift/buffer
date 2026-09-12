@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getSupabase } from '@/lib/supabase';
+import { Brand } from './Brand';
 import { Mark } from './Icons';
 import styles from './AuthForm.module.css';
 
@@ -56,7 +57,7 @@ export default function AuthForm({ initialMode = 'signin' }: { initialMode?: 'si
     } finally { setBusy(false); }
   }
   return <main className={styles.page}>
-    <Link href="/" className={styles.brand}><Mark />Buffer</Link>
+    <Link href="/" className={styles.brand} aria-label="Buffer home"><Brand /></Link>
     <section className={styles.card}>
       <div className={styles.intro}><span className="eyebrow">A LITTLE ROOM TO THINK</span><h1>{mode === 'signup' ? 'Keep your perspective.' : mode === 'forgot' ? 'Find your way back.' : mode === 'reset' ? 'A fresh start.' : 'Welcome back.'}</h1><p>Save a scenario today. Return with a clearer view tomorrow.</p><div className={styles.art} aria-hidden="true"><Mark size={200} /></div><p className={styles.fine}>Public accounts stay public. Your saved reports belong to you.</p></div>
       <div className={styles.form}>

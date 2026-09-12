@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Decimal from "decimal.js";
 import { SAMPLE_ACCOUNTS, getSampleSnapshot } from "@/lib/samples";
+import { DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot } from "@/lib/sample-builder";
 import {
   ASSUMPTIONS,
   FRESHNESS_SECONDS,
@@ -13,26 +14,18 @@ import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
 import { CONFIGURED_PERP_MARKETS } from "@/lib/perp-markets";
-import { PACIFICA_TOKEN_LOGOS } from "@/lib/token-logos";
 import { Icon, Mark } from "./Icons";
+import { Brand } from './Brand';
+import { TokenIcon } from './TokenIcon';
 import Select from "./Select";
+import SampleBuilder from './SampleBuilder';
 import AccountPanel from './AccountPanel';
 import Link from 'next/link';
-import Image from 'next/image';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
 const PUBLIC_EXAMPLES: Partial<Record<ProtocolId, string>> = {
   velocity: "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
   pacifica: "Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
-};
-const TOKEN_LOGOS: Record<string, string> = {
-  ...PACIFICA_TOKEN_LOGOS,
-  SOL: "/tokens/sol.svg",
-  BTC: "/tokens/btc.png",
-  ETH: "/tokens/eth.png",
-  HYPE: "/tokens/hype.svg",
-  USDC: "/tokens/usdc.png",
-  USDT: "/tokens/usdt.png",
 };
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
 const tone = (value: string) =>
@@ -51,9 +44,9 @@ export default function Dashboard({
 }: {
   liveConfigured: boolean;
 }) {
-  const [sampleId, setSampleId] = useState(SAMPLE_ACCOUNTS[1].id);
+  const [sampleId, setSampleId] = useState(DEFAULT_SAMPLE_ID);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(() =>
-    getSampleSnapshot(SAMPLE_ACCOUNTS[1].id),
+    getPortfolioSampleSnapshot(),
   );
   const [mode, setMode] = useState<"sample" | "live">("sample");
   const [protocolId, setProtocolId] = useState<ProtocolId>("velocity");
@@ -79,7 +72,7 @@ export default function Dashboard({
   const contributionsHeading = useRef<HTMLHeadingElement>(null);
   const protocol = PROTOCOLS[protocolId];
   const snapshotProtocol = snapshot ? snapshot.protocol ?? PROTOCOLS.velocity : discovery?.protocol ?? protocol;
-  const apiSnapshot = snapshotProtocol.id === "pacifica";
+  const apiSnapshot = snapshot?.source === "live" && snapshotProtocol.id === "pacifica";
   const availableMarkets = CONFIGURED_PERP_MARKETS[protocolId];
   const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
   const exampleAuthority = PUBLIC_EXAMPLES[protocolId];
@@ -250,8 +243,17 @@ export default function Dashboard({
     }
   }
   function refresh() {
-    if (mode === "sample") sample(sampleId);
+    if (mode === "sample") {
+      setShock(0);
+      setError(null);
+      setNotice('Sample inputs kept. Price move reset to 0%.');
+    }
     else void readSnapshot(selectedId, true);
+  }
+  function editSample(next: Snapshot) {
+    if (mode !== 'sample' || snapshot?.source !== 'sample' || next.source !== 'sample') return;
+    setSnapshot(next);
+    setNotice('Sample portfolio updated. Your current price move is applied to the new inputs.');
   }
   async function copy(value: string) {
     try {
@@ -332,10 +334,7 @@ export default function Dashboard({
       <header className="header">
         <div className="header-inner">
           <Link className="brand" href="/" aria-label="Buffer home" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <span className="logo">
-              <Mark />
-            </span>
-            <span>Buffer</span>
+            <Brand />
             <span className="brand-divider" />
             <span className="descriptor">
               Solana <span>·</span> {mode === "sample" ? "Samples" : protocol.label}
@@ -466,9 +465,9 @@ export default function Dashboard({
               <Select
                 id="sample"
                 label="Try a sample"
-                value={mode === "sample" ? sampleId : ""}
+                value={mode === "sample" && snapshot?.sampleName !== 'Custom portfolio' ? sampleId : ""}
                 onChange={sample}
-                placeholder="Select sample"
+                placeholder={snapshot?.sampleName === 'Custom portfolio' ? 'Custom portfolio' : 'Select sample'}
                 options={SAMPLE_ACCOUNTS.map((s) => ({ value: s.id, label: s.name, description: s.description }))}
               />
             </div>
@@ -525,8 +524,8 @@ export default function Dashboard({
           <div className="sample-note">
             <span className="sample-tag">SAMPLE</span>
             <span>
-              Deterministic example. All balances, prices, and baseline metrics
-              are fixtures.
+              Editable sample positions and fixed baseline prices. Add perps,
+              choose a denomination, and build your own scenario.
             </span>
           </div>
         )}
@@ -546,7 +545,7 @@ export default function Dashboard({
             <p>No {protocol.label} account was returned for this wallet address.</p>
             <button
               className="button"
-              onClick={() => sample(SAMPLE_ACCOUNTS[1].id)}
+              onClick={() => sample(DEFAULT_SAMPLE_ID)}
             >
               Explore a sample
             </button>
@@ -857,7 +856,7 @@ export default function Dashboard({
               </section>
               <div className="baseline-section">
                 <div className="section-kicker">
-                  ACCOUNT SNAPSHOT{" "}
+                  {mode === 'sample' && snapshot.protocol?.id === 'pacifica' ? 'PORTFOLIO OVERVIEW' : 'ACCOUNT SNAPSHOT'}{" "}
                   <span>
                     {mode === "sample" ? "Fixture baseline" : "Current baseline"} ·
                     independent of the scenario
@@ -896,13 +895,13 @@ export default function Dashboard({
                   <div className="panel-heading">
                     <div>
                       <h2 id="positions-heading">Your perpetual positions</h2>
-                      <p>Fixed sizes. Snapshot oracle prices.</p>
+                      <p>{mode === 'sample' ? 'Your sample. Add perps and adjust the inputs.' : 'Fixed sizes. Snapshot oracle prices.'}</p>
                     </div>
                     <span className="count-badge">
                       {snapshot.positions.length}
                     </span>
                   </div>
-                  {snapshot.positions.length ? (
+                  {mode === 'sample' ? <SampleBuilder key={sampleId} snapshot={snapshot} onChange={editSample} /> : snapshot.positions.length ? (
                     <>
                       <div className="position-table">
                         <table>
@@ -1235,7 +1234,7 @@ export default function Dashboard({
                   ))}
                 </ul>
                 <p>
-                  {apiSnapshot ? "Account and price data are separate public API reads. Pacifica does not supply Solana observation slots or oracle confidence intervals. " : "Reads may come from different slots; this is not an atomic same-slot snapshot. "}
+                  {snapshot.source === 'sample' ? 'Sample baseline prices are fixed or user-edited; no provider is read when you edit them. ' : apiSnapshot ? "Account and price data are separate public API reads. Pacifica does not supply Solana observation slots or oracle confidence intervals. " : "Reads may come from different slots; this is not an atomic same-slot snapshot. "}
                   Live scenarios expire at most 120 seconds after retrieval.
                   Price age is checked separately and can require an earlier refresh.
                   These are conservative app freshness rules, not protocol
@@ -1243,12 +1242,12 @@ export default function Dashboard({
                 </p>
               </section>
               <section>
-                <h3>Oracle observations</h3>
+                <h3>{snapshot.source === 'sample' ? 'Sample baseline prices' : 'Oracle observations'}</h3>
                 {snapshot.positions.map((p) => (
                   <div className="oracle-row" key={p.id}>
                     <strong>{p.market}</strong>
                     <p>
-                      {apiSnapshot ? `API price timestamp: ${p.oracle.observedAt ? time(p.oracle.observedAt) : "Unavailable"}` : `Oracle slot: ${p.oracle.slot ?? "Unavailable"} · Read slot: ${p.oracle.readSlot ?? "Unavailable"}`}
+                      {snapshot.source === 'sample' ? `Sample price: ${formatDecimal(p.price, 8)} ${p.quote}` : apiSnapshot ? `API price timestamp: ${p.oracle.observedAt ? time(p.oracle.observedAt) : "Unavailable"}` : `Oracle slot: ${p.oracle.slot ?? "Unavailable"} · Read slot: ${p.oracle.readSlot ?? "Unavailable"}`}
                       <br />
                       {p.oracle.valid
                         ? "Accepted for this snapshot"
@@ -1302,14 +1301,9 @@ export default function Dashboard({
 
 function Market({ position: p }: { position: Position }) {
   const isShort = new Decimal(p.size).isNegative();
-  const tokenLogo = TOKEN_LOGOS[p.asset];
   return (
     <div className="market">
-      <span className={`asset-mark asset-${p.asset.toLowerCase()}`}>
-        {tokenLogo
-          ? <Image src={tokenLogo} alt="" width={34} height={34} unoptimized style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          : p.asset.slice(0, 1)}
-      </span>
+      <TokenIcon asset={p.asset} size={34} />
       <div>
         <strong>{p.market}</strong>
         <small>

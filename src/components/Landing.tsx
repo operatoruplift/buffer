@@ -3,21 +3,14 @@
 import Link from "next/link";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, Mark } from "@/components/Icons";
+import { Brand } from "@/components/Brand";
+import { TokenIcon } from "@/components/TokenIcon";
 import { formatDecimal } from "@/lib/format";
-import { getSampleSnapshot } from "@/lib/samples";
+import { getPortfolioSampleSnapshot } from "@/lib/sample-builder";
 import { calculateScenario } from "@/lib/scenario";
 import "@/app/landing.css";
 
-const demoSnapshot = getSampleSnapshot("long-short");
-
-function Brand({ large = false }: { large?: boolean }) {
-  return (
-    <span className={`buffer-brand${large ? " buffer-brand-large" : ""}`}>
-      <Mark size={large ? 92 : 33} />
-      <span>Buffer</span>
-    </span>
-  );
-}
+const demoSnapshot = getPortfolioSampleSnapshot();
 
 function ArrowLink({ href, children, secondary = false }: {
   href: string;
@@ -44,7 +37,7 @@ function ScenarioPreview() {
         <div className="buffer-preview-value" aria-live="polite" aria-atomic="true">
           {formatDecimal(total.delta, 2, true)}<span>{total.quote}</span>
         </div>
-        <p>Same move. Two different sides.</p>
+        <p>Four positions. One clearer picture.</p>
       </div>
       <div className="buffer-preview-controls">
         <div className="buffer-preview-control-label">
@@ -64,10 +57,10 @@ function ScenarioPreview() {
         </div>
       </div>
       <div className="buffer-preview-positions">
-        {scenario.included.map((position, index) => (
+        {scenario.included.map((position) => (
           <div className="buffer-preview-position" key={position.id}>
-            <span className="buffer-position-index">0{index + 1}</span>
-            <span><strong>{position.market}</strong><small>{index === 0 ? "Long · 100 SOL at $150" : "Short · 0.5 BTC at $100,000"}</small></span>
+            <TokenIcon asset={demoSnapshot.positions.find(item => item.id === position.id)!.asset} size={28} />
+            <span><strong>{position.market}</strong><small>{position.size.startsWith('-') ? 'Short' : 'Long'} · {formatDecimal(position.size.replace('-', ''), 2)} at {formatDecimal(position.baselinePrice, 2)} USDC</small></span>
             <strong className={position.delta.startsWith("-") ? "buffer-down" : "buffer-up"}>{formatDecimal(position.delta, 2, true)}</strong>
           </div>
         ))}
@@ -87,8 +80,12 @@ const questions = [
 ];
 
 export default function Landing() {
+  const [motionPaused, setMotionPaused] = useState(false);
+  const motionControl = (className: string) => <button type="button" className={`buffer-motion-control ${className}`} onClick={() => setMotionPaused(paused => !paused)} aria-label={motionPaused ? 'Resume page animations' : 'Pause page animations'} aria-pressed={motionPaused}>
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">{motionPaused ? <path d="m5 3 8 5-8 5Z" /> : <><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></>}</svg>
+  </button>;
   return (
-    <div className="buffer-site">
+    <div className="buffer-site" data-motion-paused={motionPaused}>
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="buffer-nav">
         <Link href="/" aria-label="Buffer home"><Brand /></Link>
@@ -121,7 +118,7 @@ export default function Landing() {
             </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
             <ScenarioPreview />
-            <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span><span className="buffer-tiny-cross" aria-hidden="true">+</span></div>
+            <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span>{motionControl('buffer-hero-motion')}</div>
           </div>
         </section>
 
@@ -152,7 +149,7 @@ export default function Landing() {
 
         <section id="install" className="buffer-install">
           <div className="buffer-install-copy"><span className="buffer-kicker">03 / A little more room to think</span><h2>Your perspective.<br />Wherever you are.</h2><p>A focused workspace for your phone, tablet, or desktop. Open it in your browser, or install Buffer for a place of its own.</p><ArrowLink href="/app">Open the app</ArrowLink><div className="buffer-install-platforms"><span>Mobile</span><span>Tablet</span><span>Desktop</span></div><details className="buffer-install-help"><summary>How to install Buffer <span>+</span></summary><p>On a supported desktop browser, choose its install-app option. On iPhone or iPad, open Buffer in Safari, tap Share, then Add to Home Screen. On Android, open the browser menu and choose Install app or Add to Home screen. Availability depends on your browser.</p></details></div>
-          <div className="buffer-install-art" aria-hidden="true"><div className="buffer-install-ring ring-one" /><div className="buffer-install-ring ring-two" /><div className="buffer-install-ring ring-three" /><div className="buffer-app-lockup"><div className="buffer-app-icon"><Mark size={112} /></div><span className="buffer-app-caption">BUFFER, WITH YOU.</span></div></div>
+          <div className="buffer-install-art"><div className="buffer-install-ring ring-one" aria-hidden="true" /><div className="buffer-install-ring ring-two" aria-hidden="true" /><div className="buffer-install-ring ring-three" aria-hidden="true" /><div className="buffer-app-lockup" aria-hidden="true"><div className="buffer-app-icon"><Mark size={112} /></div><span className="buffer-app-caption">BUFFER, WITH YOU.</span></div>{motionControl('buffer-install-motion')}</div>
         </section>
 
         <section id="privacy" className="buffer-privacy"><div className="buffer-privacy-mark"><Mark size={43} /></div><h2>Curiosity shouldn’t<br />need your keys.</h2><div><p>Buffer never asks for a seed phrase, private key, or trading approval. Public account reads use the selected provider’s API or Solana RPC. Save scenarios on your device without signing in. Optional cloud accounts keep a separate private library.</p><Link className="buffer-text-link" href="/app">Save your perspective <Icon name="arrow" size={17} /></Link></div></section>

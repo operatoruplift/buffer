@@ -17,7 +17,7 @@ test('sample quick start gives a real result, contribution explanation, Method, 
 
   await start.click();
   await expect(page.getByRole('heading', { name: 'What if the market moves?' })).toBeFocused();
-  await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
+  await expect(page.getByTestId('scenario-total')).toContainText('+1,000.00');
   await expect(page.getByTestId('scenario-total')).toBeInViewport();
   await expect(page.getByRole('slider', { name: 'Shared price move' })).toHaveValue('-10');
   await expect(page.getByRole('region', { name: 'Baseline account metrics' })).toHaveText(baseline, { useInnerText: true });
@@ -25,6 +25,8 @@ test('sample quick start gives a real result, contribution explanation, Method, 
   await expect(page.getByRole('heading', { name: 'Position contributions' })).toBeFocused();
   await expect(page.locator('.contributions')).toContainText('−1,500.00 USDC');
   await expect(page.locator('.contributions')).toContainText('+5,000.00 USDC');
+  await expect(page.locator('.contributions')).toContainText('−2,000.00 USDC');
+  await expect(page.locator('.contributions')).toContainText('−500.00 USDC');
 
   const method = guide.getByRole('button', { name: 'Read the method' });
   await method.click();
@@ -40,7 +42,8 @@ test('sample quick start gives a real result, contribution explanation, Method, 
   const report = JSON.parse(await readFile((await download.path())!, 'utf8'));
   expect(report.sourceMode).toBe('sample');
   expect(report.scenario.shockPercent).toBe(-10);
-  expect(report.scenario.totalsByQuoteCurrency).toEqual([{ quote: 'USDC', delta: '3500' }]);
+  expect(report.scenario.totalsByQuoteCurrency).toEqual([{ quote: 'USDC', delta: '1000' }]);
+  expect(report.positions).toHaveLength(4);
   expect(reads).toEqual([]);
 
   await guide.getByRole('button', { name: 'Hide sample guide' }).click();

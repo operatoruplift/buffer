@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mark } from '@/components/Icons';
+import { Brand } from '@/components/Brand';
 import styles from './page.module.css';
 
 export const metadata = { title: 'Watch Buffer — Demo, pitch and technical walkthrough', description: 'See Buffer in action with narrated product and technical walkthroughs.' };
@@ -10,7 +10,7 @@ const videos = [
 ];
 export default function DemoPage() {
   return <main className={styles.page}>
-    <nav className={styles.nav}><Link href="/" className={styles.brand}><Mark />Buffer</Link><Link href="/app" className="button primary">Try the app →</Link></nav>
+    <nav className={styles.nav}><Link href="/" className={styles.brand} aria-label="Buffer home"><Brand /></Link><Link href="/app" className="button primary">Try the app →</Link></nav>
     <header className={styles.header}><span className="eyebrow">SEE THE WHOLE PICTURE</span><h1>Meet Buffer.</h1><p>A few minutes. A clearer view.</p></header>
     {videos.map(video => <section key={video.id} className={styles.film} id={video.id}>
       <div><span className="eyebrow">{video.label}</span><h2>{video.title}</h2><p>{video.description}</p></div>

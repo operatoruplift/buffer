@@ -7,10 +7,10 @@ export const metadata: Metadata = {
     "A clear snapshot of your Solana perpetual positions and the incremental effect of a shared market move.",
   icons: {
     icon: [
-      { url: '/favicon.ico?v=ribbon3', type: 'image/x-icon', sizes: '16x16 32x32 48x48' },
-      { url: '/brand/favicon-ribbon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico?v=tile4', type: 'image/x-icon', sizes: '192x192' },
+      { url: '/icons/icon.svg?v=tile4', type: 'image/svg+xml', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico?v=ribbon3',
+    shortcut: '/favicon.ico?v=tile4',
     apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Buffer' },

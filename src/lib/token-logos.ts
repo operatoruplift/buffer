@@ -68,4 +68,14 @@ export const PACIFICA_TOKEN_LOGOS: Readonly<Record<string, string>> = {
   "ZRO": "/tokens/pacifica/zro.svg",
 };
 
+export const TOKEN_LOGOS: Readonly<Record<string, string>> = {
+  ...PACIFICA_TOKEN_LOGOS,
+  SOL: '/tokens/sol.svg',
+  BTC: '/tokens/btc.png',
+  ETH: '/tokens/eth.png',
+  HYPE: '/tokens/hype.svg',
+  USDC: '/tokens/usdc.png',
+  USDT: '/tokens/usdt.png',
+};
+
 export const PACIFICA_LOGO = "/tokens/pacifica/pacifica.svg";

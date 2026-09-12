@@ -1,0 +1,39 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 7px;
+  color: #315fe8;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 31px;
+  font-style: normal;
+  font-weight: 550;
+  letter-spacing: -0.04516129em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.brand > svg {
+  width: 33px;
+  height: 33px;
+}
+
+.large {
+  gap: 0.22580645em;
+  font-size: clamp(60px, 16vw, 210px);
+  line-height: 1.1;
+}
+
+.large > svg {
+  width: 1.06451613em;
+  height: 1.06451613em;
+}
+
+@media (max-width: 520px) {
+  .brand:not(.large) {
+    font-size: 29px;
+  }
+  .large {
+    font-size: min(90px, 21vw);
+  }
+}

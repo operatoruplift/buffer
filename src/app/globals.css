@@ -99,9 +99,6 @@ svg {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 26px;
-  font-weight: 550;
-  letter-spacing: -1px;
 }
 .logo {
   color: var(--blue);
@@ -1408,7 +1405,6 @@ footer {
     padding-bottom: 12px;
   }
   .brand {
-    font-size: 24px;
     gap: 7px;
   }
   .brand-divider,

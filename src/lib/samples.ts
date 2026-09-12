@@ -1,4 +1,5 @@
 import type { Position, Snapshot } from './types';
+import { DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot } from './sample-builder';
 
 export const SAMPLE_ACCOUNTS = [
   { id: 'sol-long', name: 'SOL long', description: 'One position. A clear place to start.' },
@@ -13,6 +14,7 @@ export const SAMPLE_ACCOUNTS = [
   { id: 'hype-short', name: 'HYPE short', description: 'See how a HYPE short responds to a move.' },
   { id: 'market-basket', name: 'Four-market basket', description: 'SOL, BTC, ETH, and HYPE longs in one USDT scenario.' },
   { id: 'hedged-basket', name: 'Mixed four-market basket', description: 'SOL and ETH longs; BTC and HYPE shorts.' },
+  { id: DEFAULT_SAMPLE_ID, name: 'Four-market portfolio', description: 'SOL, BTC, ETH, and XRP. Add more perps and edit your own sample.' },
 ];
 
 const FIXTURE_TIME = '2026-09-11T12:00:00.000Z';
@@ -43,6 +45,7 @@ function position(asset: SampleAsset, size: string, price: string, notional: str
 }
 
 export function getSampleSnapshot(id: string): Snapshot {
+  if (id === DEFAULT_SAMPLE_ID) return getPortfolioSampleSnapshot();
   const sample = SAMPLE_ACCOUNTS.find((account) => account.id === id);
   if (!sample) throw new Error('Unknown sample account. Choose one of the listed samples.');
   const expanded = Boolean(SINGLE_MARKET_SAMPLES[id]) || id === 'market-basket' || id === 'hedged-basket';

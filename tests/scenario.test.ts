@@ -258,7 +258,7 @@ describe('freshness', () => {
     const snapshot = getSampleSnapshot('long-short');
     expect(calculateScenario(snapshot, -10, retrievedMillis + 100_000_000).totals[0].delta).toBe('3500');
     expect(getSampleSnapshot('long-short')).toEqual(snapshot);
-    expect(SAMPLE_ACCOUNTS).toHaveLength(12);
+    expect(SAMPLE_ACCOUNTS).toHaveLength(13);
     for (const sample of SAMPLE_ACCOUNTS) {
       const fixture = getSampleSnapshot(sample.id);
       expect(fixture).toMatchObject({ authority: null, accountSlot: null, observedSlot: null });

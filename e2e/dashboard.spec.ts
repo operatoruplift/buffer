@@ -177,10 +177,10 @@ test('partial sample keeps excluded exposure, spot collateral/debt, and orders v
 test('sample layout has responsive positions and result above controls; capture delivery screenshot', async ({ page }, testInfo) => {
   await page.goto('/app');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
-  await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
-  const mobile = testInfo.project.name === 'mobile';
-  await expect(page.locator('.position-table')).toBeVisible({ visible: !mobile });
-  await expect(page.locator('.position-cards')).toBeVisible({ visible: mobile });
+  await expect(page.getByTestId('scenario-total')).toContainText('+1,000.00');
+  await expect(page.getByRole('form', { name: 'Edit SOL-PERP', exact: true })).toBeVisible();
+  await expect(page.getByRole('form', { name: 'Edit XRP-PERP', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add perps', exact: true })).toBeVisible();
   const result = await page.getByTestId('scenario-total').boundingBox();
   const slider = await page.getByRole('slider').boundingBox();
   expect(result && slider && result.y < slider.y).toBe(true);
@@ -232,6 +232,8 @@ test('mocked success requires explicit subaccount selection and refresh resets t
   await expect(page.getByRole('heading', { name: 'Choose one subaccount' })).toBeVisible();
   expect(reads).toBe(0);
   await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await expect(page.getByRole('button', { name: 'Add perps', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('combobox', { name: 'Sample denomination', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
