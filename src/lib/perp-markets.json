@@ -1,0 +1,381 @@
+{
+  "velocity": [
+    {
+      "marketIndex": 0,
+      "market": "SOL-PERP",
+      "asset": "SOL"
+    },
+    {
+      "marketIndex": 1,
+      "market": "BTC-PERP",
+      "asset": "BTC"
+    },
+    {
+      "marketIndex": 2,
+      "market": "ETH-PERP",
+      "asset": "ETH"
+    },
+    {
+      "marketIndex": 3,
+      "market": "HYPE-PERP",
+      "asset": "HYPE"
+    }
+  ],
+  "drift": [
+    {
+      "marketIndex": 0,
+      "market": "SOL-PERP",
+      "asset": "SOL"
+    },
+    {
+      "marketIndex": 1,
+      "market": "BTC-PERP",
+      "asset": "BTC"
+    },
+    {
+      "marketIndex": 2,
+      "market": "ETH-PERP",
+      "asset": "ETH"
+    },
+    {
+      "marketIndex": 3,
+      "market": "APT-PERP",
+      "asset": "APT"
+    },
+    {
+      "marketIndex": 4,
+      "market": "1MBONK-PERP",
+      "asset": "1MBONK"
+    },
+    {
+      "marketIndex": 5,
+      "market": "POL-PERP",
+      "asset": "POL"
+    },
+    {
+      "marketIndex": 6,
+      "market": "ARB-PERP",
+      "asset": "ARB"
+    },
+    {
+      "marketIndex": 7,
+      "market": "DOGE-PERP",
+      "asset": "DOGE"
+    },
+    {
+      "marketIndex": 8,
+      "market": "BNB-PERP",
+      "asset": "BNB"
+    },
+    {
+      "marketIndex": 9,
+      "market": "SUI-PERP",
+      "asset": "SUI"
+    },
+    {
+      "marketIndex": 10,
+      "market": "1MPEPE-PERP",
+      "asset": "1MPEPE"
+    },
+    {
+      "marketIndex": 11,
+      "market": "OP-PERP",
+      "asset": "OP"
+    },
+    {
+      "marketIndex": 12,
+      "market": "RENDER-PERP",
+      "asset": "RENDER"
+    },
+    {
+      "marketIndex": 13,
+      "market": "XRP-PERP",
+      "asset": "XRP"
+    },
+    {
+      "marketIndex": 14,
+      "market": "HNT-PERP",
+      "asset": "HNT"
+    },
+    {
+      "marketIndex": 15,
+      "market": "INJ-PERP",
+      "asset": "INJ"
+    },
+    {
+      "marketIndex": 16,
+      "market": "LINK-PERP",
+      "asset": "LINK"
+    },
+    {
+      "marketIndex": 17,
+      "market": "RLB-PERP",
+      "asset": "RLB"
+    },
+    {
+      "marketIndex": 18,
+      "market": "PYTH-PERP",
+      "asset": "PYTH"
+    },
+    {
+      "marketIndex": 19,
+      "market": "TIA-PERP",
+      "asset": "TIA"
+    },
+    {
+      "marketIndex": 20,
+      "market": "JTO-PERP",
+      "asset": "JTO"
+    },
+    {
+      "marketIndex": 21,
+      "market": "SEI-PERP",
+      "asset": "SEI"
+    },
+    {
+      "marketIndex": 22,
+      "market": "AVAX-PERP",
+      "asset": "AVAX"
+    },
+    {
+      "marketIndex": 23,
+      "market": "WIF-PERP",
+      "asset": "WIF"
+    },
+    {
+      "marketIndex": 24,
+      "market": "JUP-PERP",
+      "asset": "JUP"
+    },
+    {
+      "marketIndex": 25,
+      "market": "DYM-PERP",
+      "asset": "DYM"
+    },
+    {
+      "marketIndex": 26,
+      "market": "TAO-PERP",
+      "asset": "TAO"
+    },
+    {
+      "marketIndex": 27,
+      "market": "W-PERP",
+      "asset": "W"
+    },
+    {
+      "marketIndex": 28,
+      "market": "KMNO-PERP",
+      "asset": "KMNO"
+    },
+    {
+      "marketIndex": 29,
+      "market": "TNSR-PERP",
+      "asset": "TNSR"
+    },
+    {
+      "marketIndex": 30,
+      "market": "DRIFT-PERP",
+      "asset": "DRIFT"
+    },
+    {
+      "marketIndex": 31,
+      "market": "CLOUD-PERP",
+      "asset": "CLOUD"
+    },
+    {
+      "marketIndex": 32,
+      "market": "IO-PERP",
+      "asset": "IO"
+    },
+    {
+      "marketIndex": 33,
+      "market": "ZEX-PERP",
+      "asset": "ZEX"
+    },
+    {
+      "marketIndex": 34,
+      "market": "POPCAT-PERP",
+      "asset": "POPCAT"
+    },
+    {
+      "marketIndex": 35,
+      "market": "1KWEN-PERP",
+      "asset": "1KWEN"
+    },
+    {
+      "marketIndex": 42,
+      "market": "TON-PERP",
+      "asset": "TON"
+    },
+    {
+      "marketIndex": 44,
+      "market": "MOTHER-PERP",
+      "asset": "MOTHER"
+    },
+    {
+      "marketIndex": 45,
+      "market": "MOODENG-PERP",
+      "asset": "MOODENG"
+    },
+    {
+      "marketIndex": 47,
+      "market": "DBR-PERP",
+      "asset": "DBR"
+    },
+    {
+      "marketIndex": 51,
+      "market": "1KMEW-PERP",
+      "asset": "1KMEW"
+    },
+    {
+      "marketIndex": 52,
+      "market": "MICHI-PERP",
+      "asset": "MICHI"
+    },
+    {
+      "marketIndex": 53,
+      "market": "GOAT-PERP",
+      "asset": "GOAT"
+    },
+    {
+      "marketIndex": 54,
+      "market": "FWOG-PERP",
+      "asset": "FWOG"
+    },
+    {
+      "marketIndex": 55,
+      "market": "PNUT-PERP",
+      "asset": "PNUT"
+    },
+    {
+      "marketIndex": 56,
+      "market": "RAY-PERP",
+      "asset": "RAY"
+    },
+    {
+      "marketIndex": 59,
+      "market": "HYPE-PERP",
+      "asset": "HYPE"
+    },
+    {
+      "marketIndex": 60,
+      "market": "LTC-PERP",
+      "asset": "LTC"
+    },
+    {
+      "marketIndex": 61,
+      "market": "ME-PERP",
+      "asset": "ME"
+    },
+    {
+      "marketIndex": 62,
+      "market": "PENGU-PERP",
+      "asset": "PENGU"
+    },
+    {
+      "marketIndex": 63,
+      "market": "AI16Z-PERP",
+      "asset": "AI16Z"
+    },
+    {
+      "marketIndex": 64,
+      "market": "TRUMP-PERP",
+      "asset": "TRUMP"
+    },
+    {
+      "marketIndex": 65,
+      "market": "MELANIA-PERP",
+      "asset": "MELANIA"
+    },
+    {
+      "marketIndex": 66,
+      "market": "BERA-PERP",
+      "asset": "BERA"
+    },
+    {
+      "marketIndex": 69,
+      "market": "KAITO-PERP",
+      "asset": "KAITO"
+    },
+    {
+      "marketIndex": 70,
+      "market": "IP-PERP",
+      "asset": "IP"
+    },
+    {
+      "marketIndex": 71,
+      "market": "FARTCOIN-PERP",
+      "asset": "FARTCOIN"
+    },
+    {
+      "marketIndex": 72,
+      "market": "ADA-PERP",
+      "asset": "ADA"
+    },
+    {
+      "marketIndex": 73,
+      "market": "PAXG-PERP",
+      "asset": "PAXG"
+    },
+    {
+      "marketIndex": 74,
+      "market": "LAUNCHCOIN-PERP",
+      "asset": "LAUNCHCOIN"
+    },
+    {
+      "marketIndex": 75,
+      "market": "PUMP-PERP",
+      "asset": "PUMP"
+    },
+    {
+      "marketIndex": 76,
+      "market": "ASTER-PERP",
+      "asset": "ASTER"
+    },
+    {
+      "marketIndex": 77,
+      "market": "XPL-PERP",
+      "asset": "XPL"
+    },
+    {
+      "marketIndex": 78,
+      "market": "2Z-PERP",
+      "asset": "2Z"
+    },
+    {
+      "marketIndex": 79,
+      "market": "ZEC-PERP",
+      "asset": "ZEC"
+    },
+    {
+      "marketIndex": 80,
+      "market": "MNT-PERP",
+      "asset": "MNT"
+    },
+    {
+      "marketIndex": 81,
+      "market": "1KPUMP-PERP",
+      "asset": "1KPUMP"
+    },
+    {
+      "marketIndex": 82,
+      "market": "MET-PERP",
+      "asset": "MET"
+    },
+    {
+      "marketIndex": 83,
+      "market": "1KMON-PERP",
+      "asset": "1KMON"
+    },
+    {
+      "marketIndex": 84,
+      "market": "LIT-PERP",
+      "asset": "LIT"
+    },
+    {
+      "marketIndex": 85,
+      "market": "BP-PERP",
+      "asset": "BP"
+    }
+  ]
+}

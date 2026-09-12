@@ -6,16 +6,17 @@
 
 | Check | Result |
 | --- | --- |
-| Unit and provider suite | **90 passed** across scenario, provider, device-report, and Velocity compatibility tests. |
+| Unit and provider suite | **125 passed** across scenario, provider, device-report, and Velocity compatibility tests, including all four configured Velocity markets, HYPE exclusions, full identity checks, and twelve sample scenarios. |
 | TypeScript and ESLint | Passed on the current working tree. |
 | Ribbon B monogram rollout | Production build, TypeScript, ESLint, and **14 local browser checks passed** across desktop/mobile layouts, website interactions, install assets, offline arithmetic, and public cache isolation. A separate browser migration check confirmed that activation replaces the v2 cache with v3 and serves the ribbon icon. All nine vector sources share the same geometry; the standalone PNG is transparent and the maskable mark fits the safe circle. Landing and sample-app screenshots were refreshed. |
 | Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
-| Local judge-experience browser run | **16 passed** across the new quick-start guide, scenario-first mobile layout, device reports, PWA, website, and API-failure paths. |
+| Local production-build browser run | **46 passed, 2 skipped** across desktop/mobile selectors, quick-start guide, scenarios, account-switch races, device reports, PWA, videos, website, and API-failure paths. The skipped cases require disposable Supabase authentication fixtures. |
+| Selector, market, and favicon review | Frontend and backend security reviews passed. A real mobile touch swipe scrolled the twelve-option menu. Additional browser checks verified the four-market −10% fixture total of `−7500` USDT, removed decorative labels, and fresh SVG/ICO favicon metadata; ICO includes 16/32/48px images. |
 | Vercel public routes and media | Passed on `https://bufferonsolana.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
 | Supabase database | Dedicated Buffer project and both saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. |
 | Authentication | Confirmed-account password sign-in and report operations passed with disposable fixtures. Public signup and recovery remain gated until SMTP and Auth settings are verified. |
 
-The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The final production browser run completed **44 passed, 2 skipped** across desktop and mobile; the two skipped cases are the opt-in Supabase fixture tests.
+The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The last full production browser run before this selector/market revision completed **44 passed, 2 skipped**. This revision passed **46 local production-build browser tests**, with the two opt-in Supabase fixture tests skipped.
 
 ## Arithmetic and account coverage
 
@@ -23,7 +24,7 @@ Unit tests verify long/short direction, zero shock, the +3,500 USDC example, dec
 
 Provider tests verify canonical addresses, bounded subaccount IDs, protocol/query validation, absent accounts, owner/subaccount mismatch, sanitized errors, complete baseline coverage, isolated collateral and residual state, oracle validity, verified identities, debt/collateral/order inventory, loader failures, cleanup, and unchanged-byte read slots. Device-report tests cover strict nested report validation, quota/error handling, corrupt storage preservation, ordering, deletion, and the 20-report/1 MiB limits.
 
-The Velocity compatibility tests decode captured public State, perp, spot, and Pyth Lazer oracle buffers. They assert the fixed Velocity program, the `velocity_state` PDA, current lower-camel account coders, market PDA derivation, SOL/BTC/ETH identities, and the USDT mint. Fixtures are layout guards, not current-price evidence.
+The Velocity compatibility tests decode captured public State, perp, spot, and Pyth Lazer oracle buffers. They assert the fixed Velocity program, the `velocity_state` PDA, current lower-camel account coders, market PDA derivation, SOL/BTC/ETH identities, and the USDT mint. Synthetic normalization tests now cover all four configured markets, including HYPE, and reject mismatched identity/oracle sources, inactive or nonlinear contracts, dated contracts, and unusable prices. Registry tests compare the lightweight browser identities to the pinned SDKs. Fixtures are layout guards, not current-price evidence.
 
 ## Current mainnet verification
 

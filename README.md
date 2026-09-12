@@ -6,7 +6,7 @@
 
 [Website](https://bufferonsolana.vercel.app) · [Open the app](https://bufferonsolana.vercel.app/app) · [Watch the demos](https://bufferonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
 
-Paste a public authority, select one Velocity subaccount, and explore a shared −20% to +20% price move on eligible SOL, BTC, and ETH perpetual positions. The current Velocity deployment settles in USDT; baseline SDK metrics remain USD. Buffer keeps the current baseline separate from modeled price P&L and explains what is excluded. Three deterministic samples work immediately, without an account or RPC configuration. The **Explore a live account** button opens a public example without a wallet connection.
+Paste a public authority, select one Velocity subaccount, and explore a shared −20% to +20% price move on eligible SOL, BTC, ETH, and HYPE perpetual positions. The current Velocity deployment settles in USDT; baseline SDK metrics remain USD. Buffer keeps the current baseline separate from modeled price P&L and explains what is excluded. Twelve deterministic sample scenarios work immediately, without an account or RPC configuration. The **Explore a live account** button opens a public example without a wallet connection.
 
 ## What is included
 
@@ -43,7 +43,7 @@ The RPC must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccoun
 
 ## Use Buffer
 
-1. Choose **SOL long**, **Long + short**, or **Partial coverage**, or use **Explore a live account** / enter a public authority and explicitly select a discovered subaccount. The protocol selector defaults to current Velocity; legacy Drift is clearly marked paused. Accounts are never combined.
+1. Choose among **12 fixed scenarios**, including individual SOL/BTC/ETH/HYPE longs and shorts, four-market portfolios, **Long + short**, and **Partial coverage**, or use **Explore a live account** / enter a public authority and explicitly select a discovered subaccount. The protocol selector defaults to current Velocity; legacy Drift is clearly marked paused. Accounts are never combined.
 2. Inspect the frozen baseline, positions, and inventory. Unavailable metrics explain missing or invalid coverage.
 3. Move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful **Refresh** reloads the snapshot and resets the shock.
 4. Open **Method** for assumptions, exclusions, addresses, source, and separate slot observations. **Download report** saves precise JSON locally.

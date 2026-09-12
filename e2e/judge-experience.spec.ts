@@ -1,3 +1,4 @@
+import { chooseOption } from './select-helper';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -45,7 +46,7 @@ test('sample quick start gives a real result, contribution explanation, Method, 
   await guide.getByRole('button', { name: 'Hide sample guide' }).click();
   await expect(start).not.toBeVisible();
   await guide.getByRole('button', { name: 'Show sample guide' }).click();
-  await page.getByLabel('Try a sample', { exact: true }).selectOption('sol-long');
+  await chooseOption(page, 'Try a sample', 'SOL long');
   await start.click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
 });

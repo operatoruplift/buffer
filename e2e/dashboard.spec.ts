@@ -1,6 +1,7 @@
+import { chooseOption } from './select-helper';
 import { test, expect, type Page } from '@playwright/test';
 import { readFile, mkdir } from 'node:fs/promises';
-import { getSampleSnapshot } from '../src/lib/samples';
+import { getSampleSnapshot, SAMPLE_ACCOUNTS } from '../src/lib/samples';
 import type { Discovery, Snapshot } from '../src/lib/types';
 
 // Synthetic responses test UI behavior only. They are not successful live verification.
@@ -55,14 +56,58 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page), 'No JavaScript exceptions or unexpected console errors').toEqual([]);
 });
 
+test('selectors support keyboard navigation, typeahead, dismissal, and a contained mobile menu', async ({ page }) => {
+  await page.goto('/app');
+  const selector = page.getByRole('combobox', { name: 'Try a sample', exact: true });
+  await selector.focus();
+  await page.keyboard.press('ArrowDown');
+  const list = page.getByRole('listbox', { name: 'Try a sample', exact: true });
+  await expect(list).toBeVisible();
+  const menu = await list.boundingBox();
+  const viewport = page.viewportSize()!;
+  expect(menu!.x).toBeGreaterThanOrEqual(0);
+  expect(menu!.y).toBeGreaterThanOrEqual(0);
+  expect(menu!.x + menu!.width).toBeLessThanOrEqual(viewport.width);
+  expect(menu!.y + menu!.height).toBeLessThanOrEqual(viewport.height);
+  await page.keyboard.press('End');
+  const last = list.getByRole('option', { name: SAMPLE_ACCOUNTS.at(-1)!.name, exact: true });
+  await expect(last).toBeInViewport();
+  await expect(selector).toHaveAttribute('aria-activedescendant', (await last.getAttribute('id'))!);
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowDown');
+  await expect(selector).toHaveAttribute('aria-activedescendant', (await list.getByRole('option', { name: 'Long + short', exact: true }).getAttribute('id'))!);
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Enter');
+  await expect(selector).toHaveText('SOL long');
+  await expect(selector).toBeFocused();
+  await expect(list).not.toBeVisible();
+  await page.getByRole('button', { name: '-10%', exact: true }).click();
+  await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
+  await selector.focus();
+  await page.keyboard.type('partial');
+  await page.keyboard.press('Enter');
+  await expect(selector).toHaveText('Partial coverage');
+  await expect(page.getByTestId('scenario-total')).toContainText('0.00');
+  await selector.click();
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Escape');
+  await expect(selector).toHaveText('Partial coverage');
+  await expect(selector).toBeFocused();
+  await expect(list).not.toBeVisible();
+  await selector.click();
+  await page.getByRole('heading', { name: 'A little more perspective.' }).click();
+  await expect(list).not.toBeVisible();
+  await noOverflow(page);
+});
+
 test('complete deterministic sample journey: positions, preset, keyboard slider, Method, JSON, reset, refresh', async ({ page }) => {
   await page.goto('/app');
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
-  await page.getByLabel('Try a sample', { exact: true }).selectOption('sol-long');
+  await chooseOption(page, 'Try a sample', 'SOL long');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
-  await page.getByLabel('Try a sample', { exact: true }).selectOption('long-short');
+  await chooseOption(page, 'Try a sample', 'Long + short');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await expect(page.getByRole('heading', { name: 'Your perpetual positions' })).toBeVisible();
   await page.getByRole('button', { name: '-10%', exact: true }).click();
@@ -115,7 +160,7 @@ test('complete deterministic sample journey: positions, preset, keyboard slider,
 
 test('partial sample keeps excluded exposure, spot collateral/debt, and orders visible', async ({ page }) => {
   await page.goto('/app');
-  await page.getByLabel('Try a sample', { exact: true }).selectOption('partial-coverage');
+  await chooseOption(page, 'Try a sample', 'Partial coverage');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
   await expect(page.locator('.coverage')).toContainText('Modeled positions only: 2 of 3');
@@ -186,7 +231,7 @@ test('mocked success requires explicit subaccount selection and refresh resets t
   await readAddress(page);
   await expect(page.getByRole('heading', { name: 'Choose one subaccount' })).toBeVisible();
   expect(reads).toBe(0);
-  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
@@ -212,7 +257,7 @@ test('mocked selected subaccount with no positions and incomplete baseline shows
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByRole('heading', { name: 'No open perpetual positions' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Baseline account metrics' })).toContainText('Unavailable');
   await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');
@@ -230,7 +275,7 @@ test('mocked failed refresh retains the original snapshot and pauses calculation
     : route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'Mock refresh failed.', retryable: true } } }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   const originalTime = await page.locator('.freshness small').textContent();
   await page.getByRole('button', { name: '-10%', exact: true }).click();
@@ -250,7 +295,7 @@ test('mocked live freshness expiry disables the result without replacing the sna
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: snapshot }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.clock.fastForward(121_000);
   await expect(page.getByText('Stale snapshot · calculations paused', { exact: true })).toBeVisible();
@@ -277,17 +322,17 @@ test('mocked late previous subaccount response cannot overwrite the latest selec
   await page.goto('/app');
   await readAddress(page);
   const selection = page.getByLabel('Subaccount', { exact: true });
-  await selection.selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect.poll(() => oldRequested).toBe(true);
   await expect(page.getByRole('status').filter({ hasText: 'Reading selected subaccount' })).toBeVisible();
-  await selection.selectOption('1');
+  await chooseOption(page, 'Subaccount', 'Mock second · #1');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   releaseOld!();
   await oldCompleted;
   await page.getByRole('button', { name: 'Method', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('Current second snapshot · #1');
   await expect(page.getByRole('dialog')).not.toContainText('Old delayed snapshot');
-  await expect(selection).toHaveValue('1');
+  await expect(selection).toHaveText('Mock second · #1');
 });
 
 test('mocked pending old wallet response cannot replace a newly chosen sample', async ({ page }) => {
@@ -308,13 +353,13 @@ test('mocked pending old wallet response cannot replace a newly chosen sample', 
   await page.goto('/app');
   await readAddress(page, OTHER_AUTHORITY);
   await expect.poll(() => requested).toBe(true);
-  await page.getByLabel('Try a sample', { exact: true }).selectOption('sol-long');
+  await chooseOption(page, 'Try a sample', 'SOL long');
   releaseOld!();
   await oldCompleted;
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Subaccount', { exact: true })).toHaveValue('0');
+  await expect(page.getByLabel('Subaccount', { exact: true })).toHaveText('SOL long · #0');
 });
 
 test('mocked address copy controls and explorer links expose the full selected public addresses', async ({ page, context }) => {
@@ -323,7 +368,7 @@ test('mocked address copy controls and explorer links expose the full selected p
   await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
   await page.goto('/app');
   await readAddress(page);
-  await page.getByLabel('Subaccount', { exact: true }).selectOption('0');
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: 'Copy full authority address' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(AUTHORITY);

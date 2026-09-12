@@ -11,6 +11,7 @@ import {
 import { ProviderFailure, serveRead, validateAuthority, validateProtocol, validateSubaccount, type LiveProvider } from '../src/server/boundary';
 import { baselineCoverageIssues, normalizeRaw, normalizeSnapshot, observeOracle, requiredMarkets, type ReadData } from '../src/server/normalize';
 import { liveProvider, requireSelectedAccount, SnapshotAccountLoader, bindCanonicalDriftProgram } from '../src/server/drift';
+import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
 
 const authority = '11111111111111111111111111111111';
 it('binds actual SDK reads and subscriptions to the canonical Drift deployment with matching coder names', async () => {
@@ -53,7 +54,7 @@ function fixture(): ReadData {
   const usd = MainnetSpotMarkets.find((p) => p.marketIndex === 0)!;
   const solSpot = MainnetSpotMarkets.find((p) => p.marketIndex === 1)!;
   const oracle = { data: { price: PRICE_PRECISION.mul(new BN(150)), slot: new BN(1000), confidence: new BN(100), hasSufficientNumberOfDataPoints: true }, slot: 1001 };
-  const market = { marketIndex: sol.marketIndex, name: encoded(sol.symbol), contractType: { perpetual: {} }, status: { active: {} }, contractTier: { a: {} }, quoteSpotMarketIndex: 0,
+  const market = { marketIndex: sol.marketIndex, name: encoded(sol.symbol), contractType: { perpetual: {} }, expiryTs: zero(), status: { active: {} }, contractTier: { a: {} }, quoteSpotMarketIndex: 0,
     amm: { oracle: sol.oracle, oracleSource: sol.oracleSource, historicalOracleData: { lastOraclePriceTwap: oracle.data.price } } } as unknown as PerpMarketAccount;
   const quote = { marketIndex: 0, name: encoded(usd.symbol), mint: usd.mint, decimals: 6, status: { active: {} }, oracleSource: { quoteAsset: {} }, historicalOracleData: { lastOraclePriceTwap: PRICE_PRECISION }, cumulativeDepositInterest: SPOT_MARKET_CUMULATIVE_INTEREST_PRECISION, cumulativeBorrowInterest: SPOT_MARKET_CUMULATIVE_INTEREST_PRECISION } as unknown as SpotMarketAccount;
   const collateral = { ...quote, marketIndex: 1, name: encoded(solSpot.symbol), mint: solSpot.mint, decimals: 9, oracleSource: solSpot.oracleSource, historicalOracleData: { lastOraclePriceTwap: oracle.data.price } } as unknown as SpotMarketAccount;
@@ -131,6 +132,32 @@ describe('read API boundaries', () => {
 });
 
 describe('coverage and normalization', () => {
+  it('keeps the browser registry aligned with every pinned SDK perpetual identity', () => {
+    expect(CONFIGURED_PERP_MARKETS.drift).toEqual(MainnetPerpMarkets.filter((market) => market.symbol.endsWith('-PERP'))
+      .map(({ marketIndex, symbol, baseAssetSymbol }) => ({ marketIndex, market: symbol, asset: baseAssetSymbol })));
+  });
+  it('normalizes configured perpetuals beyond the original three tickers', () => {
+    for (const config of MainnetPerpMarkets.filter((market) => market.symbol.endsWith('-PERP'))) {
+      const data = fixture();
+      const original = data.perps.get(0)!;
+      data.account.perpPositions = [perpPosition(config.marketIndex)];
+      data.account.orders = [];
+      data.perps = new Map([[config.marketIndex, { ...original, marketIndex: config.marketIndex, name: encoded(config.symbol),
+        amm: { ...original.amm, oracle: config.oracle, oracleSource: config.oracleSource } }]]);
+      data.perpOracles = new Map([[config.marketIndex, data.perpOracles.get(0)!]]);
+      data.valuationOracles = new Map([[config.marketIndex, data.valuationOracles.get(0)!]]);
+      expect(normalizeSnapshot(data).positions[0], config.symbol).toMatchObject({ modeled: true, asset: config.baseAssetSymbol, market: config.symbol, exclusionReason: null });
+    }
+  });
+  it('excludes prediction and dated contracts despite otherwise valid metadata', () => {
+    const data = fixture();
+    data.perps.get(0)!.contractType = { prediction: {} };
+    expect(normalizeSnapshot(data).positions[0].exclusionReason).toContain('nonlinear contract');
+    data.perps.get(0)!.contractType = { perpetual: {} };
+    data.perps.get(0)!.expiryTs = new BN(1);
+    expect(normalizeSnapshot(data).positions[0].exclusionReason).toContain('Dated contracts');
+    expect(normalizeSnapshot(data).metrics.every((metric) => metric.value === null)).toBe(true);
+  });
   it('loads market references from debt, collateral, zero-base state, and orders', () => {
     const data = fixture();
     const flat = perpPosition(7, '0'); flat.quoteAssetAmount = new BN(42);

@@ -29,9 +29,9 @@ The requested `world.xyz` address could not be retrieved by the browser research
 
 The broad references are a human-centered introduction, ample whitespace, a large focal object, product-focused sections, and a compact FAQ. Buffer uses its own brand, drawings, motion, typography choices, and content. No World logos, website bundles, product videos, photographs, or private fonts are included.
 
-For actual code reuse, Buffer’s landing page adapts the `MediaQueryList` subscription and cleanup pattern from **[World IDKit’s useMedia hook](https://github.com/worldcoin/idkit-js/blob/main/packages/react/src/hooks/useMedia.ts)**. The upstream **[MIT license](https://github.com/worldcoin/idkit-js/blob/main/LICENSE)** was fetched and inspected before adaptation. The repository was archived as of the research date; Buffer uses only the small DOM subscription pattern, not an archived SDK dependency.
+An earlier landing-page version adapted the `MediaQueryList` subscription and cleanup pattern from **[World IDKit’s useMedia hook](https://github.com/worldcoin/idkit-js/blob/main/packages/react/src/hooks/useMedia.ts)**. The upstream **[MIT license](https://github.com/worldcoin/idkit-js/blob/main/LICENSE)** was fetched and inspected before adaptation. The repository was archived as of the research date; Buffer uses only the small DOM subscription pattern, not an archived SDK dependency.
 
-The adaptation in `src/components/Landing.tsx` listens to `prefers-reduced-motion` instead of a screen-width query, uses React’s `useSyncExternalStore` for consistent server rendering, and controls Buffer’s original decorative animations. A visible pause/play control also lets visitors stop motion. The subscription removes its event listener during cleanup.
+The visible pause/play strip has since been removed at the user’s request. Decorative animations now complete within 4.5 seconds and use a CSS `prefers-reduced-motion` rule. The old JavaScript preference subscription is no longer needed; its upstream notice remains here for historical attribution.
 
 The World Mini Apps UI Kit was also checked. A root license could not be established from the inspected repository files, so its code was not copied. This avoids treating public availability as a license grant.
 
@@ -58,19 +58,22 @@ These are visual references only. No Dribbble artwork, layout source files, or p
 - **Palette:** cobalt `#315fe8`, offwhite `#f8f8f3`, dark ink `#18251e`, pale blue `#e8edff`, and quiet sage for coverage. Positive and negative sample contributions have text signs as well as color.
 - **Type:** local system Helvetica/Arial stack; no externally hosted commercial fonts or unverified font downloads.
 - **Composition:** a two-column introduction with a functioning preview; editorial feature rows; a coverage story; three method steps; browser-install guidance; privacy explanation; FAQ; a final action and oversized wordmark.
-- **Motion:** original CSS orbit, shader grid, animated signal line, and app-mark movement; reduced-motion media query, a server-safe preference subscription, and manual pause support. No required timed splash screen.
+- **Motion:** original CSS orbit, shader grid, animated signal line, and app-mark movement; a reduced-motion media query and brief animations that settle within 4.5 seconds. No required timed splash screen.
 - **Meaning:** the hero calculation uses the same `getSampleSnapshot`, `calculateScenario`, and `formatDecimal` functions as the app. All illustrative numbers are labeled as samples; live Velocity reads show their protocol, quote currency, current slots, and freshness.
 - **Navigation:** real links to `/app`, `/auth`, installation guidance, method, FAQ, and the public source repository. Native disclosure elements support FAQ and mobile navigation. The live example is a direct call to action; no wallet connection is required.
+- **Selectors:** compact cobalt controls open readable option lists with descriptions, selected checks, keyboard navigation, typeahead, touch scrolling, and viewport-aware placement. All twelve sample choices stay available on narrow screens.
+- **Browser icon:** `public/brand/favicon-ribbon.svg` uses a fresh filename for the current mark; `public/favicon.ico` provides 16/32/48px fallbacks. Metadata explicitly points browsers to these assets instead of the older cached install icon URL.
 
 ## Token artwork provenance
 
-Token marks are downloaded locally, not recreated with Unicode symbols or text approximations. The images below were retrieved from the public **[Trust Wallet assets repository](https://github.com/trustwallet/assets)** and visually checked on September 11, 2026. The Solana mark also ships as a transparent SVG from **[Solana’s official brand assets](https://solana.com/branding)** for crisp rendering. These sources are asset registries, not a claim that Buffer obtained an endorsement or a direct brand partnership.
+Token marks are downloaded locally, not recreated with Unicode symbols or text approximations. BTC, ETH, USDC, and USDT came from the public **[Trust Wallet assets repository](https://github.com/trustwallet/assets)** and were visually checked on September 11, 2026. The transparent Solana SVG comes from **[Solana’s official brand assets](https://solana.com/branding)**. HYPE comes from the official Hyperliquid application's coin assets, checked on September 12. These sources identify assets and do not imply endorsement or a brand partnership.
 
 | Local asset | Registry source | Identity checked |
 | --- | --- | --- |
 | `public/tokens/sol.svg`, `public/tokens/sol.png` | [Solana official mark](https://solana.com/src/img/branding/solanaLogoMark.svg) | Transparent three gradient bars |
 | `public/tokens/btc.png` | [Bitcoin native asset](https://github.com/trustwallet/assets/blob/master/blockchains/bitcoin/info/logo.png) | Orange Bitcoin mark |
 | `public/tokens/eth.png` | [Ethereum native asset](https://github.com/trustwallet/assets/blob/master/blockchains/ethereum/info/logo.png) | Ethereum diamond |
+| `public/tokens/hype.svg` | [Official Hyperliquid HYPE asset](https://app.hyperliquid.xyz/coins/HYPE.svg) | Original mint mark on a dark UI circle |
 | `public/tokens/usdc.png` | [Solana USDC mint EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png) | Blue USDC dollar mark |
 | `public/tokens/usdt.png` | [Solana USDT mint Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png) | Green Tether mark |
 

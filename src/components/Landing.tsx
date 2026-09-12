@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, Mark } from "@/components/Icons";
 import { formatDecimal } from "@/lib/format";
 import { getSampleSnapshot } from "@/lib/samples";
@@ -9,17 +9,6 @@ import { calculateScenario } from "@/lib/scenario";
 import "@/app/landing.css";
 
 const demoSnapshot = getSampleSnapshot("long-short");
-
-// MediaQueryList subscription adapted from World IDKit's MIT-licensed useMedia.
-// Uses useSyncExternalStore for a consistent server render. See docs/DESIGN.md.
-const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-function subscribeToMotionPreference(onChange: () => void) {
-  const media = window.matchMedia(reducedMotionQuery);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-}
-const motionPreference = () => window.matchMedia(reducedMotionQuery).matches;
-const serverMotionPreference = () => true;
 
 function Brand({ large = false }: { large?: boolean }) {
   return (
@@ -92,16 +81,14 @@ const questions = [
   ["What does Buffer calculate?", "Buffer models the incremental price P&L of eligible linear perpetual positions. It multiplies each signed position size by its frozen baseline oracle price and your chosen percentage move, then totals contributions with the same quote currency."],
   ["Do I need a wallet or an account?", "You can explore sample accounts immediately without signing in or connecting a wallet. For a live lookup, enter a public Solana authority address. Save scenarios on your device without an account. Optional cloud sign-in never grants Buffer trading permissions."],
   ["Is this a liquidation or account-equity forecast?", "No. The result covers the modeled perpetual price effect. It does not recalculate account equity, margin health, or liquidation thresholds. Collateral changes, funding, fees, future fills, and borrowing interest remain outside the model."],
-  ["Which positions are supported?", "The model supports verified SOL, BTC, and ETH linear perpetual markets on Velocity. Legacy Drift reads remain available with an explicit paused-deployment notice. Unsupported contracts, LP exposure, and positions without usable oracle data are excluded with an explanation. The app displays its coverage instead of treating excluded exposure as zero."],
+  ["Which positions are supported?", "The model supports verified SOL, BTC, ETH, and HYPE linear perpetual markets on Velocity. Legacy Drift reads remain available with an explicit paused-deployment notice. Unsupported contracts, LP exposure, and positions without usable oracle data are excluded with an explanation. The app displays its coverage instead of treating excluded exposure as zero."],
   ["Are the sample numbers live market prices?", "No. Samples are deterministic fixtures, clearly labeled in the app. Live account lookups use the configured Solana RPC provider, depend on its availability, and show source and freshness information. Live calculations expire after at most two minutes and require a refresh."],
   ["Can I use Buffer on my phone or desktop?", "Yes. The responsive web app adapts to phones, tablets, and desktop browsers. Where supported, use your browser’s install or Add to Home Screen option for an app window. Live account data and account sync require an internet connection."],
 ];
 
 export default function Landing() {
-  const reducedMotion = useSyncExternalStore(subscribeToMotionPreference, motionPreference, serverMotionPreference);
-  const [motionPaused, setMotionPaused] = useState(false);
   return (
-    <div className="buffer-site" data-motion={reducedMotion || motionPaused ? "paused" : "running"}>
+    <div className="buffer-site">
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="buffer-nav">
         <Link href="/" aria-label="Buffer home"><Brand /></Link>
@@ -131,10 +118,8 @@ export default function Landing() {
                 <path d="M-20 214C30 195 47 208 75 181s54-11 76-42 43-2 66-30 41-3 62-42 39-4 59-25 38-9 57-17 34-2 54-19 44 6 65-17 46-1 75-16 54 2 83-16" />
                 <path d="M-20 234C36 214 55 235 90 205s57-5 84-47 43 1 73-37 44-6 65-39 46 0 67-30 34 0 56-19 40-8 63-29 46 0 69-14 50-5 77-22" />
               </svg>
-              <div className="buffer-shader-readout"><span>VELOCITY / MAINNET</span><strong>SCENARIO SIGNAL</strong><i>+</i></div>
             </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
-            <div className="buffer-stage-caption"><span>LOOK AT THE WHAT-IF.</span><button type="button" disabled={reducedMotion} onClick={() => setMotionPaused(!motionPaused)} aria-pressed={motionPaused || reducedMotion}>{reducedMotion ? "REDUCED MOTION" : motionPaused ? "PLAY MOTION" : "PAUSE MOTION"}</button></div>
             <ScenarioPreview />
             <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span><span className="buffer-tiny-cross" aria-hidden="true">+</span></div>
           </div>
@@ -154,7 +139,6 @@ export default function Landing() {
         <section className="buffer-coverage-story" aria-labelledby="coverage-heading">
           <div className="buffer-coverage-art">
             <div className="buffer-coverage-card"><div className="buffer-coverage-card-title"><Icon name="check" size={19} /><span>Coverage, made visible.</span></div><div className="buffer-coverage-big">2 <span>of 3 positions modeled</span></div><div className="buffer-coverage-track" aria-hidden="true"><span /><span /><span /></div><div className="buffer-coverage-row"><span>SOL-PERP</span><span>Included</span></div><div className="buffer-coverage-row"><span>BTC-PERP</span><span>Included</span></div><div className="buffer-coverage-row buffer-coverage-excluded"><span>OTHER-PERP</span><span>Unsupported market</span></div><p>Illustrative partial-coverage sample</p></div>
-            <span className="buffer-art-coordinate">SCOPE / ALWAYS VISIBLE</span>
           </div>
           <div className="buffer-coverage-copy"><span className="buffer-kicker">The whole story includes the limits</span><h2>Clarity is knowing<br />what’s left out.</h2><p>A precise number is only useful when you know what it means. Buffer keeps the modeled price effect separate from your account’s equity, health, and liquidation risk.</p><a className="buffer-text-link" href="#method">Read the method <Icon name="arrow" size={17} /></a></div>
         </section>

@@ -1,0 +1,178 @@
+.buffer-select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.buffer-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid #dbe3f1;
+  border-radius: 10px;
+  background: #f8faff;
+  color: #315fe8;
+  box-shadow: 0 1px 2px #10285704;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.buffer-select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buffer-select-trigger > svg {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+}
+
+.buffer-select-trigger:hover:not(:disabled),
+.buffer-select-trigger.is-open {
+  background: #eef3ff;
+  border-color: #b1c4f7;
+}
+
+.buffer-select-trigger.is-open > svg {
+  transform: rotate(180deg);
+}
+
+.buffer-select-trigger:focus-visible {
+  outline: 3px solid #7b9af4;
+  outline-offset: 3px;
+}
+
+.buffer-select-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.buffer-select-placeholder {
+  color: #637189;
+  font-weight: 500;
+}
+
+.buffer-select-list {
+  position: fixed;
+  z-index: 120;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 5px;
+  border: 1px solid #dce4f2;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 14px 42px #16346620, 0 3px 10px #1634660a;
+}
+
+.buffer-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #243349;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.buffer-select-option strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.buffer-select-option small {
+  display: block;
+  margin-top: 3px;
+  color: #637189;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.buffer-select-option.is-active {
+  background: #eff4ff;
+}
+
+.buffer-select-option[aria-selected="true"] {
+  color: #315fe8;
+}
+
+.buffer-select-option[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.buffer-select-option svg {
+  flex-shrink: 0;
+}
+
+.protocol-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.address-panel .protocol-picker label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.protocol-picker .buffer-select {
+  width: 222px;
+}
+
+.sample-picker .buffer-select {
+  width: 200px;
+}
+
+.subaccount .buffer-select {
+  width: 210px;
+}
+
+@media (max-width: 900px) {
+  .sample-picker .buffer-select {
+    width: 175px;
+  }
+}
+
+@media (max-width: 620px) {
+  .buffer-select-trigger {
+    min-height: 44px;
+    padding: 10px;
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .sample-picker .buffer-select {
+    width: 200px;
+    max-width: 67%;
+  }
+
+  .subaccount .buffer-select {
+    width: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buffer-select-trigger,
+  .buffer-select-trigger > svg {
+    transition: none;
+  }
+}

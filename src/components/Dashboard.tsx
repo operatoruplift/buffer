@@ -13,6 +13,7 @@ import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
 import { Icon, Mark } from "./Icons";
+import Select from "./Select";
 import AccountPanel from './AccountPanel';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -23,6 +24,7 @@ const TOKEN_LOGOS: Record<string, string> = {
   SOL: "/tokens/sol.svg",
   BTC: "/tokens/btc.png",
   ETH: "/tokens/eth.png",
+  HYPE: "/tokens/hype.svg",
   USDC: "/tokens/usdc.png",
   USDT: "/tokens/usdt.png",
 };
@@ -390,10 +392,16 @@ export default function Dashboard({
           <form onSubmit={readAccount}>
             <div className="protocol-picker">
               <label htmlFor="protocol">Protocol</label>
-              <select id="protocol" value={protocolId} onChange={(e) => changeProtocol(e.target.value as ProtocolId)}>
-                <option value="velocity">Velocity · current</option>
-                <option value="drift">Drift · legacy (paused)</option>
-              </select>
+              <Select
+                id="protocol"
+                label="Protocol"
+                value={protocolId}
+                onChange={(value) => changeProtocol(value as ProtocolId)}
+                options={[
+                  { value: "velocity", label: "Velocity", description: "Current protocol · Solana mainnet" },
+                  { value: "drift", label: "Drift · legacy", description: "Paused protocol · balances did not migrate" },
+                ]}
+              />
             </div>
             {protocol.legacy && (
               <p className="protocol-notice">
@@ -439,20 +447,14 @@ export default function Dashboard({
             </p>
             <div className="sample-picker">
               <label htmlFor="sample">Try a sample</label>
-              <select
+              <Select
                 id="sample"
+                label="Try a sample"
                 value={mode === "sample" ? sampleId : ""}
-                onChange={(e) => sample(e.target.value)}
-              >
-                <option value="" disabled>
-                  Select sample
-                </option>
-                {SAMPLE_ACCOUNTS.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                onChange={sample}
+                placeholder="Select sample"
+                options={SAMPLE_ACCOUNTS.map((s) => ({ value: s.id, label: s.name, description: s.description }))}
+              />
             </div>
           </div>
           <div className="live-example">
@@ -560,30 +562,24 @@ export default function Dashboard({
             </div>
             <div className="subaccount">
               <label htmlFor="subaccount">Subaccount</label>
-              <select
+              <Select
                 id="subaccount"
+                label="Subaccount"
                 value={
                   mode === "sample"
                     ? String(snapshot?.subaccount.id)
                     : selectedId
                 }
-                onChange={(e) => void readSnapshot(e.target.value)}
-              >
-                {mode === "live" ? (
-                  <>
-                    <option value="">Select a subaccount</option>
-                    {discovery?.subaccounts.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} · #{s.id}
-                      </option>
-                    ))}
-                  </>
-                ) : (
-                  <option value={String(snapshot?.subaccount.id)}>
-                    {snapshot?.subaccount.name} · #{snapshot?.subaccount.id}
-                  </option>
-                )}
-              </select>
+                onChange={(value) => void readSnapshot(value)}
+                placeholder="Select a subaccount"
+                options={mode === "live"
+                  ? [
+                    { value: "", label: "Select a subaccount" },
+                    ...(discovery?.subaccounts.map((s) => ({ value: String(s.id), label: `${s.name} · #${s.id}` })) ?? []),
+                  ]
+                  : [{ value: String(snapshot?.subaccount.id), label: `${snapshot?.subaccount.name} · #${snapshot?.subaccount.id}` }]
+                }
+              />
             </div>
             <div className="freshness">
               {snapshot && (
@@ -1082,8 +1078,8 @@ export default function Dashboard({
             </div>
             <p>
               Positive size means Long; negative size means Short. Hypothetical
-              price = baseline price × (1 + shock). Only SOL, BTC, and ETH
-              linear perpetuals with verified market identity, quote
+              price = baseline price × (1 + shock). Linear perpetuals
+              with verified market identity, quote
               denomination, and valid oracle data are eligible. Totals stay
               separate when quote currencies differ.
             </p>

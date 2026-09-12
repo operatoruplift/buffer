@@ -28,3 +28,9 @@ from Solana’s official brand asset at
 https://solana.com/src/img/branding/solanaLogoMark.svg and is used only to
 identify the underlying asset. Solana and its marks belong to their respective
 owners.
+
+The HYPE mark (`hype.svg`) is sourced from the official Hyperliquid application
+at https://app.hyperliquid.xyz/coins/HYPE.svg and is used only to identify the
+underlying asset. Its original mint color is preserved; the interface provides
+a dark circular background for contrast. The mark belongs to its owner and is
+not covered by the Trust Wallet asset license above.

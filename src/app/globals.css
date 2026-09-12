@@ -624,6 +624,40 @@ td > small {
   background: #edf0f6;
   color: #667594;
 }
+.asset-hype {
+  background: #072723;
+  padding: 5px;
+}
+.live-example {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #edf0f6;
+}
+.live-example button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid #dbe3f1;
+  border-radius: 9px;
+  background: #f8faff;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+}
+.live-example button:hover:not(:disabled) {
+  background: #eef3ff;
+  border-color: #b1c4f7;
+}
+.live-example > span {
+  color: var(--muted);
+  font-size: 11px;
+}
 .market strong {
   font-size: 11px;
   font-weight: 600;

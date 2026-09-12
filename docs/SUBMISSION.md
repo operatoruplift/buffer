@@ -12,7 +12,7 @@ Buffer is a read-only Solana / Velocity explorer that turns a shared market move
 
 Buffer answers one practical question: **“What would a market move do to these positions?”**
 
-Open the public live example or paste a Solana authority, select one **Velocity** subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, and ETH linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, open orders, quote identity, and oracle freshness stay visible outside the model. Current baseline metrics stay separate from the hypothetical price effect. The current Velocity quote asset is USDT; baseline USD metrics come from the SDK's validated quote valuation.
+Open the public live example or paste a Solana authority, select one **Velocity** subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, ETH, and HYPE linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, open orders, quote identity, and oracle freshness stay visible outside the model. Current baseline metrics stay separate from the hypothetical price effect. The current Velocity quote asset is USDT; baseline USD metrics come from the SDK's validated quote valuation.
 
 The protocol selector can inspect the paused legacy Drift deployment explicitly. Drift and Velocity use different programs, PDAs, and layouts; Buffer does not imply that Drift balances migrated. The app links to the [official migration guide](https://docs.velocity.exchange/developers/migrate-from-drift) and withholds paused or stale legacy calculations instead of showing invented current prices.
 
@@ -20,7 +20,7 @@ A Method dialog explains assumptions, fixed program identity, coverage, and prov
 
 The Solana integration reads Velocity State, user accounts, markets, and Pyth Lazer oracles through the official server-side SDK **0.23.1**. It verifies program ownership, canonical PDAs, market identities, quote mint, oracle validity, and complete baseline coverage. The provider uses request-owned loaders, records separate read slots, and expires live snapshots after 120 seconds. There is no signing, custody, transaction, or trading path.
 
-Three labeled deterministic samples make the model immediately understandable. The responsive website includes an interactive preview and a gallery with a product demo, a Higgsfield-assisted pitch, and a technical walkthrough. The installable PWA works on supported mobile and desktop browsers and provides an explicitly labeled offline sample; its service worker does not cache private reports, authentication, or live data.
+Twelve labeled deterministic sample scenarios make the model immediately understandable. The responsive website includes an interactive preview and a gallery with a product demo, a Higgsfield-assisted pitch, and a technical walkthrough. The installable PWA works on supported mobile and desktop browsers and provides an explicitly labeled offline sample; its service worker does not cache private reports, authentication, or live data.
 
 Built with Next.js, React, TypeScript, precise decimal arithmetic, the official Velocity and legacy Drift SDKs, and Supabase. A cobalt ribbon B monogram and restrained responsive interface keep the emphasis on understanding position effects. The source is public and the website is deployed on Vercel.
 

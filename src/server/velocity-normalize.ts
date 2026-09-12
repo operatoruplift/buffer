@@ -95,6 +95,7 @@ export function baselineCoverageIssues(input: ReadData): string[] {
     const market = input.perps.get(index);
     if (!market) { issues.push(`Perp market ${index} was not loaded.`); continue; }
     if (!isVariant(market.contractType, 'perpetual')) issues.push(`Perp market ${index} has an unsupported contract type.`);
+    if (!market.expiryTs?.isZero()) issues.push(`Perp market ${index} has a dated or unverified expiry.`);
     if (!isVariant(market.status, 'active')) issues.push(`Perp market ${index} is not active.`);
     if (!quoteIdentity(input.spots.get(market.quoteSpotMarketIndex))) issues.push(`Quote identity for perp ${index} could not be verified.`);
     if (!required.spot.includes(market.quoteSpotMarketIndex)) required.spot.push(market.quoteSpotMarketIndex);
@@ -127,15 +128,15 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
     const oracle = observeOracle(input.perpOracles.get(position.marketIndex), input.observedSlot, input.state, market);
     const quote = market ? quoteIdentity(spots.get(market.quoteSpotMarketIndex)) : null;
     const marketName = market ? name(market.name, `Perp ${position.marketIndex}`) : `Perp ${position.marketIndex}`;
-    const identity = Boolean(market && config && config.symbol === marketName && config.oracle.equals(market.oracle) && JSON.stringify(config.oracleSource) === JSON.stringify(market.oracleSource));
+    const identity = Boolean(market && config && market.marketIndex === position.marketIndex && config.symbol.endsWith('-PERP') && config.symbol === marketName && config.oracle.equals(market.oracle) && JSON.stringify(config.oracleSource) === JSON.stringify(market.oracleSource));
     let exclusionReason: string | null = null;
     if (!market) exclusionReason = 'Market data unavailable.';
     else if (!isVariant(market.contractType, 'perpetual')) exclusionReason = 'Unknown or nonlinear contract type.';
+    else if (!market.expiryTs?.isZero()) exclusionReason = 'Dated contracts or markets with an unverified expiry are not modeled.';
     else if (position.positionFlag & ~(PositionFlag.IsolatedPosition | PositionFlag.BeingLiquidated | PositionFlag.Bankruptcy)) exclusionReason = 'Position flags could not be decoded reliably.';
     else if (position.baseAssetAmount.isZero()) exclusionReason = 'Zero base size; other position state remains in baseline coverage.';
     else if (!isVariant(market.status, 'active')) exclusionReason = 'Market is not active.';
     else if (!identity) exclusionReason = 'Market identity does not match the pinned mainnet configuration.';
-    else if (!config || !['SOL', 'BTC', 'ETH'].includes(config.baseAssetSymbol)) exclusionReason = 'Only verified SOL, BTC, and ETH linear perpetuals are modeled.';
     else if (!quote) exclusionReason = 'Quote currency identity could not be verified.';
     else if (!oracle.valid) exclusionReason = oracle.reason;
     const rawOracle = input.perpOracles.get(position.marketIndex)?.data;
@@ -203,5 +204,5 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
       'Separate account, market, and oracle reads are not an atomic same-slot snapshot.',
       'Perp oracle prices pass the SDK AMM validity helper and Buffer’s 150-slot lag limit; spot valuation adds a 1% confidence cap. These are conservative read rules, not liquidation rules.',
       'Snapshots expire after 120 seconds. The scenario uses the external oracle; SDK baseline valuation may use its validated MM oracle.',
-      'SOL/BTC/ETH identities are checked against pinned mainnet configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.'] };
+      'All modeled perpetual identities are checked against pinned mainnet configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.'] };
 }

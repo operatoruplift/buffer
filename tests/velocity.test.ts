@@ -4,6 +4,7 @@ vi.mock('server-only', () => ({}));
 import { Connection, PublicKey } from 'velocity-web3';
 import {
   BulkAccountLoader,
+  BN, BASE_PRECISION, PRICE_PRECISION, QUOTE_PRECISION,
   MainnetPerpMarkets,
   MainnetSpotMarkets,
   VELOCITY_PROGRAM_ID,
@@ -12,12 +13,35 @@ import {
   type PerpMarketAccount,
   type SpotMarketAccount,
   type StateAccount,
+  type PerpPosition, type UserAccount,
 } from '@velocity-exchange/sdk';
 import { bindCanonicalVelocityProgram, SnapshotAccountLoader } from '../src/server/velocity';
+import { normalizeSnapshot, type ReadData } from '../src/server/velocity-normalize';
+import { calculateScenario } from '../src/lib/scenario';
+import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
+import { PROTOCOLS } from '../src/lib/protocols';
 
 const program = new PublicKey(VELOCITY_PROGRAM_ID);
 const authority = new PublicKey('11111111111111111111111111111111');
 const fixtures = new URL('./fixtures/velocity-mainnet/', import.meta.url);
+const zero = () => new BN(0);
+const encoded = (value: string) => [...Buffer.from(value.padEnd(32, '\0'))];
+
+function marketFixture(index = 3): ReadData {
+  const config = MainnetPerpMarkets.find((market) => market.marketIndex === index)!;
+  const quoteConfig = MainnetSpotMarkets.find((market) => market.marketIndex === 0)!;
+  const oracle = { data: { price: PRICE_PRECISION.mul(new BN(40)), slot: new BN(1000), confidence: new BN(100), hasSufficientNumberOfDataPoints: true }, slot: 1001 };
+  const market = { marketIndex: index, name: encoded(config.symbol), contractType: { perpetual: {} }, expiryTs: zero(), status: { active: {} }, contractTier: { a: {} }, quoteSpotMarketIndex: 0,
+    oracle: config.oracle, oracleSource: config.oracleSource, marketStats: { historicalOracleData: { lastOraclePriceTwap: oracle.data.price } } } as unknown as PerpMarketAccount;
+  const quote = { marketIndex: 0, name: encoded(quoteConfig.symbol), mint: quoteConfig.mint, decimals: 6, status: { active: {} }, oracleSource: { quoteAsset: {} } } as unknown as SpotMarketAccount;
+  const position = { marketIndex: index, baseAssetAmount: BASE_PRECISION.mul(new BN(500)), quoteAssetAmount: zero(), isolatedPositionScaledBalance: zero(), openBids: zero(), openAsks: zero(), openOrders: 0, positionFlag: 0 } as unknown as PerpPosition;
+  const state = { oracleGuardRails: { validity: { tooVolatileRatio: new BN(5), confidenceIntervalMaxSize: new BN(20_000), slotsBeforeStaleForAmm: new BN(100), slotsBeforeStaleForMargin: new BN(100) } } } as unknown as StateAccount;
+  return { account: { authority, name: encoded('Test account'), subAccountId: 0, poolId: 0, perpPositions: [position], spotPositions: [], orders: [] } as unknown as UserAccount,
+    authority: authority.toBase58(), address: authority.toBase58(), accountSlot: 1001, observedSlot: 1002, state,
+    perps: new Map([[index, market]]), spots: new Map([[0, quote]]), perpOracles: new Map([[index, oracle]]),
+    spotOracles: new Map([[0, { data: { ...oracle.data, price: PRICE_PRECISION, slot: zero() }, slot: 0 }]]), valuationOracles: new Map([[index, oracle.data]]),
+    user: { getNetUsdValue: vi.fn(() => QUOTE_PRECISION.mul(new BN(10_000))), getUnrealizedPNL: vi.fn(() => zero()), getHealth: vi.fn(() => 90) }, retrievedAt: '2026-09-11T00:00:00.000Z' };
+}
 
 function makeClient() {
   const connection = new Connection('http://127.0.0.1:1');
@@ -40,6 +64,51 @@ function makeClient() {
 }
 
 describe('Velocity mainnet compatibility fixtures', () => {
+  it('keeps the browser identity registry synchronized with all pinned Velocity markets', () => {
+    expect(CONFIGURED_PERP_MARKETS.velocity).toEqual(MainnetPerpMarkets.filter((market) => market.symbol.endsWith('-PERP'))
+      .map(({ marketIndex, symbol, baseAssetSymbol }) => ({ marketIndex, market: symbol, asset: baseAssetSymbol })));
+  });
+
+  it.each(MainnetPerpMarkets.map((market) => [market.marketIndex, market.baseAssetSymbol]))('models verified configured market %s (%s)', (index, asset) => {
+    const data = marketFixture(Number(index));
+    const snapshot = { ...normalizeSnapshot(data), protocol: PROTOCOLS.velocity };
+    expect(snapshot.positions[0]).toMatchObject({ asset, marketIndex: index, modeled: true, quote: 'USDT', price: '40', size: '500', exclusionReason: null });
+    expect(calculateScenario(snapshot, -10, Date.parse(data.retrievedAt)).totals).toEqual([{ quote: 'USDT', delta: '-2000' }]);
+  });
+
+  it.each(['index', 'name', 'oracle', 'source', 'unknown'] as const)('excludes a mismatched %s even when the position ticker looks valid', (mismatch) => {
+    const data = marketFixture();
+    const market = data.perps.get(3)!;
+    if (mismatch === 'index') market.marketIndex = 2;
+    if (mismatch === 'name') market.name = encoded('HYPE-PERP-FAKE');
+    if (mismatch === 'oracle') market.oracle = PublicKey.default;
+    if (mismatch === 'source') market.oracleSource = { quoteAsset: {} };
+    if (mismatch === 'unknown') {
+      data.account.perpPositions[0].marketIndex = 999;
+      market.marketIndex = 999;
+      data.perps = new Map([[999, market]]);
+    }
+    expect(normalizeSnapshot(data).positions[0]).toMatchObject({ modeled: false, exclusionReason: expect.stringContaining('identity') });
+  });
+
+  it.each(['prediction', 'future', 'dated', 'settled', 'paused', 'quote', 'stale', 'missing', 'nonpositive', 'insufficient'] as const)('keeps %s HYPE exposure outside the model', (invalid) => {
+    const data = marketFixture();
+    const market = data.perps.get(3)!;
+    if (invalid === 'prediction') market.contractType = { deprecatedPrediction: {} };
+    if (invalid === 'future') market.contractType = { deprecatedFuture: {} };
+    if (invalid === 'dated') market.expiryTs = new BN(1);
+    if (invalid === 'settled') market.status = { settlement: {} };
+    if (invalid === 'paused') market.status = { fillPaused: {} };
+    if (invalid === 'quote') data.spots.get(0)!.mint = PublicKey.default;
+    if (invalid === 'stale') data.perpOracles.get(3)!.data.slot = new BN(800);
+    if (invalid === 'missing') data.perpOracles.delete(3);
+    if (invalid === 'nonpositive') data.perpOracles.get(3)!.data.price = zero();
+    if (invalid === 'insufficient') data.perpOracles.get(3)!.data.hasSufficientNumberOfDataPoints = false;
+    const snapshot = { ...normalizeSnapshot(data), protocol: PROTOCOLS.velocity };
+    expect(snapshot.positions[0], invalid).toMatchObject({ modeled: false, exclusionReason: expect.any(String) });
+    expect(calculateScenario(snapshot, -10, Date.parse(data.retrievedAt)).totals).toEqual([]);
+  });
+
   it('binds the official SDK to the current program and lower-camel IDL accounts', () => {
     const { loader, client } = makeClient();
     bindCanonicalVelocityProgram(client);

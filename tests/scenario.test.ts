@@ -4,6 +4,7 @@ import { getSampleSnapshot, SAMPLE_ACCOUNTS } from '../src/lib/samples';
 import { formatDecimal } from '../src/lib/format';
 import { createReport } from '../src/lib/report';
 import type { Position, Snapshot } from '../src/lib/types';
+import { PROTOCOLS } from '../src/lib/protocols';
 
 function snapshotWith(...changes: Partial<Position>[]): Snapshot {
   const snapshot = getSampleSnapshot('sol-long');
@@ -39,6 +40,17 @@ describe('linear price-shock arithmetic', () => {
     const result = calculateScenario(getSampleSnapshot('long-short'), 0);
     expect(result.included.map(({ delta }) => delta)).toEqual(['0', '0']);
     expect(result.totals[0].delta).toBe('0');
+  });
+
+  it.each([
+    ['hype-long', '-2000', 1],
+    ['hype-short', '2000', 1],
+    ['market-basket', '-7500', 4],
+    ['hedged-basket', '500', 4],
+  ])('models expanded %s fixtures using their exact contract quantities', (id, delta, eligible) => {
+    const result = calculateScenario(getSampleSnapshot(String(id)), -10);
+    expect(result).toMatchObject({ eligible, totalPositions: eligible, disabledReason: null });
+    expect(result.totals).toEqual([{ quote: 'USDT', delta }]);
   });
 
   it('handles fractional quantities without binary floating-point error', () => {
@@ -93,10 +105,26 @@ describe('coverage and frozen snapshot inputs', () => {
     expect(result.totals).toEqual([]);
   });
 
-  it('rejects a supposedly modeled position with an unsupported asset', () => {
+  it('rejects a supposedly modeled position with an unconfigured asset', () => {
     const result = calculateScenario(snapshotWith({ asset: 'OTHER' }), -10);
     expect(result.eligible).toBe(0);
-    expect(result.excluded[0].reason).toContain('verified SOL');
+    expect(result.excluded[0].reason).toContain('market identity');
+  });
+
+  it.each([
+    { asset: 'HYPE' },
+    { asset: 'HYPE', market: 'HYPE-PERP', marketIndex: 0 },
+    { asset: 'SOL', market: 'SOL-PERP', marketIndex: 999 },
+    { asset: 'OTHER', market: 'OTHER-PERP', marketIndex: 3 },
+    { asset: 'TRUMP-WIN-2024', market: 'TRUMP-WIN-2024-BET', marketIndex: 36 },
+  ])('rejects tampered or prediction identities from imported position data: %j', (change) => {
+    expect(calculateScenario(snapshotWith(change), -10).eligible).toBe(0);
+  });
+
+  it('does not bypass a provider exclusion merely because HYPE is registered', () => {
+    const result = calculateScenario(snapshotWith({ asset: 'HYPE', market: 'HYPE-PERP', marketIndex: 3, modeled: false, exclusionReason: 'Market is not active.' }), -10);
+    expect(result.excluded[0].reason).toBe('Market is not active.');
+    expect(result.totals).toEqual([]);
   });
 
   it('preserves zero-base protocol state while excluding it from price math', () => {
@@ -196,12 +224,28 @@ describe('freshness', () => {
     const snapshot = getSampleSnapshot('long-short');
     expect(calculateScenario(snapshot, -10, retrievedMillis + 100_000_000).totals[0].delta).toBe('3500');
     expect(getSampleSnapshot('long-short')).toEqual(snapshot);
-    expect(SAMPLE_ACCOUNTS).toHaveLength(3);
+    expect(SAMPLE_ACCOUNTS).toHaveLength(12);
     for (const sample of SAMPLE_ACCOUNTS) {
       const fixture = getSampleSnapshot(sample.id);
       expect(fixture).toMatchObject({ authority: null, accountSlot: null, observedSlot: null });
       expect(fixture.subaccount.address).toBeNull();
+      const result = calculateScenario(fixture, -10);
+      expect(result.disabledReason, sample.id).toBeNull();
+      expect(result.eligible, sample.id).toBe(fixture.positions.filter((position) => position.modeled).length);
     }
+  });
+
+  it('keeps legacy Drift unavailable even if stored modeled flags are changed', () => {
+    const snapshot = { ...live(), protocol: PROTOCOLS.drift };
+    expect(calculateScenario(snapshot, -10, retrievedMillis).disabledReason).toContain('Legacy Drift is paused');
+    expect(calculateScenario(snapshot, -10, retrievedMillis).totals).toEqual([]);
+  });
+
+  it('rejects a mismatched deployment identity before calculating', () => {
+    const snapshot = { ...live(), protocol: { ...PROTOCOLS.velocity, programId: '11111111111111111111111111111111' } };
+    const result = calculateScenario(snapshot, -10, retrievedMillis);
+    expect(result.eligible).toBe(0);
+    expect(result.excluded[0].reason).toContain('market identity');
   });
 });
 

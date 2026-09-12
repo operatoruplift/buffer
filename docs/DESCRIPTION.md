@@ -14,7 +14,7 @@ The result comes with its explanation: what was included, what was excluded, whi
 
 ### Explore the what-if
 
-- **One simple control.** Apply a whole-number price move from −20% to +20% to eligible SOL, BTC, and ETH linear perpetuals.
+- **One simple control.** Apply a whole-number price move from −20% to +20% to eligible SOL, BTC, ETH, and HYPE linear perpetuals.
 - **Long and short contributions.** See each position’s incremental price P&L and totals grouped by verified quote currency. Current Velocity positions use USDT; SDK baseline metrics are labeled USD after quote valuation.
 - **Coverage in context.** Review included and excluded positions, collateral, debt, open orders, oracle validity, and read slots. Unsupported exposure has a visible explanation.
 - **Transparent method.** Inspect assumptions, fixed program identity, source information, oracle observations, and snapshot freshness in the Method panel.

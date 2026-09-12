@@ -57,7 +57,7 @@ Velocity's relaunch layout differs from Drift's. Perp oracle fields are on the m
 | Unrealized perp P&L | `getUnrealizedPNL(true)`: current perp P&L including accrued funding, converted to USD by the quote oracle. |
 | Cross-margin health | `getHealth()`, shown from 0 to 100 for cross-margin accounts and withheld when isolated positions make that meaning unsuitable. |
 
-These are current baseline values, never hypothetical scenario results. The scenario uses the frozen external oracle price and computes `signed base size × price × shock`. It models only verified active SOL, BTC, and ETH linear perpetuals. It holds sizes fixed and excludes collateral-price changes, future fills, funding, fees, borrowing interest, liquidation effects, LP exposure, and nonlinear contracts. Spot deposits, debts, and open orders remain visible. Separate verified quote totals are never silently added across currencies.
+These are current baseline values, never hypothetical scenario results. The scenario uses the frozen external oracle price and computes `signed base size × price × shock`. It models only verified active SOL, BTC, ETH, and HYPE linear perpetuals. It holds sizes fixed and excludes collateral-price changes, future fills, funding, fees, borrowing interest, liquidation effects, LP exposure, and nonlinear contracts. Spot deposits, debts, and open orders remain visible. Separate verified quote totals are never silently added across currencies.
 
 ## Oracle and snapshot policy
 
@@ -68,6 +68,16 @@ These are current baseline values, never hypothetical scenario results. The scen
 - Expire live snapshots after 120 seconds, or at an earlier provider expiry. A failed refresh retains a visibly stale snapshot and disables a new scenario calculation.
 
 These are conservative application read rules, not liquidation criteria. Account, market, oracle, and current-slot reads are not atomic; user read slot, observed RPC slot, and oracle publication/read slots remain separate in the normalized snapshot and exported report.
+
+## Market coverage
+
+The September 12, 2026 enumeration at observed slot **446394107** verified all **four** markets in Velocity state: SOL-PERP (0), BTC-PERP (1), ETH-PERP (2), and HYPE-PERP (3). State reported four markets and an active exchange. Every decoded market was Active/Perpetual, matched its pinned SDK oracle address/source, and used quote spot index 0 (USDT). SDK **0.23.1** was the latest published version at verification. This is a dated deployment observation, not a promise of future listing counts.
+
+The app no longer has a three-ticker cap. Both providers verify configured identities, active linear contracts, quote currencies, and current usable oracles before modeling a position. The browser uses a small SDK-derived identity registry; it does not bundle the protocol SDKs. SDK-listed legacy Drift contracts are not advertised as current tradable markets, and the paused deployment remains unavailable for live calculations.
+
+The **12 sample scenarios** cover all four asset identities with fixed illustrative prices. The original three USDC fixtures remain reproducible; new individual and basket fixtures use USDT. Sample values do not come from an oracle or imply that the illustrative positions exist on-chain.
+
+See the official [Velocity market discovery guide](https://docs.velocity.exchange/developers/velocity-sdk/markets).
 
 ## Legacy Drift behavior
 

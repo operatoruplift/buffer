@@ -1,11 +1,12 @@
 import Decimal from 'decimal.js';
 import type { Position, Scenario, Snapshot } from './types';
+import { hasConfiguredPerpIdentity } from './perp-markets';
 
 /** Additional app freshness limit, not a protocol oracle or liquidation rule. */
 export const FRESHNESS_SECONDS = 120;
 
 export const ASSUMPTIONS = [
-  'Position sizes are fixed; the selected percentage move applies together to eligible SOL, BTC, and ETH linear perpetual oracle prices.',
+  'Position sizes are fixed; the selected percentage move applies together to all eligible, verified linear perpetual oracle prices.',
   'Price P&L change = signed base quantity × frozen baseline oracle price × shock fraction.',
   'Excludes collateral-price changes, future fills, funding, fees, borrowing interest, and liquidation effects.',
   'This is a perpetual price effect, not hypothetical account equity, health, liquidation risk, or a trading recommendation.',
@@ -18,7 +19,6 @@ export const ASSUMPTIONS = [
 
 // Providers normalize values to plain decimal strings before crossing the boundary.
 const DECIMAL_STRING = /^[+-]?\d+(?:\.\d+)?$/;
-const SUPPORTED_ASSETS = new Set(['SOL', 'BTC', 'ETH']);
 
 function isDecimal(value: unknown): value is string {
   return typeof value === 'string' && DECIMAL_STRING.test(value);
@@ -26,6 +26,7 @@ function isDecimal(value: unknown): value is string {
 
 function unavailableReason(snapshot: Snapshot, now: number): string | null {
   if (snapshot.source === 'sample') return null;
+  if (snapshot.protocol?.id === 'drift') return 'Legacy Drift is paused. Price scenarios are unavailable for this deployment.';
   const retrievedAt = Date.parse(snapshot.retrievedAt);
   const providerExpiry = snapshot.expiresAt === null ? Infinity : Date.parse(snapshot.expiresAt);
   if (!Number.isFinite(now) || !Number.isFinite(retrievedAt) || Number.isNaN(providerExpiry)) {
@@ -36,10 +37,10 @@ function unavailableReason(snapshot: Snapshot, now: number): string | null {
   return null;
 }
 
-function positionExclusion(position: Position, D: typeof Decimal): string | null {
+function positionExclusion(position: Position, snapshot: Snapshot, D: typeof Decimal): string | null {
   if (position.exclusionReason) return position.exclusionReason;
   if (!position.modeled) return position.exclusionReason || 'This perpetual position is unsupported by the price-shock model.';
-  if (!SUPPORTED_ASSETS.has(position.asset)) return 'Only verified SOL, BTC, and ETH linear perpetual markets are supported.';
+  if (!hasConfiguredPerpIdentity(position, snapshot)) return 'The perpetual market identity does not match the configured market registry.';
   if (!isDecimal(position.size)) return 'Signed position quantity could not be decoded reliably.';
   if (new D(position.size).isZero()) return 'Zero base quantity. Any residual protocol state remains outside the price-shock model.';
   if (!position.quote.trim()) return 'The quote currency could not be verified.';
@@ -74,7 +75,7 @@ export function calculateScenario(snapshot: Snapshot, shockPercent: number, now 
   const shock = scenario.disabledReason ? null : new D(shockPercent.toString()).div(100);
 
   for (const position of snapshot.positions) {
-    const reason = positionExclusion(position, D);
+    const reason = positionExclusion(position, snapshot, D);
     if (reason || scenario.disabledReason) {
       scenario.excluded.push({ id: position.id, market: position.market, reason: reason || scenario.disabledReason! });
       continue;
