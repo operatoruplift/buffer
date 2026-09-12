@@ -130,6 +130,6 @@ Vercel uses the explicit Next.js framework setting in `vercel.json`, Node route 
 - [Video files, transcripts, and Higgsfield provenance](docs/VIDEO.md)
 - [Submission draft and sample demonstration](docs/SUBMISSION.md)
 
-Buffer's original gauge mark, wordmark, favicon, and monochrome variants live in `public/brand/`; install icons are in `public/icons/`. The UI and media distinguish product identity from descriptive protocol names and sample data.
+Buffer's refined gauge mark, wordmark, favicon, and monochrome variants live in `public/brand/`; install icons are in `public/icons/`. Verified token marks live in `public/tokens/`, including transparent Solana and USDT assets. The UI and media distinguish product identity from descriptive protocol names and sample data.
 
 The [official event page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, lists September 18–25, 2026. Perps-only eligibility and pre-event development eligibility remain unverified. No event submission or acceptance is claimed.

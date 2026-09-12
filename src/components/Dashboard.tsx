@@ -19,6 +19,13 @@ import Image from 'next/image';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
 const PUBLIC_EXAMPLE = "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2";
+const TOKEN_LOGOS: Record<string, string> = {
+  SOL: "/tokens/sol.svg",
+  BTC: "/tokens/btc.png",
+  ETH: "/tokens/eth.png",
+  USDC: "/tokens/usdc.png",
+  USDT: "/tokens/usdt.png",
+};
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
 const tone = (value: string) =>
   new Decimal(value).isZero()
@@ -1262,11 +1269,12 @@ export default function Dashboard({
 
 function Market({ position: p }: { position: Position }) {
   const isShort = new Decimal(p.size).isNegative();
+  const tokenLogo = TOKEN_LOGOS[p.asset];
   return (
     <div className="market">
       <span className={`asset-mark asset-${p.asset.toLowerCase()}`}>
-        {['SOL', 'BTC', 'ETH', 'USDC', 'USDT'].includes(p.asset)
-          ? <Image src={`/tokens/${p.asset.toLowerCase()}.png`} alt="" width={34} height={34} unoptimized style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        {tokenLogo
+          ? <Image src={tokenLogo} alt="" width={34} height={34} unoptimized style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           : p.asset.slice(0, 1)}
       </span>
       <div>

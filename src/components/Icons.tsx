@@ -8,10 +8,11 @@ export function Mark({ size = 32 }: { size?: number }) {
       aria-hidden="true"
     >
       <path
-        d="M6 8v10a10 10 0 0 0 20 0V8M16 5v8"
+        d="M6.5 8.25v9.45c0 5.38 4.25 9.75 9.5 9.75s9.5-4.37 9.5-9.75V8.25M16 4.75v8.75"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="3.2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

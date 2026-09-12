@@ -64,17 +64,17 @@ These are visual references only. No Dribbble artwork, layout source files, or p
 
 ## Token artwork provenance
 
-Token marks are downloaded locally, not recreated with Unicode symbols or text approximations. The images below were retrieved from the public **[Trust Wallet assets repository](https://github.com/trustwallet/assets)** and visually checked on September 11, 2026. This is an established asset registry rather than a claim that Buffer obtained an endorsement or a direct brand partnership.
+Token marks are downloaded locally, not recreated with Unicode symbols or text approximations. The images below were retrieved from the public **[Trust Wallet assets repository](https://github.com/trustwallet/assets)** and visually checked on September 11, 2026. The Solana mark also ships as a transparent SVG from **[Solana’s official brand assets](https://solana.com/branding)** for crisp rendering. These sources are asset registries, not a claim that Buffer obtained an endorsement or a direct brand partnership.
 
 | Local asset | Registry source | Identity checked |
 | --- | --- | --- |
-| `public/tokens/sol.png` | [Solana native asset](https://github.com/trustwallet/assets/blob/master/blockchains/solana/info/logo.png) | Solana’s three gradient bars |
+| `public/tokens/sol.svg`, `public/tokens/sol.png` | [Solana official mark](https://solana.com/src/img/branding/solanaLogoMark.svg) | Transparent three gradient bars |
 | `public/tokens/btc.png` | [Bitcoin native asset](https://github.com/trustwallet/assets/blob/master/blockchains/bitcoin/info/logo.png) | Orange Bitcoin mark |
 | `public/tokens/eth.png` | [Ethereum native asset](https://github.com/trustwallet/assets/blob/master/blockchains/ethereum/info/logo.png) | Ethereum diamond |
 | `public/tokens/usdc.png` | [Solana USDC mint EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png) | Blue USDC dollar mark |
 | `public/tokens/usdt.png` | [Solana USDT mint Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB](https://github.com/trustwallet/assets/blob/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png) | Green Tether mark |
 
-Images are unmodified PNGs. Their original dimensions are 512×512, 128×128, 192×192, 181×181, and 300×300 respectively. Display them proportionally, keep token names beside them, and use an empty `alt` attribute when the adjacent text already names the asset. They identify underlying assets; they are not additional protocol integrations or partner logos.
+The Trust Wallet PNG dimensions remain 128×128, 192×192, 181×181, and 300×300 for BTC, ETH, USDC, and USDT. Buffer renders the official Solana SVG in the interface and keeps a matching 512×512 transparent PNG fallback. The USDT PNG has its connected white canvas removed while preserving the green token circle; the other source artwork remains intact. Display marks proportionally, keep token names beside them, and use an empty `alt` attribute when adjacent text already names the asset. They identify underlying assets; they are not additional protocol integrations or partner logos.
 
 The repository’s [MIT license](https://github.com/trustwallet/assets/blob/master/LICENSE) was inspected. Its notice is preserved below and in `public/tokens/LICENSE.txt`. Token trademarks remain their respective owners’ marks.
 

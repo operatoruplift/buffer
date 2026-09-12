@@ -22,3 +22,9 @@ SOFTWARE.
 
 Sources and asset identification are documented in docs/DESIGN.md.
 Token trademarks belong to their respective owners.
+
+The Solana mark (`sol.svg` and the matching transparent `sol.png`) is sourced
+from Solana’s official brand asset at
+https://solana.com/src/img/branding/solanaLogoMark.svg and is used only to
+identify the underlying asset. Solana and its marks belong to their respective
+owners.
