@@ -233,4 +233,16 @@ describe('request-owned manual loader', () => {
     expect(loader.getBufferAndSlot(new PublicKey(authority))?.buffer).toBeUndefined();
     loader.dispose();
   });
+  it('keeps newer bytes when RPC responses arrive out of order', async () => {
+    const newer = { data: Buffer.from('newer'), owner: PublicKey.default };
+    const older = { data: Buffer.from('older'), owner: PublicKey.default };
+    const callback = vi.fn();
+    const rpc = vi.fn().mockResolvedValueOnce({ context: { slot: 20 }, value: [newer] }).mockResolvedValueOnce({ context: { slot: 19 }, value: [older] });
+    const loader = new SnapshotAccountLoader({ getMultipleAccountsInfoAndContext: rpc } as unknown as Connection, new Set());
+    await loader.addAccount(new PublicKey(authority), callback);
+    await loader.load(); await loader.load();
+    expect(loader.getBufferAndSlot(new PublicKey(authority))).toMatchObject({ slot: 20, buffer: newer.data });
+    expect(callback).toHaveBeenCalledTimes(1);
+    loader.dispose();
+  });
 });

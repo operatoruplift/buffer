@@ -36,7 +36,12 @@ export class SnapshotAccountLoader extends BulkAccountLoader {
         if (account && this.programAccounts.has(target.publicKey.toBase58()) && !account.owner.equals(PROGRAM)) {
           throw new ProviderFailure('INVALID_ACCOUNT', 'The account owner does not match the fixed Velocity program.', 502, false);
         }
-        this.bufferAndSlotMap.set(target.publicKey.toBase58(), { slot: result.context.slot, buffer: account?.data });
+        const address = target.publicKey.toBase58();
+        const previous = this.bufferAndSlotMap.get(address);
+        // Load-balanced RPCs can answer out of order. Keep the newest bytes and
+        // slot together so a late response cannot regress the SDK's view.
+        if (previous && result.context.slot < previous.slot) return;
+        this.bufferAndSlotMap.set(address, { slot: result.context.slot, buffer: account?.data });
         if (account) for (const callback of target.callbacks.values()) callback(account.data, result.context.slot);
       });
     }
