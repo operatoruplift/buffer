@@ -4,7 +4,7 @@
 
 **Last updated:** September 12, 2026.
 
-[Website](https://buffer-lovat.vercel.app) · [Open the app](https://buffer-lovat.vercel.app/app) · [Watch the demos](https://buffer-lovat.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
+[Website](https://bufferonsolana.vercel.app) · [Open the app](https://bufferonsolana.vercel.app/app) · [Watch the demos](https://bufferonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
 
 Paste a public authority, select one Velocity subaccount, and explore a shared −20% to +20% price move on eligible SOL, BTC, and ETH perpetual positions. The current Velocity deployment settles in USDT; baseline SDK metrics remain USD. Buffer keeps the current baseline separate from modeled price P&L and explains what is excluded. Three deterministic samples work immediately, without an account or RPC configuration. The **Explore a live account** button opens a public example without a wallet connection.
 

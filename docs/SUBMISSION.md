@@ -2,7 +2,7 @@
 
 **Last updated:** September 12, 2026.
 
-[Website](https://buffer-lovat.vercel.app) · [Interactive app](https://buffer-lovat.vercel.app/app) · [Demo and films](https://buffer-lovat.vercel.app/demo) · [Public GitHub repository](https://github.com/operatoruplift/buffer)
+[Website](https://bufferonsolana.vercel.app) · [Interactive app](https://bufferonsolana.vercel.app/app) · [Demo and films](https://bufferonsolana.vercel.app/demo) · [Public GitHub repository](https://github.com/operatoruplift/buffer)
 
 ## Short description
 
@@ -30,10 +30,10 @@ Built with Next.js, React, TypeScript, precise decimal arithmetic, the official 
 
 | Asset | Contents |
 | --- | --- |
-| [Interactive explorer](https://buffer-lovat.vercel.app/app) | Live Velocity example, explicit subaccount choice, deterministic samples, scenario slider, coverage, Method, device save, and JSON export. |
-| [Product demo](https://buffer-lovat.vercel.app/demo#demo) | About 88 seconds of the actual working sample journey. |
-| [Higgsfield pitch](https://buffer-lovat.vercel.app/demo#pitch) | About 62 seconds, combining generated brand motion with authentic interface capture. |
-| [Technical walkthrough](https://buffer-lovat.vercel.app/demo#technical) | About 124 seconds on provider boundaries, math, coverage, freshness, and reproducibility. |
+| [Interactive explorer](https://bufferonsolana.vercel.app/app) | Live Velocity example, explicit subaccount choice, deterministic samples, scenario slider, coverage, Method, device save, and JSON export. |
+| [Product demo](https://bufferonsolana.vercel.app/demo#demo) | About 88 seconds of the actual working sample journey. |
+| [Higgsfield pitch](https://bufferonsolana.vercel.app/demo#pitch) | About 62 seconds, combining generated brand motion with authentic interface capture. |
+| [Technical walkthrough](https://bufferonsolana.vercel.app/demo#technical) | About 124 seconds on provider boundaries, math, coverage, freshness, and reproducibility. |
 
 [Video provenance, captions, transcripts, and source materials](VIDEO.md) identify the generation job and production checks. The films show deterministic fixtures; the live example is demonstrated in the interactive app. [Full product descriptions](DESCRIPTION.md) provide reusable Markdown copy.
 

@@ -38,17 +38,32 @@
 .buffer-text-link:hover { color: var(--cobalt); }
 .buffer-hero-note { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--quiet); margin-top: 19px; }
 .buffer-hero-note svg { color: var(--cobalt); }
-.buffer-hero-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #e8edff; padding: 26px 30px; border-radius: 9px; overflow: hidden; min-height: 589px; }
-.buffer-stage-orbit { position: absolute; width: 550px; height: 550px; border: 1px solid #bdcaff; border-radius: 50%; pointer-events: none; animation: buffer-orbit 18s ease-in-out infinite alternate; }
+.buffer-hero-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #101a3b; border: 1px solid #2c4286; padding: 26px 30px; border-radius: 14px; overflow: hidden; min-height: 589px; isolation: isolate; box-shadow: 0 28px 80px #101a3b24; }
+.buffer-hero-stage::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(120deg, #ffffff05, transparent 38%, #91a7ff12 72%, transparent); }
+.buffer-shader { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.buffer-shader-grid { position: absolute; left: -12%; right: -12%; bottom: -28%; height: 73%; transform: perspective(500px) rotateX(58deg) scale(1.55); transform-origin: center bottom; opacity: .22; background-image: linear-gradient(#9fb4ff2e 1px, transparent 1px), linear-gradient(90deg, #9fb4ff2e 1px, transparent 1px); background-size: 39px 39px; -webkit-mask-image: linear-gradient(to top, #000, transparent 88%); mask-image: linear-gradient(to top, #000, transparent 88%); animation: buffer-grid-drift 14s linear infinite; }
+.buffer-shader-orb { position: absolute; border-radius: 50%; filter: blur(2px); mix-blend-mode: screen; opacity: .74; }
+.buffer-shader-orb-one { width: 330px; height: 330px; top: -132px; right: -34px; background: radial-gradient(circle at 38% 42%, #a0b0ff 0 2%, #7187ff 15%, #536dff60 42%, transparent 70%); animation: buffer-shader-float-one 12s ease-in-out infinite alternate; }
+.buffer-shader-orb-two { width: 270px; height: 270px; bottom: -122px; left: -78px; background: radial-gradient(circle at 55% 45%, #55f2cd 0 2%, #41c9d0 13%, #3d8fae55 47%, transparent 72%); animation: buffer-shader-float-two 15s ease-in-out infinite alternate; }
+.buffer-shader-orb-three { width: 180px; height: 180px; top: 35%; left: 38%; background: radial-gradient(circle, #d3e0ff 0 1.5%, #93b5ff80 18%, transparent 72%); opacity: .33; animation: buffer-shader-pulse 7s ease-in-out infinite; }
+.buffer-shader-line { position: absolute; width: 112%; height: 44%; left: -6%; top: 33%; overflow: visible; opacity: .5; }
+.buffer-shader-line path { fill: none; stroke: #b9c8ff; stroke-width: 1.1; stroke-linecap: round; stroke-dasharray: 2 12; animation: buffer-shader-dash 18s linear infinite; }
+.buffer-shader-line path + path { stroke: #5ce6ce; opacity: .42; stroke-dasharray: 1 16; animation-duration: 24s; animation-direction: reverse; }
+.buffer-shader-readout { position: absolute; top: 75px; left: 32px; display: grid; gap: 6px; color: #c2ceff; letter-spacing: 1.35px; }
+.buffer-shader-readout span { font-size: 7px; opacity: .8; }
+.buffer-shader-readout strong { font-size: 9px; font-weight: 500; letter-spacing: 2px; }
+.buffer-shader-readout i { position: absolute; left: -16px; top: 1px; color: #61e2cc; font-size: 14px; font-style: normal; }
+.buffer-stage-orbit { position: absolute; width: 550px; height: 550px; border: 1px solid #91a8ff35; border-radius: 50%; pointer-events: none; animation: buffer-orbit 18s ease-in-out infinite alternate; z-index: 0; }
 .buffer-stage-orbit-one { top: -258px; right: -170px; }
 .buffer-stage-orbit-two { width: 700px; height: 700px; bottom: -400px; left: -370px; animation-delay: -9s; }
-.buffer-stage-caption { display: flex; justify-content: space-between; width: 100%; position: relative; z-index: 1; font-size: 8px; letter-spacing: 1.15px; color: #5c6c9e; }
+.buffer-stage-caption { display: flex; justify-content: space-between; width: 100%; position: relative; z-index: 2; font-size: 8px; letter-spacing: 1.15px; color: #aabaff; }
 .buffer-stage-caption button { background: none; border: 0; color: inherit; font-size: inherit; letter-spacing: inherit; padding: 0; min-height: 24px; }
 .buffer-stage-caption button:disabled { opacity: 1; }
 .buffer-stage-caption > span { align-self: center; }
-.buffer-stage-bottom { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 9px; color: #5c6c9e; position: relative; }
+.buffer-stage-bottom { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 9px; color: #aabaff; position: relative; z-index: 2; }
 .buffer-tiny-cross { font-size: 18px; font-weight: 300; }
-.buffer-preview { position: relative; width: 100%; max-width: 411px; background: #fff; border: 1px solid #dbe1f5; border-radius: 12px; box-shadow: 0 16px 44px #3554a018; margin: 31px 0 21px; animation: buffer-arrive 650ms ease-out both; }
+.buffer-preview { position: relative; z-index: 2; width: 100%; max-width: 411px; background: #fff; border: 1px solid #dbe1f5; border-radius: 12px; box-shadow: 0 20px 52px #050b241f; margin: 31px 0 21px; animation: buffer-arrive 650ms ease-out both; transition: transform 220ms ease, box-shadow 220ms ease; }
+.buffer-preview:hover { transform: translateY(-5px); box-shadow: 0 26px 66px #050b2435; }
 .buffer-preview-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 19px; border-bottom: 1px solid #edf0f6; }
 .buffer-preview-title { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 550; }
 .buffer-preview-title svg { color: var(--cobalt); }
@@ -181,7 +196,13 @@
 @keyframes buffer-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes buffer-orbit { to { transform: translate(20px, 15px) scale(1.04); } }
 @keyframes buffer-float { 50% { transform: translateY(-10px) rotate(-6deg); } }
+@keyframes buffer-grid-drift { to { background-position: 0 39px, 39px 0; } }
+@keyframes buffer-shader-float-one { to { transform: translate(-22px, 24px) scale(1.13); } }
+@keyframes buffer-shader-float-two { to { transform: translate(31px, -20px) scale(1.08); } }
+@keyframes buffer-shader-pulse { 50% { transform: scale(1.22); opacity: .47; } }
+@keyframes buffer-shader-dash { to { stroke-dashoffset: -240; } }
 .buffer-site[data-motion=paused] .buffer-stage-orbit, .buffer-site[data-motion=paused] .buffer-app-icon { animation-play-state: paused; }
+.buffer-site[data-motion=paused] .buffer-shader-grid, .buffer-site[data-motion=paused] .buffer-shader-orb, .buffer-site[data-motion=paused] .buffer-shader-line path { animation-play-state: paused; }
 @media (max-width: 1392px) {
   .buffer-facts, .buffer-section, .buffer-coverage-story, .buffer-privacy { margin-left: 48px; margin-right: 48px; }
   .buffer-install { margin-left: 24px; margin-right: 24px; padding-left: 48px; padding-right: 48px; }

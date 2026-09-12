@@ -4,7 +4,7 @@ Research and implementation date: September 12, 2026.
 
 ## Recommended MotionSites starting point
 
-**[USD Halo](https://motionsites.ai/?prompt=halo-usd-landing) is the best starting point for Buffer’s landing page among the prompts inspected.** Its offwhite canvas, large editorial type, rounded product stage, and restrained calls to action fit a product that should feel calm and understandable. Buffer’s implementation is original: its established cobalt U-shaped gauge identity, interactive scenario preview, copy, section composition, and calculations replace Halo’s identity and content.
+**[USD Halo](https://motionsites.ai/?prompt=halo-usd-landing) remains the best starting point for Buffer’s landing page among the prompts inspected.** Its offwhite canvas, large editorial type, rounded product stage, and restrained calls to action fit a product that should feel calm and understandable. The hero now adds a native CSS/SVG shader layer inspired by the motion language of [Animated Shader Hero](https://motionsites.org/prompts/ravikatiyar162-animated-shader-hero), while Buffer’s established cobalt U-shaped gauge identity, interactive scenario preview, copy, section composition, and calculations remain original.
 
 The MotionSites integration returned full prompt text for all the selections below. “Free” and “premium” reflect the catalog at research time; access may change. These are design prompts, not a guarantee of a production-ready application or working integrations.
 
@@ -58,7 +58,7 @@ These are visual references only. No Dribbble artwork, layout source files, or p
 - **Palette:** cobalt `#315fe8`, offwhite `#f8f8f3`, dark ink `#18251e`, pale blue `#e8edff`, and quiet sage for coverage. Positive and negative sample contributions have text signs as well as color.
 - **Type:** local system Helvetica/Arial stack; no externally hosted commercial fonts or unverified font downloads.
 - **Composition:** a two-column introduction with a functioning preview; editorial feature rows; a coverage story; three method steps; browser-install guidance; privacy explanation; FAQ; a final action and oversized wordmark.
-- **Motion:** original CSS orbit and app-mark movement; reduced-motion media query, a server-safe preference subscription, and manual pause support. No required timed splash screen.
+- **Motion:** original CSS orbit, shader grid, animated signal line, and app-mark movement; reduced-motion media query, a server-safe preference subscription, and manual pause support. No required timed splash screen.
 - **Meaning:** the hero calculation uses the same `getSampleSnapshot`, `calculateScenario`, and `formatDecimal` functions as the app. All illustrative numbers are labeled as samples; live Velocity reads show their protocol, quote currency, current slots, and freshness.
 - **Navigation:** real links to `/app`, `/auth`, installation guidance, method, FAQ, and the public source repository. Native disclosure elements support FAQ and mobile navigation. The live example is a direct call to action; no wallet connection is required.
 

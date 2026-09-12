@@ -122,6 +122,17 @@ export default function Landing() {
             <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
           </div>
           <div className="buffer-hero-stage">
+            <div className="buffer-shader" aria-hidden="true">
+              <div className="buffer-shader-grid" />
+              <div className="buffer-shader-orb buffer-shader-orb-one" />
+              <div className="buffer-shader-orb buffer-shader-orb-two" />
+              <div className="buffer-shader-orb buffer-shader-orb-three" />
+              <svg className="buffer-shader-line" viewBox="0 0 640 260" preserveAspectRatio="none">
+                <path d="M-20 214C30 195 47 208 75 181s54-11 76-42 43-2 66-30 41-3 62-42 39-4 59-25 38-9 57-17 34-2 54-19 44 6 65-17 46-1 75-16 54 2 83-16" />
+                <path d="M-20 234C36 214 55 235 90 205s57-5 84-47 43 1 73-37 44-6 65-39 46 0 67-30 34 0 56-19 40-8 63-29 46 0 69-14 50-5 77-22" />
+              </svg>
+              <div className="buffer-shader-readout"><span>VELOCITY / MAINNET</span><strong>SCENARIO SIGNAL</strong><i>+</i></div>
+            </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
             <div className="buffer-stage-caption"><span>LOOK AT THE WHAT-IF.</span><button type="button" disabled={reducedMotion} onClick={() => setMotionPaused(!motionPaused)} aria-pressed={motionPaused || reducedMotion}>{reducedMotion ? "REDUCED MOTION" : motionPaused ? "PLAY MOTION" : "PAUSE MOTION"}</button></div>
             <ScenarioPreview />

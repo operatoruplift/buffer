@@ -10,7 +10,7 @@
 | TypeScript and ESLint | Passed on the current working tree. |
 | Velocity decoder fixtures | Passed for current State, SOL/BTC/ETH perp markets, USDT spot identity, Pyth Lazer oracle buffers, PDA derivation, and the request-owned loader. |
 | Local judge-experience browser run | **16 passed** across the new quick-start guide, scenario-first mobile layout, device reports, PWA, website, and API-failure paths. |
-| Vercel public routes and media | Passed on `https://buffer-lovat.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
+| Vercel public routes and media | Passed on `https://bufferonsolana.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
 | Supabase database | Dedicated Buffer project and both saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. |
 | Authentication | Confirmed-account password sign-in and report operations passed with disposable fixtures. Public signup and recovery remain gated until SMTP and Auth settings are verified. |
 

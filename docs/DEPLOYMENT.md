@@ -29,7 +29,7 @@ Create or use the dedicated Buffer project **`vhbngdatlowfnwaymvuq`** in **opera
 In Auth settings:
 
 1. Keep the email provider available for existing confirmed accounts, but leave `NEXT_PUBLIC_AUTH_EMAIL_READY=false` until delivery is ready.
-2. Set Site URL to `https://buffer-lovat.vercel.app` and allow exactly `https://buffer-lovat.vercel.app/auth`; add `http://127.0.0.1:3001/auth` for local development.
+2. Set Site URL to `https://bufferonsolana.vercel.app` and allow `https://bufferonsolana.vercel.app/auth`; keep `https://buffer-lovat.vercel.app/auth` during the alias transition and add `http://127.0.0.1:3001/auth` plus `http://localhost:3001/auth` for local development.
 3. Configure a minimum 12-character password, leaked-password protection, and production SMTP delivery. The form enforces 12 characters for new passwords, but server-side policy must also enforce it.
 4. Set the two public environment variables and rebuild.
 5. Verify confirmed signup, login, recovery, logout, save/download/delete, and cross-user isolation with dedicated disposable accounts. Check Supabase security and performance advisors.
@@ -45,7 +45,7 @@ Confirmed-account password sign-in and private report CRUD work with disposable 
 
 ## Vercel
 
-The Vercel project is `operatoruplift/buffer`, linked to [the public source repository](https://github.com/operatoruplift/buffer), with the production alias [buffer-lovat.vercel.app](https://buffer-lovat.vercel.app). Production, Preview, and Development contain `SOLANA_RPC_URL`, the two public Supabase variables, and an explicit `NEXT_PUBLIC_AUTH_EMAIL_READY=false` config value. Use the Next.js framework setting in `vercel.json`, Node route execution, and a 30-second function duration. Do not use static export or edge-only hosting for the RPC routes.
+The Vercel project is `operatoruplift/buffer`, linked to [the public source repository](https://github.com/operatoruplift/buffer), with the production alias [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app). Production, Preview, and Development contain `SOLANA_RPC_URL`, the two public Supabase variables, and an explicit `NEXT_PUBLIC_AUTH_EMAIL_READY=false` config value. Use the Next.js framework setting in `vercel.json`, Node route execution, and a 30-second function duration. Do not use static export or edge-only hosting for the RPC routes.
 
 Build with `npm ci` and `npm run build`. Configure server-only `SOLANA_RPC_URL` and the two public Supabase variables in the intended Vercel environments. Redeploy after changing them. The initial RPC is Solana's shared mainnet endpoint; it is suitable for evaluation but has no application-specific capacity guarantee.
 
