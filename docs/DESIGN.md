@@ -4,7 +4,7 @@ Research and implementation date: September 12, 2026.
 
 ## Recommended MotionSites starting point
 
-**[USD Halo](https://motionsites.ai/?prompt=halo-usd-landing) remains the best starting point for Buffer’s landing page among the prompts inspected.** Its offwhite canvas, large editorial type, rounded product stage, and restrained calls to action fit a product that should feel calm and understandable. The hero now adds a native CSS/SVG shader layer inspired by the motion language of [Animated Shader Hero](https://motionsites.org/prompts/ravikatiyar162-animated-shader-hero), while Buffer’s cobalt B monogram, interactive scenario preview, copy, section composition, and calculations remain original.
+**[USD Halo](https://motionsites.ai/?prompt=halo-usd-landing) remains the best starting point for Buffer’s landing page among the prompts inspected.** Its offwhite canvas, large editorial type, rounded product stage, and restrained calls to action fit a product that should feel calm and understandable. The hero now adds a native CSS/SVG shader layer inspired by the motion language of [Animated Shader Hero](https://motionsites.org/prompts/ravikatiyar162-animated-shader-hero), alongside Buffer’s ribbon B monogram and its own interactive scenario preview, copy, section composition, and calculations.
 
 The MotionSites integration returned full prompt text for all the selections below. “Free” and “premium” reflect the catalog at research time; access may change. These are design prompts, not a guarantee of a production-ready application or working integrations.
 
@@ -54,7 +54,7 @@ These are visual references only. No Dribbble artwork, layout source files, or p
 
 ## Buffer’s original system
 
-- **Identity:** an original geometric B monogram, inspired by the user's rounded and angular letterform references. Two rounded forms, open counters, and an angled cut create a compact silhouette. The mark retains cobalt `#315FE8`, with a white reverse on blue app tiles. Runtime marks, wordmarks, favicons, offline UI, and install icons share the same vector geometry.
+- **Identity:** a ribbon B monogram following the user's preferred layered letterform reference. Two curved horizontal ribbons sit above a shorter base bar, with open left gaps and rounded right shoulders. The mark retains cobalt `#315FE8`, with a white reverse on blue app tiles. Runtime marks, wordmarks, favicons, offline UI, and install icons share the same vector geometry.
 - **Palette:** cobalt `#315fe8`, offwhite `#f8f8f3`, dark ink `#18251e`, pale blue `#e8edff`, and quiet sage for coverage. Positive and negative sample contributions have text signs as well as color.
 - **Type:** local system Helvetica/Arial stack; no externally hosted commercial fonts or unverified font downloads.
 - **Composition:** a two-column introduction with a functioning preview; editorial feature rows; a coverage story; three method steps; browser-install guidance; privacy explanation; FAQ; a final action and oversized wordmark.

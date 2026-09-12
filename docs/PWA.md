@@ -22,7 +22,7 @@ The standalone fixture uses integer coefficients equivalent to the core formula 
 
 - `src/app/manifest.ts` generates `/manifest.webmanifest`, with `/app` as launch URL, standalone display and site-wide scope.
 - `src/components/PwaClient.tsx` registers `/sw.js`, manages optional browser installation and exposes update/offline status. Mount it once in the root layout.
-- `public/icons/icon.svg` is Buffer's geometric B monogram in white on cobalt blue, sharing its geometry with `public/brand/favicon.svg`; PNG exports are 192px, 512px, and 180px for Apple devices. The `buffer-public-v2` worker cache refreshes the offline mark and icon assets. Existing installs can use **Update app** when available; operating systems control when launcher icons refresh.
+- `public/icons/icon.svg` is Buffer's ribbon B monogram in white on cobalt blue, sharing its geometry with `public/brand/favicon.svg`; PNG exports are 192px, 512px, and 180px for Apple devices. The `buffer-public-v3` worker cache refreshes the offline mark and icon assets. Existing installs can use **Update app** when available; operating systems control when launcher icons refresh.
 - `public/icons/icon-maskable.svg` places the same mark inside the maskable safe circle; dedicated 192px and 512px PNG versions fill the entire icon background.
 - Root metadata should include the Apple 180px icon and `appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Buffer' }`; viewport metadata should use `themeColor: '#315fe8'` and `viewportFit: 'cover'`.
 - Serve `/sw.js` with JavaScript content type, `Cache-Control: no-cache, no-store, must-revalidate`, and `Service-Worker-Allowed: /`.

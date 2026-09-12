@@ -1075,7 +1075,7 @@ footer {
   align-items: center;
 }
 .footer-brand svg {
-  color: #7a8ca6;
+  color: var(--blue);
 }
 .footer-dot {
   margin: 0 8px;
