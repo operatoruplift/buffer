@@ -1,35 +1,62 @@
 {
   "buffer-demo": {
-    "duration": 87.858,
-    "bytes": 2987755,
+    "duration": 81.961,
+    "bytes": 11863366,
     "resolution": [
       1600,
       900
     ],
-    "fps": 24,
-    "audio": "AAC stereo 48kHz",
-    "sampleData": true
+    "fps": 23.999809355861117,
+    "videoCodec": "h264",
+    "audio": {
+      "codec": "aac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "layout": "stereo"
+    },
+    "sampleData": true,
+    "recordedAt": "2026-09-13",
+    "revision": "media-source-v2",
+    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
   },
   "buffer-pitch": {
-    "duration": 62.524,
-    "bytes": 2473761,
+    "duration": 51.71,
+    "bytes": 9586189,
     "resolution": [
       1600,
       900
     ],
-    "fps": 24,
-    "audio": "AAC stereo 48kHz",
-    "sampleData": true
+    "fps": 23.999697828139755,
+    "videoCodec": "h264",
+    "audio": {
+      "codec": "aac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "layout": "stereo"
+    },
+    "sampleData": true,
+    "recordedAt": "2026-09-13",
+    "revision": "media-source-v2",
+    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
   },
   "buffer-technical": {
-    "duration": 124.15,
-    "bytes": 3307691,
+    "duration": 106.254,
+    "bytes": 16439087,
     "resolution": [
       1600,
       900
     ],
-    "fps": 24,
-    "audio": "AAC stereo 48kHz",
-    "sampleData": true
+    "fps": 23.99985294207756,
+    "videoCodec": "h264",
+    "audio": {
+      "codec": "aac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "layout": "stereo"
+    },
+    "sampleData": true,
+    "recordedAt": "2026-09-13",
+    "revision": "media-source-v2",
+    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
   }
 }

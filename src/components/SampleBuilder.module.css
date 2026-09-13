@@ -28,14 +28,16 @@
 .empty { padding: 25px 0; font-size: 12px; color: var(--muted); }
 .empty p { margin-top: 6px; }
 .catalog { width: min(700px, calc(100vw - 30px)); max-height: min(780px, calc(100dvh - 40px)); border: 1px solid #dce4f2; border-radius: 18px; padding: 25px; color: var(--text); box-shadow: 0 24px 100px #0b20583d; }
+.catalog[open] { display: flex; flex-direction: column; overflow: hidden; }
 .catalog::backdrop { background: #11203c66; backdrop-filter: blur(4px); }
-.catalogHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.catalogHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
 .catalogHeading h2 { font-size: 24px; letter-spacing: -.7px; margin-top: 5px; }
 .catalogHeading button { width: 44px; height: 44px; }
-.catalog > p { color: var(--muted); font-size: 12px; margin: 14px 0 20px; }
+.catalogBody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 14px -4px 0; padding: 0 4px 4px; }
+.catalogDescription { color: var(--muted); font-size: 12px; margin: 0 0 20px; }
 .searchLabel { display: block; font-size: 11px; color: var(--muted); margin-bottom: 7px; }
-.catalog > input { width: 100%; height: 46px; border-radius: 9px; border: 1px solid #d9e1ef; padding: 10px 13px; font-size: 14px; background: #f8faff; }
-.catalogList { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; max-height: 390px; overflow-y: auto; overscroll-behavior: contain; margin: 17px -4px 0; padding: 4px; }
+.catalogBody > input { width: 100%; height: 46px; border-radius: 9px; border: 1px solid #d9e1ef; padding: 10px 13px; font-size: 14px; background: #f8faff; }
+.catalogList { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 17px -4px 0; padding: 4px; }
 .catalogMarket { min-width: 0; min-height: 65px; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e1e6ef; border-radius: 10px; padding: 10px; text-align: left; }
 .catalogMarket:not(:disabled):hover { border-color: #93aff6; background: #f5f8ff; }
 .catalogMarket:disabled { opacity: 1; background: #f5f7fb; color: #5b6980; }
@@ -44,7 +46,7 @@
 .addLabel { margin-left: auto; display: flex; align-items: center; gap: 3px; color: #315fe8; font-size: 10px; white-space: nowrap; }
 .catalogMarket:disabled .addLabel { color: #6a7b94; }
 .noResults { grid-column: 1 / -1; padding: 25px 0; color: var(--muted); font-size: 12px; }
-.catalogFooter { display: flex; align-items: center; justify-content: space-between; gap: 15px; border-top: 1px solid var(--border); padding-top: 17px; margin-top: 18px; }
+.catalogFooter { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-shrink: 0; border-top: 1px solid var(--border); padding-top: 17px; margin-top: 18px; }
 .catalogFooter span { font-size: 11px; color: var(--muted); }
 .catalogFooter button { min-height: 44px; }
 @media (max-width: 640px) {
@@ -56,10 +58,18 @@
   .fields input { height: 44px; font-size: 16px; }
   .fields label, .side > span { font-size: 10px; }
   .catalog { padding: 20px; width: calc(100vw - 20px); max-height: calc(100dvh - 24px); }
-  .catalog > input { font-size: 16px; }
-  .catalogList { grid-template-columns: 1fr; max-height: 42dvh; }
+  .catalogBody > input { font-size: 16px; }
+  .catalogList { grid-template-columns: 1fr; }
   .catalogMarket { min-height: 62px; }
   .catalogMarket strong { font-size: 13px; }
   .catalogMarket small, .addLabel { font-size: 11px; }
   .apply button { min-height: 44px; }
+}
+@media (max-height: 500px) {
+  .catalog { padding: 12px 20px; }
+  .catalogHeading h2 { font-size: 20px; margin-top: 2px; }
+  .catalogBody { margin-top: 8px; }
+  .catalogDescription { margin-bottom: 10px; }
+  .catalogList { margin-top: 10px; }
+  .catalogFooter { margin-top: 8px; padding-top: 8px; }
 }

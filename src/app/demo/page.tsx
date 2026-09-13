@@ -6,9 +6,9 @@ export const metadata = { title: 'Watch Buffer — Demo, pitch and technical wal
 const mediaRevision = '20260913';
 const mediaPath = (id: string, extension: string) => `/videos/buffer-${id}${extension}?v=${mediaRevision}`;
 const videos = [
-  { id: 'demo', title: 'A little more perspective.', label: 'PRODUCT DEMO', description: 'Explore a sample, move prices, inspect coverage, and export a scenario report.' },
-  { id: 'pitch', title: 'Make room for understanding.', label: 'THE PITCH', description: 'Why Buffer exists, with the redesigned experience and real product footage.' },
-  { id: 'technical', title: 'Behind the numbers.', label: 'TECHNICAL WALKTHROUGH', description: 'Velocity, Pacifica, Jupiter inventory, precise arithmetic, and the boundaries behind every result.' },
+  { id: 'demo', title: 'A little more perspective.', label: 'PRODUCT DEMO · 1:22', description: 'Explore a sample, move prices, inspect coverage, and export a scenario report.' },
+  { id: 'pitch', title: 'Make room for understanding.', label: 'THE PITCH · 0:52', description: 'Why Buffer exists, with the redesigned experience and real product footage.' },
+  { id: 'technical', title: 'Behind the numbers.', label: 'TECHNICAL WALKTHROUGH · 1:46', description: 'Velocity, Pacifica, Jupiter inventory, precise arithmetic, and the boundaries behind every result.' },
 ];
 export default function DemoPage() {
   return <main className={styles.page}>

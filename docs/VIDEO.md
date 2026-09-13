@@ -6,9 +6,9 @@ The version-2 films cover the current Buffer website and app: the cobalt B ident
 
 | Film | Story | Timing |
 | --- | --- | --- |
-| Product demo | Four-market sample, −10% move, Add perps, provider selector, Method, device save/JSON export, mobile | Measured runtime in release metadata |
-| Pitch | Why Buffer exists, editable samples, explicit provider coverage, inspectable results, mobile | Measured runtime in release metadata |
-| Technical walkthrough | Provider boundaries, exact arithmetic, quote identity, freshness, reports, auth and verification limits | Measured runtime in release metadata |
+| Product demo | Four-market sample, −10% move, Add perps, provider selector, Method, device save/JSON export, mobile | **1:22** (81.961 s) |
+| Pitch | Why Buffer exists, editable samples, explicit provider coverage, inspectable results, mobile | **0:52** (51.710 s) |
+| Technical walkthrough | Provider boundaries, exact arithmetic, quote identity, freshness, reports, auth and verification limits | **1:46** (106.254 s) |
 
 The current films and production package are available in [media-source-v2](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2). The [version-1 archive](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) is historical and contains the old U identity and September 11 explorer footage.
 
@@ -55,3 +55,9 @@ The release verification record covers:
 - Matching `/demo` runtime labels, posters, captions, transcripts, and source-release links.
 
 Public exploration and device reports need no sign-in. Optional cloud behavior is covered by SDK tests with mocked transport and the existing owner-only schema/RLS audit. Current production email delivery and real nonproduction auth/report mutation journeys remain unverified; signup and recovery sending stay gated. The public offline calculator and supported-browser PWA installation are included, without claiming native store binaries.
+
+## September 13 measured exports
+
+All three final Higgsedit exports are H.264, 1600 × 900, nominal 24 fps, with AAC stereo at 48 kHz and faststart. The complete output files pass FFmpeg decode without errors. Mean audio levels are −20.6, −20.8 and −20.7 dBFS; peaks are −5.4, −5.0 and −5.9 dBFS respectively. All 50 caption cues match the narration text, stay in time order, and end within their films. The contact sheet was visually reviewed for current branding, sample arithmetic, source boundaries, and framing. See `videos/metadata.json` and `videos/quality-checks.json` for measured values and hashes.
+
+The 78-file source archive has SHA256 `8069264a9219ed1d24ebb4165f2de00370740fcd596077444921af9c1ab12ca9` and records the captured application source commit `f612c22`. It contains no environment files or credentials. The original films remain preserved in the version-1 release.

@@ -1,32 +1,33 @@
-[
-  {
-    "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/6d386fbd-a806-4c64-be4f-d3a784b69624.mp4",
-    "duration": 87.85734,
-    "width": 1600,
-    "height": 900,
-    "currentTime": 82.107492,
-    "readyState": 4,
-    "frames": 180,
-    "error": null
+{
+  "revision": "media-source-v2",
+  "checkedAt": "2026-09-13",
+  "environment": "optimized production build at http://127.0.0.1:3237",
+  "viewports": [
+    [
+      1280,
+      1000
+    ],
+    [
+      375,
+      812
+    ]
+  ],
+  "films": [
+    "buffer-demo",
+    "buffer-pitch",
+    "buffer-technical"
+  ],
+  "checks": {
+    "actualDecode": true,
+    "playbackAdvances": true,
+    "seekPast10Seconds": true,
+    "nativeCaptionCuesLoad": true,
+    "transcriptsServed": true,
+    "updatedJupiterContent": true,
+    "noOverflow": true
   },
-  {
-    "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/e2762a79-ae90-4b7b-8a81-00d32ca0c6b4.mp4",
-    "duration": 62.523333,
-    "width": 1600,
-    "height": 900,
-    "currentTime": 56.603333,
-    "readyState": 4,
-    "frames": 83,
-    "error": null
-  },
-  {
-    "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/64fc300d-fe53-4118-bec0-c6a1b275c99c.mp4",
-    "duration": 124.149333,
-    "width": 1600,
-    "height": 900,
-    "currentTime": 118.483649,
-    "readyState": 4,
-    "frames": 282,
-    "error": null
+  "focusedBrowserSuite": {
+    "passed": 24,
+    "failed": 0
   }
-]
+}

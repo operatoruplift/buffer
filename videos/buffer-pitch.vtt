@@ -1,40 +1,37 @@
 WEBVTT
 
-00:00:00.350 --> 00:00:05.473
-When markets move, perspective matters. Buffer helps you understand the price effect
+00:00:00.350 --> 00:00:05.558
+A market move can affect every position differently. Buffer makes those differences
 
-00:00:05.473 --> 00:00:09.742
-on your perpetual positions, one clear scenario at a time.
+00:00:05.558 --> 00:00:05.992
+visible.
 
-00:00:10.642 --> 00:00:15.837
-Start with a sample. Choose a shared price move. See a transparent
+00:00:06.892 --> 00:00:12.169
+Start with an editable sample, or read a public account without connecting
 
-00:00:15.837 --> 00:00:21.033
-estimate for supported perpetual positions, with no wallet signature or trade required.
+00:00:12.169 --> 00:00:17.446
+a wallet. Explore seventy-six sample markets, change the price move, and follow
 
-00:00:21.933 --> 00:00:26.561
-A SOL long and a Bitcoin short react differently. Buffer shows each
+00:00:17.446 --> 00:00:18.325
+each contribution.
 
-00:00:26.561 --> 00:00:31.189
-contribution and the combined result, so a single number has a clear
+00:00:19.225 --> 00:00:26.001
+Velocity and Pacifica support price scenarios. Jupiter adds clearly labeled position inventory.
 
-00:00:31.189 --> 00:00:31.575
-explanation.
+00:00:26.001 --> 00:00:28.825
+Unsupported exposure keeps its explanation.
 
-00:00:32.475 --> 00:00:38.353
-Unsupported contracts and other account exposure stay visible. This is a focused
+00:00:29.725 --> 00:00:35.381
+Open the method. Inspect the source. Save a dated report. The result
 
-00:00:38.353 --> 00:00:43.742
-price model, with clear boundaries around funding, fees, collateral, and liquidation.
+00:00:35.381 --> 00:00:41.036
+is a focused price effect, with fees, funding, collateral changes, and liquidation
 
-00:00:44.642 --> 00:00:49.296
-Read the method. Inspect the assumptions. Export the inputs and results. Buffer
+00:00:41.036 --> 00:00:42.450
+outside the calculation.
 
-00:00:49.296 --> 00:00:53.950
-turns a market what if into something you can understand and verify.
+00:00:43.350 --> 00:00:48.035
+On mobile or desktop, Buffer gives you room to understand the numbers
 
-00:00:54.850 --> 00:00:59.110
-Built for a calmer view of your positions. Open the demo and
-
-00:00:59.110 --> 00:01:01.950
-try a sample. Buffer. A little more perspective.
+00:00:48.035 --> 00:00:51.158
+before you act. Buffer. A little more perspective.

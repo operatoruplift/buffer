@@ -76,23 +76,25 @@ export default function SampleBuilder({ snapshot, onChange }: Props) {
         <div><span className="eyebrow">YOUR SAMPLE PORTFOLIO</span><h2 id="perp-catalog-title">Add perpetuals</h2></div>
         <button className="icon-button" type="button" aria-label="Close perpetual catalog" onClick={closeCatalog}><Icon name="close" size={22} /></button>
       </div>
-      <p>Choose from {SAMPLE_MARKET_CATALOG.length} markets. Each starts at one unit with a fixed sample price you can edit.</p>
-      <label className={styles.searchLabel} htmlFor="sample-market-search">Search perpetuals</label>
-      <input autoFocus id="sample-market-search" type="search" placeholder="Search BTC, SOL, ETH, XRP…" value={search} onChange={event => setSearch(event.target.value)} />
-      <div className={styles.catalogList}>
-        {filtered.map(market => {
-          const added = snapshot.positions.some(position => position.asset === market.asset);
-          return <button key={market.marketIndex} className={styles.catalogMarket} type="button" disabled={added}
-            aria-label={`${added ? 'Added' : 'Add'} ${market.market}`}
-            onClick={() => apply(() => addSamplePerp(snapshot, market.asset, quote), `${market.market} added to the sample.`)}>
-            <TokenIcon asset={market.asset} size={32} />
-            <span><strong>{market.asset}</strong><small>{market.market}</small></span>
-            <span className={styles.addLabel}>{added ? <><Icon name="check" size={15} /> Added</> : '+ Add'}</span>
-          </button>;
-        })}
-        {!filtered.length && <p className={styles.noResults}>No perpetuals match “{search}”. Try another symbol.</p>}
+      <div className={styles.catalogBody}>
+        <p className={styles.catalogDescription}>Choose from {SAMPLE_MARKET_CATALOG.length} markets. Each starts at one unit with a fixed sample price you can edit.</p>
+        <label className={styles.searchLabel} htmlFor="sample-market-search">Search perpetuals</label>
+        <input autoFocus id="sample-market-search" type="search" placeholder="Search BTC, SOL, ETH, XRP…" value={search} onChange={event => setSearch(event.target.value)} />
+        <div className={styles.catalogList}>
+          {filtered.map(market => {
+            const added = snapshot.positions.some(position => position.asset === market.asset);
+            return <button key={market.marketIndex} className={styles.catalogMarket} type="button" disabled={added}
+              aria-label={`${added ? 'Added' : 'Add'} ${market.market}`}
+              onClick={() => apply(() => addSamplePerp(snapshot, market.asset, quote), `${market.market} added to the sample.`)}>
+              <TokenIcon asset={market.asset} size={32} />
+              <span><strong>{market.asset}</strong><small>{market.market}</small></span>
+              <span className={styles.addLabel}>{added ? <><Icon name="check" size={15} /> Added</> : '+ Add'}</span>
+            </button>;
+          })}
+          {!filtered.length && <p className={styles.noResults}>No perpetuals match “{search}”. Try another symbol.</p>}
+        </div>
+        {error && <p className={styles.error} role="alert">{error}</p>}
       </div>
-      {error && <p className={styles.error} role="alert">{error}</p>}
       <div className={styles.catalogFooter}><span role="status">{snapshot.positions.length} perps in your sample · {quote}</span><button className="button primary" type="button" onClick={closeCatalog}>Done</button></div>
     </dialog>
   </div>;

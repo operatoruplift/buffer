@@ -1,6 +1,6 @@
 # Selected B3 / B4 / B6 media
 
-The user supplied these exact original clips/posters. Local files are same-source optimizations, not generated replacement art. Source videos are H.264, 24fps, 10.041667 seconds. Derivatives keep H.264/24fps, strip decorative audio, preserve aspect ratios and use CRF24 with faststart; max widths: hero1600, wide-stage/auth1280, portrait640. Hero/auth posters are frames from the originals at1s; supplied B4 posters are byte-for-byte original copies (the local FFmpeg build lacks a WebP encoder, so no poster re-encoding was used). Original product demos under /videos are unchanged.
+The user supplied these exact original clips/posters. Local files are same-source optimizations, not generated replacement art. Source videos are H.264, 24fps, 10.041667 seconds. Derivatives keep H.264/24fps, strip decorative audio, preserve aspect ratios and use CRF24 with faststart; max widths: hero1600, wide-stage/auth1280, portrait640. Hero/auth posters are frames from the originals at1s; supplied B4 posters are byte-for-byte original copies (the local FFmpeg build lacks a WebP encoder, so no poster re-encoding was used). The original product films were preserved during the September 12 redesign checkpoint. The user-authorized September 13 refresh replaces them with current recordings; see the repository’s docs/VIDEO.md.
 
 The CDN HEAD responses did not advertise cross-origin canvas access. Local same-origin assets avoid a media proxy and allow verified canvas sampling. No remote source is fetched through a user-controlled endpoint.
 

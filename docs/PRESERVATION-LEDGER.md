@@ -1,6 +1,6 @@
 # Buffer redesign preservation ledger
 
-Local baseline: `6040f28`, captured before editing on September 12, 2026. Existing Next.js 16.3.4 / React 19.3.0 / TypeScript application; no framework migration. Production infrastructure and deployment are outside this task.
+Local baseline: `6040f28`, captured before editing on September 12, 2026. Existing Next.js 16.3.4 / React 19.3.0 / TypeScript application; no framework migration. This ledger records the September 12 local redesign checkpoint. The subsequent September 13 publication and refreshed films are recorded in [RELEASE-2026-09-13.md](RELEASE-2026-09-13.md).
 
 | Area | Baseline and preservation contract | Verification |
 | --- | --- | --- |
@@ -20,4 +20,4 @@ Baseline screenshots and behavior: `screenshots/redesign/baseline-*.png` and `ba
 
 Selected design: B3 left-aligned inline video hero, B4 three portrait video features, B6 real bounded video refraction behind native account forms. Essential content remains available without motion. Inter is locally embedded with its SIL OFL notice; Helvetica Now is replaced by the existing Helvetica Neue/Arial system stack because the supplied stylesheet does not establish a license grant.
 
-Final local verification: lint, TypeScript and optimized build pass;367 unit tests pass;132 browser checks pass. Four email-gated signup cases also pass in the separate six-case enabled mock run; two real-auth cases remain unverified for lack of authorized nonproduction fixtures. Original9 product media files are byte-identical to baseline. Current Velocity/Pacifica reads remain modeled; Jupiter is verified inventory-only; legacy Drift stays paused. See `REDESIGN-VERIFICATION.md` and `PROVIDER-COVERAGE.md` for evidence and limits. No production changes or deployment were made.
+Final local verification: lint, TypeScript and optimized build pass;367 unit tests pass;132 browser checks pass. Four email-gated signup cases also pass in the separate six-case enabled mock run; two real-auth cases remain unverified for lack of authorized nonproduction fixtures. Original9 product media files are byte-identical to baseline. Current Velocity/Pacifica reads remain modeled; Jupiter is verified inventory-only; legacy Drift stays paused. See `REDESIGN-VERIFICATION.md` and `PROVIDER-COVERAGE.md` for evidence and limits. No production changes or deployment were made during that September 12 checkpoint. The later user-authorized release supersedes the original product films; version 1 remains archived.

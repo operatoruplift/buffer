@@ -1,21 +1,54 @@
 {
-  "fullDecode": "passed for all 3 MP4 files",
-  "visualReview": "9-frame contact sheet plus full-size generated opener and end card reviewed; no clipped labels or unsupported app claims",
-  "audioReview": "Actual pitch audio transcribed with faster-whisper tiny.en and reviewed against narration; complete narration present",
-  "audioLevels": {
+  "revision": "media-source-v2",
+  "recordedAt": "2026-09-13",
+  "films": {
     "buffer-demo": {
-      "meanDb": -18.8,
-      "peakDb": -4.1
+      "duration": 81.961,
+      "bytes": 11863366,
+      "sha256": "95b9362c6750d524c203a18569f4402faf95135fe02cc1c47e222fd01aa73da5",
+      "codec": "h264",
+      "resolution": [
+        1600,
+        900
+      ],
+      "audio": "aac",
+      "fullDecode": "pass",
+      "meanVolumeDb": -20.6,
+      "maxVolumeDb": -5.4,
+      "captionCues": 17,
+      "captionTextAndBounds": "pass"
     },
     "buffer-pitch": {
-      "meanDb": -18.8,
-      "peakDb": -4.0
+      "duration": 51.71,
+      "bytes": 9586189,
+      "sha256": "7ec7225f7f11f56b0a350cbc1d32e8c7ec74308e4c17421e020af69676e7dc64",
+      "codec": "h264",
+      "resolution": [
+        1600,
+        900
+      ],
+      "audio": "aac",
+      "fullDecode": "pass",
+      "meanVolumeDb": -20.8,
+      "maxVolumeDb": -5.0,
+      "captionCues": 12,
+      "captionTextAndBounds": "pass"
     },
     "buffer-technical": {
-      "meanDb": -18.7,
-      "peakDb": -3.9
+      "duration": 106.254,
+      "bytes": 16439087,
+      "sha256": "e77792f7f9a550139428211e114ce174de49531ed504db624b9b7150aa4f7b0e",
+      "codec": "h264",
+      "resolution": [
+        1600,
+        900
+      ],
+      "audio": "aac",
+      "fullDecode": "pass",
+      "meanVolumeDb": -20.7,
+      "maxVolumeDb": -5.9,
+      "captionCues": 21,
+      "captionTextAndBounds": "pass"
     }
-  },
-  "higgsfieldCreditsUsed": 52,
-  "higgsfieldCreditsRemaining": 48
+  }
 }

@@ -20,7 +20,21 @@ test('all three hosted videos decode, play and seek with captions available', as
     const track = await video.locator('track').getAttribute('src');
     const response = await request.get(track!);
     expect(response.ok()).toBe(true);
-    expect(await response.text()).toMatch(/^WEBVTT/);
+    const captions = await response.text();
+    expect(captions).toMatch(/^WEBVTT/);
+    expect(captions).toContain('Jupiter');
+    await video.evaluate((element: HTMLVideoElement) => { element.textTracks[0].mode = 'hidden'; });
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].cues?.length ?? 0)).toBeGreaterThan(0);
+  }
+  const transcripts = page.getByRole('link', { name: 'Read transcript', exact: true });
+  await expect(transcripts).toHaveCount(3);
+  for (const link of await transcripts.all()) {
+    const response = await request.get((await link.getAttribute('href'))!);
+    expect(response.ok()).toBe(true);
+    const transcript = await response.text();
+    expect(transcript).toMatch(/^# Buffer /);
+    expect(transcript).toContain('Jupiter');
+    expect(transcript).toContain('September 13, 2026');
   }
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);

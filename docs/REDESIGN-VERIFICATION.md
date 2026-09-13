@@ -1,6 +1,6 @@
 # Local implementation and verification
 
-Completed against baseline commit `6040f28` on September 12, 2026. Changes remain local and uncommitted. No Git push, deployment, production schema/settings change, production authentication write, or transaction was performed.
+This record describes the September 12, 2026 local verification against baseline commit `6040f28`. No production changes were made during that checkpoint. The user authorized publication and refreshed films on September 13; see [the release record](RELEASE-2026-09-13.md) for subsequent deployment and media evidence.
 
 ## Delivered
 
@@ -10,7 +10,7 @@ Completed against baseline commit `6040f28` on September 12, 2026. Changes remai
 - **Reliability:** fixed-endpoint bounded RPC, structured successful-response validation, precise freshness checks, cloud report validation/deadlines/retries, explicit uncertain-write handling, recovery continuity, and session-bound auth/SDK storage commits. Guest reports remain separate.
 - **Jupiter:** selectable live inventory reader with canonical account decoding and source metadata; no unverified price or capped-payoff contribution enters scenario totals.
 
-The current mark, shared cobalt wordmark, tile favicon, PWA assets, four-position app default, 76-market editor, original product films and captions remain. Inter is embedded under SIL OFL; the existing Helvetica Neue/Arial stack substitutes for the unverified commercial font license. Decorative clip sources, hashes, and optimization details are documented in `public/videos/design/README.md`.
+At the September 12 checkpoint, the current mark, shared cobalt wordmark, tile favicon, PWA assets, four-position app default, 76-market editor, original product films and captions were preserved. The original product films were subsequently replaced by the authorized version-2 refresh. Inter is embedded under SIL OFL; the existing Helvetica Neue/Arial stack substitutes for the unverified commercial font license. Decorative clip sources, hashes, and optimization details are documented in `public/videos/design/README.md`.
 
 ## Results
 
@@ -64,7 +64,7 @@ npm run build
 npm run start -- --port 3177
 ```
 
-Open `http://127.0.0.1:3177`. The current local production preview is running there. The existing local RPC and public Supabase configuration were used without printing or altering credential values. Signup/recovery sending stays unavailable while email readiness is false; confirmed-account sign-in and guest/device workflows remain supported.
+Open `http://127.0.0.1:3177`. Use the commands above to start a local preview. The existing local RPC and public Supabase configuration were used without printing or altering credential values. Signup/recovery sending stays unavailable while email readiness is false; confirmed-account sign-in and guest/device workflows remain supported.
 
 ## Exact external requirements still missing
 
