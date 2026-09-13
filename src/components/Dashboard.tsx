@@ -1,5 +1,7 @@
 "use client";
 
+import { isDiscoveryResponse, isSnapshotResponse } from "@/lib/live-response";
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Decimal from "decimal.js";
 import { SAMPLE_ACCOUNTS, getSampleSnapshot } from "@/lib/samples";
@@ -17,6 +19,7 @@ import { CONFIGURED_PERP_MARKETS } from "@/lib/perp-markets";
 import { Icon, Mark } from "./Icons";
 import { Brand } from './Brand';
 import { TokenIcon } from './TokenIcon';
+import { JupiterPositions } from './JupiterPositions';
 import Select from "./Select";
 import SampleBuilder from './SampleBuilder';
 import AccountPanel from './AccountPanel';
@@ -25,6 +28,7 @@ import Link from 'next/link';
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
 const PUBLIC_EXAMPLES: Partial<Record<ProtocolId, string>> = {
   velocity: "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+  jupiter: "8vXZp5DRsAKGv6QwfqKjZ2MQgMT6arfYYpoCqAN2b9aw",
   pacifica: "Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
 };
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
@@ -76,7 +80,7 @@ export default function Dashboard({
   const availableMarkets = CONFIGURED_PERP_MARKETS[protocolId];
   const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
   const exampleAuthority = PUBLIC_EXAMPLES[protocolId];
-  const accountLabel = mode === "live" && protocolId === "pacifica" ? "Account" : "Subaccount";
+  const accountLabel = mode === "live" && (protocolId === "pacifica" || protocolId === "jupiter") ? "Account" : "Subaccount";
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -145,9 +149,9 @@ export default function Dashboard({
     if (
       e &&
       typeof e === "object" &&
-      "code" in e &&
-      "message" in e &&
-      "retryable" in e
+      "code" in e && typeof e.code === "string" && /^[A-Z_]{1,40}$/.test(e.code) &&
+      "message" in e && typeof e.message === "string" && e.message.length <= 512 &&
+      "retryable" in e && typeof e.retryable === "boolean"
     )
       return e as ApiError;
     return {
@@ -189,11 +193,12 @@ export default function Dashboard({
       void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample });
     };
     try {
-      const result = await fetchJson<Discovery>(
+      const result = await fetchJson<unknown>(
         `/api/accounts?authority=${encodeURIComponent(authority)}&protocol=${requestedProtocol}`,
       );
       if (ticket !== request.current) return;
-      setDiscovery({ ...result, protocol: result.protocol ?? PROTOCOLS[requestedProtocol] });
+      if (!isDiscoveryResponse(result, authority, requestedProtocol)) throw new Error('Invalid discovery response');
+      setDiscovery(result);
     } catch (e) {
       if (ticket === request.current) setError(safeError(e));
     } finally {
@@ -224,11 +229,13 @@ export default function Dashboard({
       void readSnapshot(id, refreshing);
     };
     try {
-      const result = await fetchJson<Snapshot>(
+      const result = await fetchJson<unknown>(
         `/api/snapshot?authority=${encodeURIComponent(discovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}`,
       );
       if (ticket !== request.current) return;
-      setSnapshot({ ...result, protocol: result.protocol ?? PROTOCOLS[requestedProtocol] });
+      const account = discovery.subaccounts.find(account => account.id === Number(id));
+      if (!account || !isSnapshotResponse(result, discovery.authority, requestedProtocol, Number(id), account.address)) throw new Error('Invalid snapshot response');
+      setSnapshot(result);
       setNow(Date.now());
       setShock(0);
       setStale(false);
@@ -412,6 +419,7 @@ export default function Dashboard({
                 options={[
                   { value: "velocity", label: "Velocity", description: "Current protocol · Solana mainnet" },
                   { value: "pacifica", label: "Pacifica", description: `${CONFIGURED_PERP_MARKETS.pacifica.length} perpetual markets · Public API` },
+                  { value: "jupiter", label: "Jupiter Perps", description: "3 perpetual markets · Inventory only · Solana mainnet" },
                   { value: "drift", label: "Drift · legacy", description: "Paused protocol · balances did not migrate" },
                 ]}
               />
@@ -454,7 +462,7 @@ export default function Dashboard({
           </form>
           <div className="address-bottom">
             <p id="address-help">
-              {protocolId === "pacifica"
+              {protocolId === "jupiter" ? "Read Jupiter positions by public wallet. Inventory only; price scenarios are unavailable." : protocolId === "pacifica"
                 ? "Read your Pacifica wallet account. No wallet connection needed."
                 : liveConfigured
                 ? `Read positions from one ${protocol.label} subaccount. No wallet connection needed.`
@@ -474,7 +482,7 @@ export default function Dashboard({
           </div>
           {!protocol.legacy && (
             <details className="market-directory" key={protocolId}>
-              <summary>{availableMarkets.length} perpetual markets on {protocol.label}<Icon name="arrow" size={14} /></summary>
+              <summary>{availableMarkets.length} perpetual markets on {protocol.label}{protocolId === "jupiter" ? " · inventory only" : ""}<Icon name="arrow" size={14} /></summary>
               <div className="market-directory-content">
                 <label className="market-search-label" htmlFor="market-search">Find a market</label>
                 <input id="market-search" type="search" placeholder="Search symbols…" value={marketSearch} onChange={event => setMarketSearch(event.target.value)} />
@@ -482,7 +490,7 @@ export default function Dashboard({
                   {filteredMarkets.map(market => <span key={market.marketIndex}>{market.asset}</span>)}
                   {!filteredMarkets.length && <p>No matching markets.</p>}
                 </div>
-                <p>Each position needs current, usable price data. Market availability can change.</p>
+                <p>{protocolId === "jupiter" ? "SOL, ETH, and BTC positions are read as inventory. USD accounting, collateral, entry prices, and reserved tokens are shown separately; no Jupiter price effect is calculated." : "Each position needs current, usable price data. Market availability can change."}</p>
               </div>
             </details>
           )}
@@ -642,7 +650,7 @@ export default function Dashboard({
           discovery.subaccounts.length > 0 &&
           !selectedId && (
             <div className="surface empty">
-              <h2>Choose one subaccount</h2>
+              <h2>Choose one {accountLabel.toLowerCase()}</h2>
               <p>
                 Each account has its own snapshot. Select a name and ID above to
                 continue.
@@ -895,13 +903,13 @@ export default function Dashboard({
                   <div className="panel-heading">
                     <div>
                       <h2 id="positions-heading">Your perpetual positions</h2>
-                      <p>{mode === 'sample' ? 'Your sample. Add perps and adjust the inputs.' : 'Fixed sizes. Snapshot oracle prices.'}</p>
+                      <p>{mode === 'sample' ? 'Your sample. Add perps and adjust the inputs.' : snapshotProtocol.id === 'jupiter' ? 'Verified position inventory. Current prices and payoff are not modeled.' : 'Fixed sizes. Snapshot oracle prices.'}</p>
                     </div>
                     <span className="count-badge">
                       {snapshot.positions.length}
                     </span>
                   </div>
-                  {mode === 'sample' ? <SampleBuilder key={sampleId} snapshot={snapshot} onChange={editSample} /> : snapshot.positions.length ? (
+                  {mode === 'sample' ? <SampleBuilder key={sampleId} snapshot={snapshot} onChange={editSample} /> : snapshotProtocol.id === 'jupiter' && snapshot.positions.length ? <JupiterPositions positions={snapshot.positions} /> : snapshot.positions.length ? (
                     <>
                       <div className="position-table">
                         <table>
@@ -1264,7 +1272,8 @@ export default function Dashboard({
             {apiSnapshot && (
               <a href="https://docs.pacifica.fi/api-documentation/api/rest-api" target="_blank" rel="noreferrer">Pacifica public API documentation ↗</a>
             )}
-            {!apiSnapshot && <>
+            {snapshotProtocol.id === "jupiter" && <><a href="https://developers.jup.ag/docs/perps/position-account" target="_blank" rel="noreferrer">Jupiter position units and maximum-profit constraints ↗</a><a href="https://developers.jup.ag/docs/perps/custody-account" target="_blank" rel="noreferrer">Jupiter custody and oracle metadata ↗</a></>}
+            {!apiSnapshot && snapshotProtocol.id !== "jupiter" && <>
             {snapshotProtocol.id === "velocity" && (
               <a href="https://docs.velocity.exchange/developers/migrate-from-drift" target="_blank" rel="noreferrer">
                 Velocity deployment and migration reference ↗

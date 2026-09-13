@@ -32,12 +32,14 @@ function unavailableReason(snapshot: Snapshot, now: number): string | null {
   if (!Number.isFinite(now) || !Number.isFinite(retrievedAt) || Number.isNaN(providerExpiry)) {
     return 'Snapshot freshness is unavailable. Refresh the live account before calculating.';
   }
+  if (retrievedAt > now + 5_000) return 'Snapshot time is ahead of this device. Check the device clock and refresh before calculating.';
   const expiresAt = Math.min(retrievedAt + FRESHNESS_SECONDS * 1_000, providerExpiry);
   if (now >= expiresAt) return 'This live snapshot has expired. Refresh the account to calculate a new scenario.';
   return null;
 }
 
 function positionExclusion(position: Position, snapshot: Snapshot, D: typeof Decimal): string | null {
+  if (snapshot.protocol?.id === 'jupiter' || position.inventory) return position.exclusionReason || 'Jupiter inventory only: the current price, collateral dependencies, and maximum-profit cap are not modeled.';
   if (position.exclusionReason) return position.exclusionReason;
   if (!position.modeled) return position.exclusionReason || 'This perpetual position is unsupported by the price-shock model.';
   if (!hasConfiguredPerpIdentity(position, snapshot)) return 'The perpetual market identity does not match the configured market registry.';

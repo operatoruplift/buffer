@@ -1,0 +1,82 @@
+[
+  {
+    "path": "/",
+    "width": 1440,
+    "overflow": false,
+    "total": [
+      "+1,000.00USDC"
+    ],
+    "videos": 0,
+    "brands": 2
+  },
+  {
+    "path": "/app",
+    "width": 1440,
+    "overflow": false,
+    "total": [
+      "+1,000.00USDC"
+    ],
+    "videos": 0,
+    "brands": 1
+  },
+  {
+    "path": "/auth",
+    "width": 1440,
+    "overflow": false,
+    "total": [],
+    "videos": 0,
+    "brands": 1
+  },
+  {
+    "path": "/demo",
+    "width": 1440,
+    "overflow": false,
+    "total": [],
+    "videos": 3,
+    "brands": 1
+  },
+  {
+    "width": 1440,
+    "errors": []
+  },
+  {
+    "path": "/",
+    "width": 375,
+    "overflow": false,
+    "total": [
+      "+1,000.00USDC"
+    ],
+    "videos": 0,
+    "brands": 2
+  },
+  {
+    "path": "/app",
+    "width": 375,
+    "overflow": false,
+    "total": [
+      "+1,000.00USDC"
+    ],
+    "videos": 0,
+    "brands": 1
+  },
+  {
+    "path": "/auth",
+    "width": 375,
+    "overflow": false,
+    "total": [],
+    "videos": 0,
+    "brands": 1
+  },
+  {
+    "path": "/demo",
+    "width": 375,
+    "overflow": false,
+    "total": [],
+    "videos": 3,
+    "brands": 1
+  },
+  {
+    "width": 375,
+    "errors": []
+  }
+]

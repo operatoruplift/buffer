@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import localFont from 'next/font/local';
 import PwaClient from '@/components/PwaClient';
 import "./globals.css";
+const inter = localFont({ src: './fonts/Inter-latin.woff2', variable: '--font-inter', weight: '300 900', display: 'swap', fallback: ['Arial', 'sans-serif'] });
 export const metadata: Metadata = {
   title: "Buffer — understand your perp exposure",
   description:
@@ -23,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body>{children}<PwaClient /></body>
     </html>
   );

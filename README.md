@@ -1,8 +1,8 @@
 # Buffer
 
-**Understand what a market move would do to your perpetual positions.** Buffer reads Pacifica and Velocity accounts for precise price scenarios, clear coverage, private saved reports, and an installable mobile and desktop web app. Legacy Drift reads remain available behind an explicit paused-deployment selector.
+**Understand what a market move would do to your perpetual positions.** Buffer reads Velocity and Pacifica accounts for precise price scenarios, adds Jupiter Perps position inventory with explicit modeling limits, and keeps legacy Drift clearly paused. Explore the responsive web app, inspect coverage, and keep dated reports without connecting a wallet.
 
-**Last updated:** September 12, 2026.
+**Last updated:** September 13, 2026.
 
 [Website](https://bufferonsolana.vercel.app) · [Open the app](https://bufferonsolana.vercel.app/app) · [Watch the demos](https://bufferonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/buffer)
 
@@ -14,13 +14,14 @@ Paste a public Solana wallet address, select an account, and explore a shared �
 - A sample-only portfolio builder. The default portfolio starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. **Add perps** searches all 76 configured sample identities; each position supports Long or Short, editable quantity and baseline price, and removal. USDC, USDT, and USD are illustrative denominations: changing the label preserves the numbers, performs no FX conversion, and creates no trade or provider read. Refreshing a sample preserves custom positions and resets only the price move.
 - Live Velocity account discovery through the official `@velocity-exchange/sdk` **0.23.1**, explicit subaccount selection, position contributions, collateral/debt/order inventory, freshness checks, and a Method dialog.
 - Public Pacifica account and position reads through its fixed official REST API. All 76 configured perpetual identities are checked against current market metadata, with API price timestamps and USD scenario totals. No API key or RPC configuration is required for Pacifica. See [Pacifica integration](docs/PACIFICA.md).
+- A live **inventory-only Jupiter Perps reader** for canonical SOL, ETH, and BTC position identities. It shows direction, USD position size, entry price, recorded collateral, reserved collateral-token amounts, and source accounts/read slots. Current prices and capped payoff remain unmodeled, so Jupiter never enters the linear scenario total. See [Jupiter verification](docs/JUPITER-VERIFICATION.md).
 - An explicit legacy Drift provider for historical reads. Drift is paused and its balances do not migrate to Velocity; the app links to the official migration reference instead of silently mixing deployments.
 - Precise JSON downloads, device-local saved reports with no account, and optional Supabase sign-in to save, download, and delete private historical reports.
 - A PWA for supported mobile and desktop browsers, with original app icons and a clearly labeled offline sample.
 - A shared cobalt Brand component across the landing header, app, demo, auth screen, and footer, plus continuous hero and install motion with small icon pause controls and `prefers-reduced-motion` support.
-- A narrated product demo, an actual Higgsfield-assisted pitch, and a technical walkthrough, with captions and transcripts.
+- A narrated product demo, a pitch, and a technical walkthrough, with captions and transcripts. The version-2 production package uses current interface captures and Higgsfield sandbox assembly; [video provenance](docs/VIDEO.md) distinguishes this from the historical generated opener.
 
-The Vercel site, public routes, and media are deployed. The current provider cutover was verified against fresh Velocity mainnet account, market, and oracle reads: the public example has +0.05 BTC and +2 ETH on subaccount 0, USDT collateral, and valid oracle observations at the observed read slot. Every load refetches live data and keeps account, market, oracle, and current-slot observations visible. **Public signup and password-recovery email actions remain disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.** The public explorer and device-local reports need no sign-in. See [deployment status](docs/DEPLOYMENT.md) and [verification](docs/VERIFICATION.md) for exact checks and limits.
+The public site is hosted on Vercel. Fresh local reads verified modeled Velocity and Pacifica positions and Jupiter inventory; these are point-in-time observations, not fixed example balances. Every live load refetches its source and exposes the relevant API timestamps or account/read slots. [Provider coverage](docs/PROVIDER-COVERAGE.md) and [current verification](docs/REDESIGN-VERIFICATION.md) separate implemented behavior, live evidence, and remaining external requirements. **Public signup and password-recovery email actions remain disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.** The public explorer and device-local reports need no sign-in. See [deployment status](docs/DEPLOYMENT.md) for cloud configuration.
 
 ## Run locally
 
@@ -36,7 +37,7 @@ Open `http://127.0.0.1:3001`; the explorer is at `/app`. Local Node is pinned to
 
 | Environment variable | Purpose |
 | --- | --- |
-| `SOLANA_RPC_URL` | Server-only Solana mainnet RPC for Velocity and legacy Drift. Samples and Pacifica work without it. |
+| `SOLANA_RPC_URL` | Server-only Solana mainnet RPC for Velocity, Jupiter inventory, and legacy Drift. Samples and Pacifica work without it. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional dedicated Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Optional public Supabase key; never a service-role key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Keep `false` until public confirmation and recovery email flows are verified. |
@@ -46,9 +47,9 @@ The RPC must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccoun
 
 ## Use Buffer
 
-1. Choose among **12 fixed scenarios** or the editable **Four-market portfolio**, or select **Pacifica** or **Velocity**, use **Explore a live account** / enter a public wallet address, and select a discovered account. In the portfolio, use **Add perps** to search all 76 configured sample identities, then edit direction, quantity, and baseline price. Expand the searchable market list to see the selected provider's coverage. Legacy Drift is clearly marked paused. Accounts are never combined.
+1. Choose among **12 fixed scenarios** or the editable **Four-market portfolio**. For public reads, select **Velocity** (the default), **Pacifica**, or **Jupiter Perps**, use **Explore a live account** / enter a public wallet address, and select the discovered account. Jupiter is explicitly inventory-only; legacy Drift is marked paused. In samples, use **Add perps** to search all 76 configured sample identities and edit direction, quantity, and baseline price. Accounts are never combined.
 2. Inspect the frozen baseline, positions, and inventory. Unavailable metrics explain missing or invalid coverage.
-3. Move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful live **Refresh** reloads the snapshot and resets the shock; sample refresh preserves your edited positions and resets only the shock.
+3. For modeled samples, Velocity, and Pacifica, move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful live **Refresh** reloads the snapshot and resets the shock; sample refresh preserves edited positions and resets only the shock. Jupiter inventory and paused Drift do not produce a modeled price effect.
 4. Open **Method** for assumptions, exclusions, addresses, source, and RPC slots or API price timestamps. **Download report** saves precise JSON locally, including edited sample positions and prices.
 5. Open **My reports** to save the current report on this device with no sign-up. With a confirmed cloud account, the same screen also saves, downloads, and deletes private cloud copies. Saved copies are historical records and never refresh with the market.
 
@@ -70,7 +71,7 @@ The scenario holds sizes fixed and excludes collateral-price changes, future fil
 
 Velocity perps use the SDK's applicable oracle validity helper plus Buffer's **150-slot maximum lag**. Spot valuation also checks protocol margin staleness, volatility, sufficient data, and a **1% confidence cap**. Pacifica uses its API's USD oracle prices, with a **120-second price-age limit** and explicit API provenance; these are not independently verified Solana oracle reads. USDC margin balances are distinct from USD scenario totals, with no assumed peg conversion. Live snapshots expire at most **120 seconds after retrieval**, or earlier when the source price expires. Reads are not atomic. SDK baseline valuation may use a separately validated MM oracle; cross-margin health is withheld for isolated positions.
 
-Real local and deployed mainnet authority/subaccount reads succeeded with the pinned Velocity SDK. A fresh public example read had +0.05 BTC and +2 ETH, USDT collateral, and oracle lag of one slot; the scenario remains live and refetches on every read. The legacy Drift path still rejects stale or paused data rather than borrowing prices from Velocity. See [provider evidence](docs/PROVIDER.md).
+The latest recorded local verification returned eligible Velocity and Pacifica positions and a Jupiter inventory row. Jupiter validates canonical position PDAs, ownership, pool membership, and collateral custody; `lockedAmount` keeps the collateral token's units and is not presented as a verified USD profit cap. Current Jupiter oracle prices and a faithful capped-payoff model remain outside the implementation. The legacy Drift path rejects stale or paused data rather than borrowing Velocity prices. See the [provider matrix](docs/PROVIDER-COVERAGE.md) and [Jupiter evidence](docs/JUPITER-VERIFICATION.md); older Velocity observations remain documented in [PROVIDER.md](docs/PROVIDER.md).
 
 ## Architecture
 
@@ -83,6 +84,7 @@ Website / demo gallery                    Optional email/password sign-in
    └─ /api/accounts → explicit subaccount              ▼
       /api/snapshot → Velocity (default),      saved_reports + owner RLS
                       Pacifica, legacy Drift  ▲  save / download / delete
+                      Jupiter (inventory only)
                       │
               RPC or public API validation
                       ▼                              │
@@ -101,6 +103,7 @@ PWA service worker → public offline sample and icon allowlist only
 | Velocity acquisition and cleanup | `src/server/velocity.ts` |
 | Velocity coverage and normalization | `src/server/velocity-normalize.ts` |
 | Pacifica public API acquisition and normalization | `src/server/pacifica.ts`, `src/server/pacifica-normalize.ts` |
+| Jupiter inventory decoding, validation, and acquisition | `src/server/jupiter-decoder.ts`, `jupiter-normalize.ts`, `jupiter.ts`, `jupiter-provider.ts` |
 | Legacy Drift compatibility | `src/server/drift.ts`, `src/server/normalize.ts` |
 | Request validation and limits | `src/server/boundary.ts` |
 | Types, scenario math, fixtures, editable sample portfolio, reports | `src/lib/`, especially `sample-builder.ts`, `report.ts`, and `device-reports.ts` |
@@ -109,7 +112,7 @@ PWA service worker → public offline sample and icon allowlist only
 
 The application uses Next.js **16.3.4**, React **19.3.0**, TypeScript **5.9.3**, Velocity SDK **0.23.1**, Velocity's web3.js **1.99.0** alias, legacy Drift SDK **2.161.0-beta.5**, spl-token **0.4.13**, decimal.js **10.6.0**, and Supabase JS **2.116.0**. Direct versions and the lockfile are pinned. Captured public State, perp, spot, and oracle buffers guard both the current Velocity decoder and the legacy Drift compatibility path.
 
-RPC requests have an 18-second abort deadline and request-owned loaders without polling timers. Client/listener cleanup runs on completion or failure. The process cap is 60 reads/minute and four concurrent reads; a scaled service needs a shared ingress limit. Provider errors are sanitized and never silently replaced by samples. A failed refresh retains the old snapshot visibly as stale and disables calculations. Generation checks prevent late account, subaccount, or previous-user responses from replacing current state.
+RPC requests have an 18-second total abort deadline, an 8 MiB decoded response bound, and request-owned loaders without polling timers. Pacifica has its own 18-second/1 MiB fixed-origin boundary. Reads reject redirects and use no-store. The process cap is 60 reads/minute and four concurrent reads; a scaled service needs a shared ingress limit. Provider errors are sanitized and never silently replaced by samples. A failed refresh retains the old snapshot visibly as stale and disables calculations. Generation checks prevent late account, subaccount, or previous-user responses from replacing current state. Auth writes and SDK storage commits are bound to the initiating user and session; uncertain cloud writes require reloading the library before retry.
 
 There is no wallet signing, custody, transaction, trading, or background monitoring path. The PWA caches only its explicit public offline assets; API responses, Supabase requests, auth, saved reports, and live page data bypass that cache. Browser-supported installation is included; native store packages and signed desktop installers are not.
 

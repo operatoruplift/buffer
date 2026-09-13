@@ -1,0 +1,23 @@
+.opener { display: none; flex-shrink: 0; width: 44px; height: 44px; padding: 12px; background: transparent; border: 1px solid #d7dddf; border-radius: 50%; }
+.opener span { display: block; height: 1px; background: #25303b; margin: 5px 0; }
+.sheet { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(88vw, 360px); max-width: none; height: 100dvh; max-height: none; overflow-y: auto; padding: 22px; border: 0; border-left: 1px solid #e4e5e0; background: #f8f8f3; color: #18251e; font-family: var(--font-inter), Arial, sans-serif; }
+.sheet::backdrop { background: #17233266; backdrop-filter: blur(6px); }
+.sheet[open] { animation: slide-in 450ms cubic-bezier(.22,1,.36,1) both; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 35px; }
+.top button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #d4dcd9; border-radius: 50%; background: transparent; color: #25303b; }
+.sheet nav { display: grid; gap: 10px; }
+.sheet nav a { min-height: 52px; padding: 14px 3px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #dde2dd; color: #24322e; text-decoration: none; font-size: 18px; }
+.sheet[open] nav a { animation: link-in 450ms cubic-bezier(.22,1,.36,1) both; }
+.sheet[open] nav a:nth-child(2) { animation-delay: 50ms; }
+.sheet[open] nav a:nth-child(3) { animation-delay: 100ms; }
+.sheet[open] nav a:nth-child(4) { animation-delay: 150ms; }
+.sheet[open] nav a:nth-child(5) { animation-delay: 200ms; }
+.sheet[open] nav a:nth-child(6) { animation-delay: 250ms; }
+.sheet nav .primary { padding: 14px 18px; margin-top: 14px; border-radius: 28px; background: #315fe8; color: #fff; border: 0; }
+.sheet > p { color: #67716e; font-size: 11px; margin-top: 32px; }
+@keyframes slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes link-in { from { transform: translateX(18px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.sheet[data-motion-paused=true], .sheet[data-motion-paused=true] nav a { animation: none; }
+@media (max-width: 800px) { .opener { display: block; } }
+@media (prefers-reduced-motion: reduce) { .sheet[open], .sheet[open] nav a { animation: none; } }
+@media (max-height: 450px) { .top { margin-bottom: 15px; } .sheet nav { gap: 0; } .sheet > p { margin-top: 16px; } }

@@ -3,14 +3,14 @@ import { expect, test } from '@playwright/test';
 test('website sample uses real scenario arithmetic and leads to the explorer', async ({ page }) => {
   await page.goto('/');
   const preview = page.getByLabel('Interactive sample scenario');
-  await expect(preview.locator('.buffer-preview-value')).toContainText('+1,000.00');
-  await expect(preview.locator('.buffer-preview-position')).toHaveCount(4);
-  await expect(preview.locator('.buffer-preview-position img')).toHaveCount(4);
+  await expect(preview.locator('.buffer-preview-value')).toContainText('+3,500.00');
+  await expect(preview.locator('.buffer-preview-position')).toHaveCount(2);
+  await expect(preview.locator('.buffer-preview-position img')).toHaveCount(2);
   await expect.poll(() => preview.locator('.buffer-preview-position img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await preview.getByRole('button', { name: '0%', exact: true }).click();
   await expect(preview.locator('.buffer-preview-value')).toContainText('0.00');
   await preview.getByRole('button', { name: '+20%', exact: true }).click();
-  await expect(preview.locator('.buffer-preview-value')).toContainText('2,000.00');
+  await expect(preview.locator('.buffer-preview-value')).toContainText('7,000.00');
   await expect(preview.locator('.buffer-preview-value')).toContainText('−');
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);
@@ -31,6 +31,6 @@ test('optional account route gives a working public path when cloud setup is pen
   }
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);
-  await page.getByRole('link', { name: 'Continue to the public explorer' }).click();
+  await page.getByRole('link', { name: 'Continue without an account' }).click();
   await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
 });

@@ -1,4 +1,5 @@
 import { chooseOption } from './select-helper';
+import { PROTOCOLS } from '../src/lib/protocols';
 import { test, expect, type Page } from '@playwright/test';
 import { readFile, mkdir } from 'node:fs/promises';
 import { getSampleSnapshot, SAMPLE_ACCOUNTS } from '../src/lib/samples';
@@ -13,10 +14,11 @@ function mockSnapshot(id = 0, name = 'Mock main', authority = AUTHORITY): Snapsh
   const snapshot = getSampleSnapshot('long-short');
   const now = Date.now();
   return {
-    ...snapshot, source: 'live', network: 'mainnet-beta', authority, sampleName: null,
+    ...snapshot, protocol: PROTOCOLS.velocity, source: 'live', network: 'mainnet-beta', authority, sampleName: null,
     subaccount: { id, name, address: AUTHORITY },
     retrievedAt: new Date(now).toISOString(), expiresAt: new Date(now + 120_000).toISOString(),
     accountSlot: 123, observedSlot: 124,
+    positions: snapshot.positions.map(position => ({ ...position, oracle: { ...position.oracle, slot: 123, readSlot: 124 } })),
     warnings: ['Mocked response for UI verification only.'],
     provenance: ['Synthetic browser-test data. This does not verify Solana or protocol reads.'],
   };
@@ -24,7 +26,7 @@ function mockSnapshot(id = 0, name = 'Mock main', authority = AUTHORITY): Snapsh
 
 function discovery(authority = AUTHORITY): Discovery {
   return {
-    authority, retrievedAt: new Date().toISOString(),
+    authority, protocol: PROTOCOLS.velocity, retrievedAt: new Date().toISOString(),
     subaccounts: [{ id: 0, name: 'Mock main', address: AUTHORITY }, { id: 1, name: 'Mock second', address: AUTHORITY }],
   };
 }
@@ -382,4 +384,20 @@ test('mocked address copy controls and explorer links expose the full selected p
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(AUTHORITY);
   await expect(page.getByRole('dialog').getByRole('link', { name: 'Explorer ↗', exact: true })).toHaveAttribute('href', `https://explorer.solana.com/address/${AUTHORITY}`);
   await noOverflow(page);
+});
+
+test('malformed successful refresh never replaces verified account state or enables a result', async ({ page }) => {
+  await mockedDiscovery(page);
+  const snapshot = mockSnapshot();
+  let reads = 0;
+  await page.route('**/api/snapshot?*', route => route.fulfill({ json: ++reads === 1 ? snapshot : { ...snapshot, authority: OTHER_AUTHORITY, positions: null } }));
+  await page.goto('/app');
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await expect(page.getByTestId('scenario-total')).toContainText('0.00');
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByText('Stale snapshot · calculations paused', { exact: true })).toBeVisible();
+  await expect(page.getByRole('slider')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Download report JSON' })).toBeDisabled();
+  await expect(page.getByRole('heading', { name: 'Your perpetual positions' })).toBeVisible();
 });

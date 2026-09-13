@@ -1,3 +1,4 @@
+import { isJupiterInventory } from './jupiter-inventory';
 import type { createReport } from './report';
 import { isCanonicalProtocol } from './protocols';
 
@@ -37,7 +38,7 @@ function protocol(value: unknown) {
 }
 
 /** Validate stored JSON before it can be rendered or downloaded as a report. */
-function isReport(value: unknown): value is Report {
+export function isReport(value: unknown): value is Report {
   if (!object(value) || value.report !== 'Buffer perpetual price scenario' || value.version !== 1 ||
       !['sample', 'live'].includes(String(value.sourceMode)) ||
       !['fixture', 'mainnet-beta'].includes(String(value.network)) ||
@@ -61,6 +62,7 @@ function isReport(value: unknown): value is Report {
     scenario.modeledPositions === scenario.includedPositions.length &&
     array(value.baselineMetrics, item => object(item) && fields(item, ['label', 'unit', 'explanation'], text) && nullableDecimal(item.value)) &&
     array(value.positions, item => object(item) && fields(item, ['id', 'market', 'asset', 'quote'], text) &&
+      (item.inventory === undefined || isJupiterInventory(item.inventory)) &&
       integer(item.marketIndex) && decimal(item.size) && nullableDecimal(item.price) && nullableDecimal(item.notional) &&
       typeof item.modeled === 'boolean' && typeof item.isolated === 'boolean' && nullableText(item.exclusionReason) &&
       object(item.oracle) && slot(item.oracle.slot) && slot(item.oracle.readSlot) && typeof item.oracle.valid === 'boolean' && nullableText(item.oracle.reason) &&

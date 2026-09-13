@@ -1,59 +1,69 @@
 # Buffer — a clearer view of perpetual exposure
 
-**Last updated:** September 12, 2026.
+**Updated:** September 13, 2026.
 
 [Website](https://bufferonsolana.vercel.app) · [Interactive app](https://bufferonsolana.vercel.app/app) · [Demo and films](https://bufferonsolana.vercel.app/demo) · [Public GitHub repository](https://github.com/operatoruplift/buffer)
 
 ## Short description
 
-Buffer turns public Pacifica and Velocity positions into precise price scenarios, with explicit coverage, source freshness, exportable reports, and an installable mobile and desktop app.
+Buffer makes Solana perpetual positions easier to understand with read-only price scenarios, explicit coverage, an editable sample portfolio, and dated reports on mobile and desktop.
 
 ## Submission description
 
 Buffer answers one practical question: **“What would a market move do to these positions?”**
 
-Open the public live example or paste a Solana authority, select one **Velocity** subaccount, and inspect its current account snapshot. A shared slider models incremental price P&L on eligible existing SOL, BTC, ETH, and HYPE linear perpetual positions. Long and short contributions appear separately, unsupported exposure is clearly excluded, and collateral, debt, open orders, quote identity, and oracle freshness stay visible outside the model. Current baseline metrics stay separate from the hypothetical price effect. The current Velocity quote asset is USDT; baseline USD metrics come from the SDK's validated quote valuation.
+Start with the editable four-market sample or one of twelve preserved fixtures. For public accounts, paste a Solana authority, choose a provider and account, and inspect its current source data without connecting a wallet. **Velocity is the default live provider**; eligible SOL, BTC, ETH, and HYPE linear perps support a shared −20% to +20% price move. Long and short contributions stay visible, and verified USDT price effects remain separate from the account's baseline USD valuation.
 
-Select **Pacifica** for **76 configured perpetual markets** across crypto, equities, commodities, indexes, and FX. A searchable market list and a separate public example make the expanded coverage easy to try. The read-only adapter checks exact current market metadata and API price timestamps; it requires no key, signature, or RPC environment variable. API price effects use USD, with USDC margin kept separate. Pacifica observations are explicitly API-reported, with no fabricated Solana program ID or oracle slot. See [provider evidence](PACIFICA.md).
+**Pacifica** adds 76 configured perpetual identities across crypto, equities, commodities, indexes, and FX. Its fixed public API needs no key or RPC configuration. The adapter checks exact market identity and API price timestamps; price effects use USD, while USDC margin remains separate. The app does not invent Solana observation slots for API data.
 
-The protocol selector can inspect the paused legacy Drift deployment explicitly. Drift and Velocity use different programs, PDAs, and layouts; Buffer does not imply that Drift balances migrated. The app links to the [official migration guide](https://docs.velocity.exchange/developers/migrate-from-drift) and withholds paused or stale legacy calculations instead of showing invented current prices.
+**Jupiter Perps** provides live **inventory-only** coverage. Canonical position/PDA, owner, pool, and collateral-custody checks support inspection of SOL, ETH, and BTC positions. Rows show direction, USD size, entry price, recorded collateral, reserved collateral-token amounts, and source/read metadata. Current oracle prices and a faithful collateral-dependent capped payoff remain unmodeled; Jupiter rows never enter the existing linear shock totals. Legacy **Drift remains paused**, with its deployment and migration boundary kept explicit.
 
-A Method dialog explains assumptions, fixed program identity, coverage, and provenance. A local JSON report preserves the selected shock, exact decimal contributions, snapshot observations, protocol metadata, and exclusions. The sample-only portfolio builder starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. Visitors can add from all 76 configured sample identities, edit long/short direction, quantity, and baseline price, remove positions, and choose illustrative USDC, USDT, or USD labels without FX conversion. Those edits flow into JSON exports and device-saved reports; live snapshots remain read only. Visitors can save historical reports on the device without an account. Confirmed cloud users can also save, download, or delete private historical reports through Supabase, while public exploration and downloads require no sign-in.
+The sample builder starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. **Add perps** searches all 76 configured sample identities. Visitors can edit direction, quantity, and baseline price, remove positions, and choose illustrative USDC, USDT, or USD labels without FX conversion. Edits flow into precise JSON exports and device reports; live snapshots remain read only.
 
-The Solana integration reads Velocity State, user accounts, markets, and Pyth Lazer oracles through the official server-side SDK **0.23.1**. It verifies program ownership, canonical PDAs, market identities, quote mint, oracle validity, and complete baseline coverage. The provider uses request-owned loaders, records separate read slots, and expires live snapshots after 120 seconds. There is no signing, custody, transaction, or trading path.
+At −10%, this four-market app sample contributes −1,500 + 5,000 − 2,000 − 500 for **+1,000 USDC**. The separate two-position landing example and preserved Long + short fixture total **+3,500 USDC**. Both use fixed illustrative prices. The result is incremental price P&L, with sizes held fixed. It does not forecast account equity, margin health, or liquidation. Funding, fees, fills, borrowing interest, collateral-price changes, and liquidation effects remain outside the calculation.
 
-Twelve labeled deterministic sample scenarios remain available alongside the editable portfolio builder, so the model is immediately understandable and easy to customize. At −10%, the default portfolio contributes −1,500 + 5,000 − 2,000 − 500 = **+1,000 USDC**. The older Long + short fixture retains the useful −1,500 + 5,000 = **+3,500 USDC** example. The responsive website includes an interactive preview and a gallery with a product demo, a Higgsfield-assisted pitch, and a technical walkthrough. The installable PWA works on supported mobile and desktop browsers and provides an explicitly labeled offline sample; its service worker does not cache private reports, authentication, or live data.
+The Method dialog exposes assumptions, coverage, source identity, freshness, and separate RPC slots or API timestamps. Modeled live snapshots expire within 120 seconds, or earlier when their source price expires. Failed refreshes disable calculations and retain the old snapshot visibly as stale; late requests cannot replace a newly selected account. RPC and REST reads have fixed endpoints, request deadlines, response limits, sanitized errors, and no-store behavior.
 
-Built with Next.js, React, TypeScript, precise decimal arithmetic, the official Velocity and legacy Drift SDKs, and Supabase. A cobalt ribbon B monogram and restrained responsive interface keep the emphasis on understanding position effects. The source is public and the website is deployed on Vercel.
+A JSON report preserves exact decimal strings, selected shock, contributions, exclusions, and provenance. **My reports** saves historical copies on the device without an account. Optional confirmed cloud accounts have a separate owner-protected Supabase library; guest data is never uploaded automatically. Session-bound auth and SDK storage commits protect against delayed requests replacing a newer login. Public signup and password-recovery sending remain disabled until email delivery and related production settings are verified.
 
-**Verification disclosure:** The current Velocity provider decoded public mainnet State, SOL/BTC/ETH markets, USDT spot identity, and a public example with +0.05 BTC and +2 ETH on subaccount 0. A representative read at observed slot **446228680** had valid external oracles at one-slot lag, USDT collateral, net USD value `2105.213085`, funding-inclusive unrealized P&L `297.289922`, and health `89`; these values can change and are refetched by the UI. The earlier legacy Drift read had a stale oracle and correctly withheld affected values. Real Supabase password sign-in and private-report operations passed with confirmed test fixtures. Public signup and recovery remain disabled until SMTP, Auth redirects, and server-side password settings are verified. No public email-delivery success or native store package is claimed.
+The responsive website includes an interactive preview, supplied animated media, three explanatory feature cards, and an optional account screen with actual bounded video refraction. The installable PWA supports appropriate mobile and desktop browsers and provides a clearly labeled public offline calculator. Private reports, auth/session data, and live API responses stay outside its service-worker cache. No native store package, wallet signing, custody, transaction, or trading path is claimed.
+
+Built with Next.js, React, TypeScript, exact decimal arithmetic, separate provider adapters, and Supabase. The public source and current application are available through the links above.
+
+## Verification disclosure
+
+The current local verification recorded successful Velocity and Pacifica modeled reads and Jupiter inventory reads. These are point-in-time observations; example accounts can change. The source audit and automated suites cover canonical decoding, malformed/stale inputs, exact units, source isolation, report privacy, auth session races, responsive layouts, media, and offline behavior. See [the current verification record](REDESIGN-VERIFICATION.md), [provider matrix](PROVIDER-COVERAGE.md), and [Jupiter evidence](JUPITER-VERIFICATION.md).
+
+The latest auth journeys exercised the installed SDK with intercepted transport; no production users or report records were created for the redesign. Real nonproduction auth/report mutation checks and production confirmation/recovery email delivery remain unverified. Earlier successful real-auth checks and old Velocity balances in historical documentation are not a fresh verification claim for this release.
 
 ## Demonstration assets
 
 | Asset | Contents |
 | --- | --- |
-| [Interactive explorer](https://bufferonsolana.vercel.app/app) | Live Velocity example, explicit subaccount choice, 12 deterministic fixtures plus an editable four-market sample portfolio, scenario slider, coverage, Method, device save, and JSON export. |
-| [Product demo](https://bufferonsolana.vercel.app/demo#demo) | About 88 seconds of the actual working sample journey. |
-| [Higgsfield pitch](https://bufferonsolana.vercel.app/demo#pitch) | About 62 seconds, combining generated brand motion with authentic interface capture. |
-| [Technical walkthrough](https://bufferonsolana.vercel.app/demo#technical) | About 124 seconds on provider boundaries, math, coverage, freshness, and reproducibility. |
+| [Interactive explorer](https://bufferonsolana.vercel.app/app) | Four-market sample, 76-market builder, 12 preserved fixtures, modeled Velocity/Pacifica reads, Jupiter inventory, coverage, Method, device save, and JSON export |
+| [Product demo](https://bufferonsolana.vercel.app/demo#demo) | Current sample journey, editor, provider selector, reports, and mobile app |
+| [Pitch](https://bufferonsolana.vercel.app/demo#pitch) | Current product story with authentic redesigned UI, assembled in the Higgsfield sandbox |
+| [Technical walkthrough](https://bufferonsolana.vercel.app/demo#technical) | Provider boundaries, quote identity, precise arithmetic, freshness, report privacy, and verification limits |
 
-[Video provenance, captions, transcripts, and source materials](VIDEO.md) identify the generation job and production checks. The films show deterministic fixtures; the live example is demonstrated in the interactive app. [Full product descriptions](DESCRIPTION.md) provide reusable Markdown copy.
+Measured runtimes come from the encoded exports. [Video documentation](VIDEO.md) and the [version-2 source archive and storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) describe source footage, narration, captions, transcripts, and provenance. [Media-source-v1](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) remains a historical archive.
 
-## 90-second live presentation
+The films use sample footage and the real provider selector. They do not stage live account values or production authentication success. The refreshed production does not claim a new Seedance generation.
+
+## 90-second presentation
 
 | Time | Action and narration |
 | --- | --- |
-| 0–15 seconds | Open `/app` and choose **Explore a live account**. “Buffer reads one public Velocity account without a wallet. The protocol and current read state stay visible.” |
-| 15–32 seconds | Select the discovered **Subaccount 0**. “This public example currently has a BTC long and an ETH long, with USDT collateral. Balances and prices are live observations and can change.” |
-| 32–50 seconds | Set **−10%**. “The slider applies one move to eligible perpetual prices. Each contribution is shown in verified USDT; the account's USD baseline remains separate.” Point to the scenario total and the position rows. |
-| 50–67 seconds | Open **Method**. “The program, quote mint, oracle slots, validity checks, and 120-second expiry explain exactly what this read means. Account and oracle reads are not an atomic same-slot snapshot.” |
-| 67–80 seconds | Open **My reports**, save the scenario on the device, and close the dialog. “No sign-up is needed for a dated local copy. A confirmed cloud account can store a private copy through Supabase.” |
-| 80–90 seconds | Return to the default **Four-market portfolio**, set **−10%**, and show −1,500 + 5,000 − 2,000 − 500 = **+1,000 USDC**. “These are editable sample numbers; the denomination is illustrative and does not perform FX conversion. Live Velocity values keep their USDT denomination.” |
+| 0–15 seconds | Open `/app` on **Four-market portfolio**. “Buffer turns a market what-if into an explanation. This sample starts with SOL, BTC, ETH, and XRP.”|
+| 15–30 seconds | Apply **−10%** and inspect contributions. “The SOL long contributes −1,500, the BTC short +5,000, ETH −2,000, and XRP −500: **+1,000 USDC**. These prices are fixed samples.”|
+| 30–45 seconds | Open **Add perps**, search a market, and inspect editable quantity/price controls. “Choose from 76 configured sample markets. Sample denominations do not convert currencies or create trades.”|
+| 45–60 seconds | Open the provider selector. “Velocity and Pacifica support price scenarios. Jupiter adds inventory with an explicit modeling boundary. Drift stays paused.”|
+| 60–77 seconds | Open **Method**, then **My reports** and save on the device. “The inputs, exclusions, and source remain inspectable. A historical copy needs no sign-up.”|
+| 77–90 seconds | Show JSON export and the mobile layout. “Carry the explanation with you. Supported browsers can install Buffer, and the public sample calculator works offline.”|
 
-Retain visible source, protocol, subaccount, timestamp, quote currency, and coverage disclosures in both live and sample demonstrations. If a live oracle is stale or a refresh fails, show the unavailable state and retry path; never replace it with a plausible number. The legacy Drift selector should be used only to explain the paused migration boundary.
+If adding a separate live read, retain its provider, account, timestamp, units, and coverage. Show unavailable or stale results honestly and use the retry path; never replace them with plausible numbers. Public balances should not be memorized into the script.
 
 ## Event eligibility
 
-The [official Perps and Prediction Markets page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, 2026, lists a September 18 launch and September 25 deadline. Detailed eligibility, judging, and submission rules were not available in the inspected page; its rules field was null.
+The [official Perps and Prediction Markets page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, 2026, listed a September 18 launch and September 25 deadline. Detailed eligibility, judging, and submission rules were not available in that inspected page; its rules field was null.
 
-**Perps-only analytics eligibility and permission for pre-event development remain unverified.** Development began before the listed launch. Confirm both against published rules before entering. The app and source have been published, but no event entry, acceptance, prize eligibility, or endorsement is claimed.
+**Perps-only analytics eligibility and permission for pre-event development remain unverified.** Development began before the listed launch. Confirm both against published rules before entering. No event entry, acceptance, prize eligibility, or endorsement is claimed.

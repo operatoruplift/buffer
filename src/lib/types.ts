@@ -1,3 +1,4 @@
+import type { JupiterInventory } from './jupiter-inventory';
 import type { ProtocolInfo } from './protocols';
 export type SourceMode = 'sample' | 'live';
 export interface Subaccount { id: number; name: string; address: string | null }
@@ -12,6 +13,8 @@ export interface Position {
   size: string; price: string | null; quote: string; notional: string | null;
   modeled: boolean; exclusionReason: string | null; isolated: boolean;
   oracle: OracleObservation;
+  /** Explicit inventory only; size is a zero placeholder and must not be displayed as base quantity. */
+  inventory?: JupiterInventory;
 }
 export interface SpotExposure { market: string; kind: 'Collateral' | 'Debt'; amount: string | null; explanation?: string }
 export interface OrderInventory { market: string; count: number }

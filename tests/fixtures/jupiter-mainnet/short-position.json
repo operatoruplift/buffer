@@ -1,0 +1,10 @@
+{
+  "source": "https://api.mainnet-beta.solana.com",
+  "commitment": "confirmed",
+  "capturedAt": "2026-09-12T13:12:00.000Z",
+  "address": "13pmELWTxfCxLnKSSeNUH1eevMQVHTZr8vqDEiSDBT5",
+  "slot": 446442426,
+  "program": "PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu",
+  "space": 216,
+  "data": "qryP5HpA99B1uCbyIHvkBbs6fm1VKxpJi/+2TXtptLRtAtDyMp9IkD4eJHPHNAZU64cpADUVHEAr0OPJfLQkSIbnIDSzC038Z1ld2EbAB/JolvKu0xuntV/RLMwVjgsAep2P6Ea2n+ne6As0E6LTEIBia5JsOK80vtGG2zaOl386v0vVRUSabffrmWoAAAAA9+uZagAAAAACaU9EBgAAAADMFR0/AQAAANQ9mBoAAAAAAAAAAAAAAAC40FgOAAAAAAAAAAAAAAAAeFIpPwEAAAD+AAAAAAAA"
+}

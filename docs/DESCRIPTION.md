@@ -2,13 +2,13 @@
 
 ## Short description
 
-Buffer makes perpetual positions easier to understand with read-only price scenarios, clear coverage, and transparent calculations on Solana—on any screen.
+Buffer makes Solana perpetual positions easier to understand with read-only price scenarios, transparent coverage, editable samples, and dated reports on any screen.
 
 ## Full description
 
 **A little more perspective on your perpetual positions.**
 
-Buffer is a read-only scenario explorer for people who want to understand how a price move could affect perpetual positions. Start with one of 12 preserved deterministic fixtures or the editable four-market portfolio, use a public live example, or look up a **Pacifica or Velocity** account with a Solana wallet address. Explore 76 configured Pacifica perpetual markets and all four current Velocity markets. Choose a price move and follow its effect through each supported position. An explicit selector keeps legacy, paused Drift reads separate when historical inspection is useful.
+Buffer is a read-only scenario explorer for people who want to understand how a price move could affect perpetual positions. Start with one of 12 preserved deterministic fixtures or the editable four-market portfolio, use a public example, or look up a **Velocity or Pacifica** account with a Solana wallet address. Velocity is the default live provider. Explore 76 configured Pacifica perpetual markets and all four configured Velocity markets, then follow a price move through each supported position. **Jupiter Perps** adds a separate inventory-only reader with explicit modeling limits. Legacy Drift remains clearly paused.
 
 The result comes with its explanation: what was included, what was excluded, which oracle prices and quote identity were used, and what the calculation leaves out.
 
@@ -17,6 +17,7 @@ The result comes with its explanation: what was included, what was excluded, whi
 - **One simple control.** Apply a whole-number price move from −20% to +20% to eligible linear perpetuals across crypto, equities, commodities, FX, and indexes. Search the market list for each provider.
 - **Long and short contributions.** See each position’s incremental price P&L and totals grouped by quote currency. Velocity uses verified USDT settlement; Pacifica's API price effects are labeled USD, separate from USDC margin balances.
 - **Coverage in context.** Review included and excluded positions, collateral, debt, open orders, oracle validity, and read slots. Unsupported exposure has a visible explanation.
+- **Jupiter position inventory.** Inspect canonical SOL, ETH, and BTC positions, including direction, USD size, entry price, recorded collateral, reserved collateral-token amounts, and source accounts. Jupiter's current prices and capped payoff are not modeled, so these rows remain outside scenario totals.
 - **A portfolio you can shape.** The sample-only builder starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. Add from a searchable catalog of all 76 configured sample perps, choose long or short, edit quantity and baseline price, or remove a position. USDC, USDT, and USD are illustrative sample denominations; switching the label keeps numeric inputs unchanged and performs no FX conversion. Custom edits survive a sample refresh.
 - **Transparent method.** Inspect assumptions, fixed program or API identity, source information, oracle observations, and snapshot freshness in the Method panel. Pacifica uses API timestamps; Velocity exposes Solana read slots.
 - **Portable reports.** Download a JSON report containing the snapshot, exact scenario values, coverage, protocol metadata, and assumptions.
@@ -37,13 +38,13 @@ Sample values are fixtures, not live market observations. The calculation is a p
 
 ### Read-only by design
 
-Buffer does not require a seed phrase, private key, wallet connection, or trading approval. Live lookups read Pacifica's public API or use a configured server-side Solana RPC with the pinned official Velocity SDK. Pacifica requires no API key. Optional sign-in and scenario storage do not grant authority over a wallet.
+Buffer does not require a seed phrase, private key, wallet connection, or trading approval. Live lookups read Pacifica's public API or use a configured server-side Solana RPC for Velocity and Jupiter inventory. Velocity uses its pinned official SDK; Jupiter uses a separate canonical account decoder. Pacifica requires no API key. Optional sign-in and scenario storage do not grant authority over a wallet.
 
-Live availability depends on the deployment's provider configuration and RPC service. Live calculations expire after at most two minutes and require a refresh; live account balances and oracle prices can change between reads. Legacy Drift is labeled paused and its balances are not treated as migrated Velocity state. Internet access is needed for live reads and account synchronization.
+Live availability depends on the deployment's provider configuration and RPC service. Modeled live calculations expire after at most two minutes, or earlier when their source price expires, and require a refresh. Live balances and oracle prices can change between reads. Jupiter has no current-price scenario until its oracle and collateral-dependent capped payoff are verified together. Legacy Drift is labeled paused and its balances are not treated as migrated Velocity state. Internet access is needed for live reads and account synchronization.
 
 ### Built to be understood
 
-Buffer pairs a calm, responsive interface with a precise decimal calculation engine. Its Next.js and TypeScript application separates protocol reads, normalized snapshots, scenario calculations, and presentation. Supabase supports optional authentication and saved cloud scenarios, while device-local reports and the core sample experience work independently. The 12 labeled fixtures remain available beside the editable portfolio builder, whose edits flow into JSON exports and device reports. Public signup and recovery email actions stay disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.
+Buffer pairs a responsive video-led website with a precise decimal calculation engine. Its Next.js and TypeScript application separates protocol reads, normalized snapshots, scenario calculations, and presentation. Supabase supports optional authentication and owner-protected historical reports, while device-local reports and the core sample experience work independently. Guest reports never upload automatically. The 12 labeled fixtures remain available beside the editable portfolio builder, whose edits flow into JSON exports and device reports. Session-bound writes protect against late authentication responses replacing a newer login. Public signup and recovery email actions stay disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.
 
 **Explore a sample. Open a live account. Change the move. Follow the math.**
 

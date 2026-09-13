@@ -1,4 +1,5 @@
 import 'server-only';
+import { createRpcFetch } from './rpc-fetch';
 import { Connection, PublicKey } from 'velocity-web3';
 import {
   BulkAccountLoader, VelocityClient, DelistedMarketSetting, VELOCITY_PROGRAM_ID, PollingVelocityClientAccountSubscriber,
@@ -94,12 +95,7 @@ async function withScope<T>(authority: string, run: (scope: Scope) => Promise<T>
     const configured = new URL(endpoint);
     if (configured.protocol !== 'https:' && configured.protocol !== 'http:') throw new Error('Invalid configuration');
     const connection = new Connection(endpoint, { commitment: 'confirmed', disableRetryOnRateLimit: true,
-      fetch: async (input, init) => {
-        abort.signal.throwIfAborted();
-        const signal = init?.signal ? AbortSignal.any([abort.signal, init.signal]) : abort.signal;
-        try { return await fetch(input, { ...init, signal }); }
-        catch { throw new ProviderFailure(abort.signal.aborted ? 'TIMEOUT' : 'RPC_ERROR', abort.signal.aborted ? 'The live read timed out. Please retry.' : 'The live RPC could not be reached. Please retry.'); }
-      },
+      fetch: createRpcFetch(endpoint, abort.signal),
     });
     scope.connection = connection;
     scope.loader = new SnapshotAccountLoader(connection, programAccounts);

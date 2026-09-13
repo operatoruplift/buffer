@@ -1,0 +1,66 @@
+[
+  {
+    "path": "/",
+    "width": 740,
+    "height": 360,
+    "deviceScaleFactor": 1,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/auth",
+    "width": 740,
+    "height": 360,
+    "deviceScaleFactor": 1,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/app",
+    "width": 740,
+    "height": 360,
+    "deviceScaleFactor": 1,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/demo",
+    "width": 740,
+    "height": 360,
+    "deviceScaleFactor": 1,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/",
+    "width": 720,
+    "height": 450,
+    "deviceScaleFactor": 2,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/auth",
+    "width": 720,
+    "height": 450,
+    "deviceScaleFactor": 2,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/app",
+    "width": 720,
+    "height": 450,
+    "deviceScaleFactor": 2,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "path": "/demo",
+    "width": 720,
+    "height": 450,
+    "deviceScaleFactor": 2,
+    "overflow": false,
+    "errors": []
+  }
+]

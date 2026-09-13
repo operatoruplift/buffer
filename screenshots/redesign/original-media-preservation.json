@@ -1,0 +1,47 @@
+[
+  {
+    "path": "public/videos/buffer-demo-poster.jpg",
+    "unchanged": true,
+    "sha256": "2009066fbf48e00688e1714dbed823e9030acee7cfd358e234b022317dfd4e49"
+  },
+  {
+    "path": "public/videos/buffer-demo.mp4",
+    "unchanged": true,
+    "sha256": "d285b440fcd709f5d5b3dba6df030aba7c1f6fbbefaba46b636395d71926bd2c"
+  },
+  {
+    "path": "public/videos/buffer-demo.vtt",
+    "unchanged": true,
+    "sha256": "2ed54016b5429cb134e83b45c8a10e520ed40b06f504cfac79031bef6e9d6488"
+  },
+  {
+    "path": "public/videos/buffer-pitch-poster.jpg",
+    "unchanged": true,
+    "sha256": "1290ec9a8f0246237a7a5f74ee1188155ccd2ba3edc9600e6c646a7bdbbf4112"
+  },
+  {
+    "path": "public/videos/buffer-pitch.mp4",
+    "unchanged": true,
+    "sha256": "29e008a133f590efa94b67f4e89a5b4f7b81bad52e0f2fe4b2c5746a4fc0df11"
+  },
+  {
+    "path": "public/videos/buffer-pitch.vtt",
+    "unchanged": true,
+    "sha256": "b34ad79d4a04a3c1fc1dccb35a79f93545e07726f9a550d2b26898231be34637"
+  },
+  {
+    "path": "public/videos/buffer-technical-poster.jpg",
+    "unchanged": true,
+    "sha256": "5bac474b7300bf62809b8d0fbe3e79a575cae75acd4e709c3d71e915fe6d964c"
+  },
+  {
+    "path": "public/videos/buffer-technical.mp4",
+    "unchanged": true,
+    "sha256": "8b120837e40cdde353e59420a07cfbe5d04e2211e6192b94181de279f2264315"
+  },
+  {
+    "path": "public/videos/buffer-technical.vtt",
+    "unchanged": true,
+    "sha256": "23c231dbb30a289be540d4809d1b4d438974c4ba2704da21feb4ae8a0e01ebc7"
+  }
+]

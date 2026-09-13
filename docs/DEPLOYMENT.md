@@ -1,6 +1,8 @@
 # Deployment and cloud configuration
 
-Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app` is the live Velocity explorer, and `/auth` contains optional email/password sign-in. The protocol selector exposes the paused legacy Drift reader. All scenario functionality, live public reads, device-local reports, and downloads work without a cloud account.
+**Last updated:** September 13, 2026.
+
+Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app` is the public explorer with live Velocity as the default, modeled Pacifica reads, and inventory-only Jupiter Perps, and `/auth` contains optional email/password sign-in. The protocol selector also exposes the explicitly paused legacy Drift reader. Scenario functionality, live public reads, device-local reports, and downloads work without a cloud account.
 
 ## Environment variables
 
@@ -14,13 +16,13 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 
 No AI API key, signing wallet, private key, or service-role key is required by the application. Higgsfield produced marketing media; it is not a runtime integration. No `SITE_URL` application variable is required: auth redirects use the current origin, and Supabase must explicitly allow each deployed `/auth` URL.
 
-`.env.local` and `.vercel` are ignored by Git. Public variables are embedded at build time; redeploy after changing them. Configure production and preview environments deliberately. Never put an RPC URL, private key, or setup credential in client code, reports, issue comments, or public documentation.
+`.env.local` and `.vercel` are ignored by Git. Public variables are embedded at build time; redeploy after changing them. Configure each Vercel environment deliberately. Never put an RPC URL, private key, or setup credential in client code, reports, issue comments, or public documentation.
 
 ## Protocol provider
 
-The default server provider is the official `@velocity-exchange/sdk` **0.23.1**, bound to Velocity program `vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P`. Current Velocity settlement uses verified USDT spot market index `0` and fresh Pyth Lazer oracle reads. The legacy Drift provider uses `@drift-labs/sdk` **2.161.0-beta.5** and program `dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH` only when selected explicitly. See [provider details](PROVIDER.md) for PDA, oracle, freshness, and migration behavior.
+The default live provider is the official `@velocity-exchange/sdk` **0.23.1**, bound to Velocity program `vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P`. Current Velocity settlement uses verified USDT spot market index `0` and fresh Pyth Lazer oracle reads. Pacifica is a fixed-origin, read-only public API provider covering Buffer's 76 configured perpetual identities; it needs no API key or RPC. Jupiter Perps uses the fixed mainnet program `PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu` for bounded inventory reads only: canonical positions, entry data, collateral custody, locked collateral-token units, and read metadata are shown, while current prices and collateral-dependent capped payoff remain unmodeled and never enter scenario totals. The legacy Drift provider uses `@drift-labs/sdk` **2.161.0-beta.5** and program `dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH` only when selected explicitly; its scenario path is paused and does not represent migrated Velocity state. See [provider details](PROVIDER.md) for PDA, oracle, freshness, and migration behavior.
 
-The endpoint must be Solana **mainnet-beta**. The provider rejects a different genesis hash, checks program ownership and account identity, and never substitutes a sample when a live read fails. Requests have an 18-second abort deadline; Vercel functions need at least 30 seconds. Each process allows 60 reads per minute and four concurrent reads. A dedicated RPC is recommended before sustained traffic; add shared ingress limits when running more than one instance.
+The server-side RPC endpoint used by Velocity, Jupiter, and legacy Drift must be Solana **mainnet-beta**. Those providers reject a different genesis hash, check program ownership and account identity, and never substitute a sample when a live read fails. Requests have an 18-second abort deadline; Vercel functions need at least 30 seconds. Each process allows 60 reads per minute and four concurrent reads. A dedicated RPC is recommended before sustained traffic; add shared ingress limits when running more than one instance. Pacifica uses its fixed HTTPS API boundary and its own timestamp freshness rule.
 
 ## Supabase
 
@@ -41,13 +43,13 @@ The browser SDK manages sessions and refreshes tokens. Database RLS is the autho
 
 The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations are applied; owner isolation, malformed JSON rejection, restricted insert columns, and query indexing have been verified. See [database verification](DATABASE-VERIFICATION.md).
 
-Confirmed-account password sign-in and private report CRUD work with disposable confirmed accounts. Production SMTP delivery, redirect allowlists, Auth password policy, and compromised-password screening still require management-side configuration and verification. Do not treat the built-in restricted Supabase mail sender as public production signup delivery.
+The original implementation recorded confirmed-account password sign-in and private report CRUD with disposable confirmed accounts. That is historical evidence from the original version. The current redesign's browser auth and report coverage uses the installed Supabase SDK with intercepted/mock transport; it does not prove a current production auth or email journey. Production SMTP delivery, redirect allowlists, Auth password policy, and compromised-password screening still require management-side configuration and verification. Do not treat the built-in restricted Supabase mail sender as public production signup delivery.
 
 ## Vercel
 
-The Vercel project is `operatoruplift/buffer`, linked to [the public source repository](https://github.com/operatoruplift/buffer), with the production alias [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app). Production, Preview, and Development contain `SOLANA_RPC_URL`, the two public Supabase variables, and an explicit `NEXT_PUBLIC_AUTH_EMAIL_READY=false` config value. Use the Next.js framework setting in `vercel.json`, Node route execution, and a 30-second function duration. Do not use static export or edge-only hosting for the RPC routes.
+The Vercel project is `operatoruplift/buffer`, linked to [the public source repository](https://github.com/operatoruplift/buffer), with the production alias [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app). The current project has `SOLANA_RPC_URL`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in **Production only**. `NEXT_PUBLIC_AUTH_EMAIL_READY=false` is configured in Production, Preview, and Development; keep it false until the Supabase email and Auth management checks above pass. `BUFFER_TEST_AUTHORITY` is a local verification value and is not required for deployment. Use the Next.js framework setting in `vercel.json`, Node route execution, and a 30-second function duration. Do not use static export or edge-only hosting for the RPC routes.
 
-Build with `npm ci` and `npm run build`. Configure server-only `SOLANA_RPC_URL` and the two public Supabase variables in the intended Vercel environments. Redeploy after changing them. The initial RPC is Solana's shared mainnet endpoint; it is suitable for evaluation but has no application-specific capacity guarantee.
+Build with `npm ci` and `npm run build`. From a Node 24 checkout linked to this project, the authenticated Vercel CLI route is `npx --yes vercel@59.16.0 --prod`; the Vercel dashboard's Git production deployment is equivalent. Deploy a final committed state and verify `/`, `/app`, `/auth`, `/demo`, the manifest, and the live API routes after the deployment. Redeploy after changing environment variables. The initial RPC is Solana's shared mainnet endpoint; it is suitable for evaluation but has no application-specific capacity guarantee.
 
 ## Installable app
 

@@ -5,12 +5,17 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, Mark } from "@/components/Icons";
 import { Brand } from "@/components/Brand";
 import { TokenIcon } from "@/components/TokenIcon";
+import { DecorativeVideo } from '@/components/DecorativeVideo';
+import { MobileNavigation } from '@/components/MobileNavigation';
+import { VideoFeatures } from '@/components/VideoFeatures';
+import { DESIGN_MEDIA } from '@/lib/design-media';
+import { useMotionPreference } from '@/lib/use-motion-preference';
 import { formatDecimal } from "@/lib/format";
-import { getPortfolioSampleSnapshot } from "@/lib/sample-builder";
+import { getSampleSnapshot } from "@/lib/samples";
 import { calculateScenario } from "@/lib/scenario";
 import "@/app/landing.css";
 
-const demoSnapshot = getPortfolioSampleSnapshot();
+const demoSnapshot = getSampleSnapshot('long-short');
 
 function ArrowLink({ href, children, secondary = false }: {
   href: string;
@@ -37,7 +42,7 @@ function ScenarioPreview() {
         <div className="buffer-preview-value" aria-live="polite" aria-atomic="true">
           {formatDecimal(total.delta, 2, true)}<span>{total.quote}</span>
         </div>
-        <p>Four positions. One clearer picture.</p>
+        <p>Two positions. Both sides of the move.</p>
       </div>
       <div className="buffer-preview-controls">
         <div className="buffer-preview-control-label">
@@ -80,8 +85,8 @@ const questions = [
 ];
 
 export default function Landing() {
-  const [motionPaused, setMotionPaused] = useState(false);
-  const motionControl = (className: string) => <button type="button" className={`buffer-motion-control ${className}`} onClick={() => setMotionPaused(paused => !paused)} aria-label={motionPaused ? 'Resume page animations' : 'Pause page animations'} aria-pressed={motionPaused}>
+  const { paused: motionPaused, toggleMotion } = useMotionPreference();
+  const motionControl = (className: string) => <button type="button" className={`buffer-motion-control ${className}`} onClick={toggleMotion} aria-label={motionPaused ? 'Resume page animations' : 'Pause page animations'} aria-pressed={motionPaused}>
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">{motionPaused ? <path d="m5 3 8 5-8 5Z" /> : <><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></>}</svg>
   </button>;
   return (
@@ -93,16 +98,18 @@ export default function Landing() {
           <a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><a href="#install">Get the app</a>
         </nav>
         <div className="buffer-nav-actions"><Link className="buffer-signin" href="/auth">Sign in</Link><Link className="buffer-nav-open" href="/app">Open Buffer <Icon name="arrow" size={15} /></Link></div>
-        <details className="buffer-mobile-menu"><summary aria-label="Open navigation"><span /><span /></summary><nav aria-label="Mobile navigation"><a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><a href="#install">Get the app</a><Link href="/auth">Sign in</Link></nav></details>
+        <MobileNavigation />
       </header>
 
       <main id="main">
         <section className="buffer-hero">
+          <DecorativeVideo {...DESIGN_MEDIA.hero} paused={motionPaused} className="buffer-hero-video" name="B3 hero" />
+          <div className="buffer-hero-inner">
           <div className="buffer-hero-copy">
             <div className="buffer-kicker"><span /> A clearer view of your perps</div>
-            <h1>Every move.<br />A little more<br /><em>perspective.</em></h1>
-            <p>Explore what a price move could mean for your perpetual positions. One clear scenario, with the math in plain sight.</p>
-            <div className="buffer-hero-actions"><ArrowLink href="/app">Explore a sample</ArrowLink><a className="buffer-text-link" href="#method">See how it works <Icon name="arrow" size={16} /></a></div>
+            <h1>Every move.<span className="buffer-heading-icon"><Icon name="sliders" size={25} /></span><br />More perspective.</h1>
+            <p>Explore what a hypothetical price move could mean for your perpetual positions—with the math and coverage in view.</p>
+            <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><a className="buffer-text-link" href="#method">See how it works <Icon name="arrow" size={16} /></a></div>
             <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
           </div>
           <div className="buffer-hero-stage">
@@ -120,18 +127,12 @@ export default function Landing() {
             <ScenarioPreview />
             <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span>{motionControl('buffer-hero-motion')}</div>
           </div>
+          </div>
         </section>
 
         <div className="buffer-facts" aria-label="Product essentials"><span>Built for curious humans.</span><div><span>Read-only by design</span><span>Transparent calculations</span><span>Solana perpetuals</span></div></div>
 
-        <section id="features" className="buffer-section buffer-features">
-          <div className="buffer-section-heading"><span className="buffer-kicker">01 / A little clarity goes a long way</span><h2>A busy account.<br />A clear picture.</h2><p>Positions tell you where you are.<br />A scenario helps you explore what changes.</p></div>
-          <div className="buffer-feature-list">
-            <article><span className="buffer-feature-number">01</span><div><h3>One move. Every included position.</h3><p>Move prices from −20% to +20%. See how long and short positions contribute to the modeled change, individually and together.</p></div><Icon name="sliders" size={23} /></article>
-            <article><span className="buffer-feature-number">02</span><div><h3>Know what’s in the picture.</h3><p>Review included positions, excluded exposure, collateral, debt, and open orders. Coverage and limitations stay beside the result.</p></div><Icon name="info" size={23} /></article>
-            <article><span className="buffer-feature-number">03</span><div><h3>Take the explanation with you.</h3><p>Open the Method panel for assumptions and data provenance. Export a JSON report with the snapshot, scenario, and calculation details.</p></div><Icon name="download" size={23} /></article>
-          </div>
-        </section>
+        <VideoFeatures paused={motionPaused} />
 
         <section className="buffer-coverage-story" aria-labelledby="coverage-heading">
           <div className="buffer-coverage-art">

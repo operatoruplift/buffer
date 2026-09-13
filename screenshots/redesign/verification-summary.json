@@ -1,0 +1,14 @@
+{
+  "baselineCommit": "6040f28",
+  "localOnly": true,
+  "lint": "passed",
+  "typecheck": "passed",
+  "build": "passed",
+  "unit": { "passed": 367, "files": 16 },
+  "browser": { "passed": 132, "skipped": 6, "total": 138 },
+  "emailEnabledMockRun": { "passed": 6, "coversNormalBuildSignupSkips": 4 },
+  "remainingRealAuthSkips": 2,
+  "unresolvedMaterialReviewFindings": 0,
+  "productionMutations": false,
+  "deployed": false
+}

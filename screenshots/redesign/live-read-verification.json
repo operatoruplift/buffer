@@ -1,0 +1,38 @@
+[
+  {
+    "protocol": "velocity",
+    "status": 200,
+    "accounts": 1,
+    "positions": 2,
+    "modeled": 2,
+    "retrievedAt": "2026-09-12T15:42:18.676Z",
+    "expiresAt": "2026-09-12T15:44:18.676Z",
+    "accountSlot": 446466212,
+    "observedSlot": 446466213,
+    "cache": "no-store"
+  },
+  {
+    "protocol": "pacifica",
+    "status": 200,
+    "accounts": 1,
+    "positions": 22,
+    "modeled": 22,
+    "retrievedAt": "2026-09-12T15:42:17.132Z",
+    "expiresAt": "2026-09-12T15:44:15.914Z",
+    "accountSlot": null,
+    "observedSlot": null,
+    "cache": "no-store"
+  },
+  {
+    "protocol": "jupiter",
+    "status": 200,
+    "accounts": 1,
+    "positions": 1,
+    "modeled": 0,
+    "retrievedAt": "2026-09-12T15:42:18.504Z",
+    "expiresAt": "2026-09-12T15:44:18.504Z",
+    "accountSlot": null,
+    "observedSlot": 446466212,
+    "cache": "no-store"
+  }
+]

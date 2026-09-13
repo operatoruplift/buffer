@@ -1,4 +1,4 @@
-export type ProtocolId = 'velocity' | 'pacifica' | 'drift';
+export type ProtocolId = 'velocity' | 'pacifica' | 'drift' | 'jupiter';
 export interface ProtocolInfo {
   id: ProtocolId; label: string; programId: string | null; legacy: boolean;
   // Omitted for the original RPC deployments to preserve historical reports.
@@ -9,6 +9,7 @@ export interface ProtocolInfo {
 // https://docs.velocity.exchange/developers/migrate-from-drift
 // Public API identity: https://docs.pacifica.fi/api-documentation/api
 export const PROTOCOLS = {
+  jupiter: { id: 'jupiter', label: 'Jupiter Perps', programId: 'PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu', legacy: false },
   velocity: { id: 'velocity', label: 'Velocity', programId: 'vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P', legacy: false },
   pacifica: { id: 'pacifica', label: 'Pacifica', programId: null, legacy: false, transport: 'api', apiOrigin: 'https://api.pacifica.fi' },
   drift: { id: 'drift', label: 'Drift (legacy)', programId: 'dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH', legacy: true },

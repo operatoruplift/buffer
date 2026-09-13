@@ -1,47 +1,57 @@
 # Buffer videos
 
-**Last updated:** September 12, 2026.
+**Updated:** September 13, 2026.
 
-Three finished films accompany the app: a product demo, a pitch made with Higgsfield, and a technical walkthrough. All interface footage is captured from the working Buffer application using deterministic sample accounts. The current app also has a live Velocity example at `/app`; the films keep deterministic fixtures so every narrated number remains reproducible.
+The version-2 films cover the current Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
 
-| Film | Runtime | Content |
+| Film | Story | Timing |
 | --- | --- | --- |
-| Product demo | About 88 seconds | Sample selection, shared price move, contributions, exclusions, Method, JSON export, responsive mobile interface |
-| Higgsfield pitch | About 62 seconds | Generated brand motion combined with authentic product footage and a concise product story |
-| Technical walkthrough | About 124 seconds | Data boundaries, provider validation, precise scenario formula, coverage, freshness, reproducible exports, integration limits |
+| Product demo | Four-market sample, −10% move, Add perps, provider selector, Method, device save/JSON export, mobile | Measured runtime in release metadata |
+| Pitch | Why Buffer exists, editable samples, explicit provider coverage, inspectable results, mobile | Measured runtime in release metadata |
+| Technical walkthrough | Provider boundaries, exact arithmetic, quote identity, freshness, reports, auth and verification limits | Measured runtime in release metadata |
 
-[Download the films, captions, transcripts, and source archive](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1). Videos are H.264 MP4, 1600×900, 24 fps, with AAC stereo audio, burned-in English captions, and separate WebVTT caption files. Markdown transcripts provide an accessible text alternative.
+The current films and production package are available in [media-source-v2](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2). The [version-1 archive](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) is historical and contains the old U identity and September 11 explorer footage.
 
-## Data and claims
+## What the current footage represents
 
-- Every demonstrated account, oracle price, inventory row, and baseline metric is a deterministic fixture. The videos carry a persistent sample label.
-- In the long-and-short sample, a shared −10% shock gives `100 × 150 × −0.10 = −1,500 USDC` for SOL and `−0.5 × 100,000 × −0.10 = +5,000 USDC` for BTC. The modeled total is `+3,500 USDC`.
-- The result is incremental perpetual price P&L. It excludes collateral-price changes, fills, funding, fees, borrowing interest, and liquidation effects. It is not hypothetical account equity, health, or a liquidation prediction.
-- Narration does not present the fixture footage as a live account or claim successful production authentication. The technical film explains provider boundaries and verification requirements. Current live Velocity reads are documented separately in [PROVIDER.md](PROVIDER.md) and [VERIFICATION.md](VERIFICATION.md).
-- Footage documents the explorer core captured on September 11, 2026. The surrounding landing page, live Velocity provider, and optional account screens can evolve independently.
+All account, position, and price footage is **sample data**. The provider selector demonstrates available choices and their stated boundaries; it does not stage a successful live lookup. The auth scene shows the actual optional account interface and disabled public email actions. It does not stage production sign-in, recovery delivery, or private report access.
 
-## Higgsfield provenance
+The two sample examples are deliberately distinct:
 
-The pitch uses an actual generated eight-second opening shot, followed by captured Buffer interface footage. It is not a wholly generated imitation of the application.
+- **App four-market sample:** 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. A −10% move contributes −1,500, +5,000, −2,000, and −500 USDC, totaling **+1,000 USDC**.
+- **Landing two-position sample:** the SOL long and BTC short contribute −1,500 and +5,000 USDC, totaling **+3,500 USDC** at −10%.
 
-- Provider: Higgsfield.
-- Model: `seedance_2_5` / Seedance 2.5 by ByteDance.
-- Generation job: `5f1dbdb3-e9dd-4b54-915d-892b2bdbcb81`.
-- Parameters: 8 seconds, 16:9, 720p, one output, generated audio disabled.
-- Credit preflight: 52 credits from the existing connected balance. No purchase, upgrade, or trial activation.
-- Visual brief: a cobalt translucent U form in a white architectural space, slow camera motion, no invented app UI, numbers, text, or people.
-- [Original generated motion clip](https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_163125_5f1dbdb3-e9dd-4b54-915d-892b2bdbcb81.mp4).
+These are fixed illustrative prices, not current market observations. Sample USDC, USDT, and USD denominations preserve the same numeric inputs and perform no FX conversion. The model holds position sizes fixed and excludes funding, fees, future fills, borrowing interest, collateral-price changes, and liquidation effects. A price effect is not account equity, margin health, or a liquidation forecast.
 
-## Production and sources
+The films describe provider coverage as follows:
 
-The films retain Buffer's previous U mark from their September 11 capture; the website and app now use the cobalt B monogram. The recorded mark, interface, diagrams, captions, and scripts are original project assets. The abstract generated object is a visual motif; the precise logo is drawn separately. Solana, Velocity, and legacy Drift names describe the implemented integrations and do not imply endorsement.
+| Provider | Film claim |
+| --- | --- |
+| Velocity | Default live provider; eligible linear price scenarios, with verified USDT quote identity |
+| Pacifica | Eligible price scenarios across configured markets; API price effects use USD and API price timestamps |
+| Jupiter Perps | Canonical position inventory only; current prices and collateral-dependent capped payoff remain unmodeled |
+| Legacy Drift | Paused; no current price scenario advertised |
 
-Narration is synthetic speech using the installed macOS Samantha voice, at 158 words per minute for demo/pitch and 180 for the technical film. No person's voice was cloned. No stock soundtrack or unlicensed music is used.
+[Provider coverage](PROVIDER-COVERAGE.md) contains the separate point-in-time mainnet evidence. No changing public balance or live P&L is narrated as a fixed demonstration result.
 
-Playwright recorded the real sample journey. Native speech files and recordings were transferred as a public source archive in the authorized GitHub repository release. Higgsfield's remote sandbox performed FFmpeg/Pillow assembly, caption rendering, and export. The source archive contains the captured clips, narration text/audio, scene manifest, capture script, and renderer; it contains no environment files, credentials, private wallet data, or production account records.
+## Higgsfield and production provenance
 
-The renderer holds the last captured frame when narration exceeds the action clip. This is an editorial pause on a real interface state. It does not invent interactions or data.
+Version 2 uses **actual captures of the redesigned Buffer application, assembled on a native Higgsedit timeline in the Higgsfield sandbox**. FFmpeg and Pillow prepare scenes, diagrams, captions, and end cards. Interface screens, logos, positions, and numbers come from the application. This refresh uses no newly generated Seedance clip.
 
-## Verification
+The version-1 pitch used a generated eight-second opening shot from Higgsfield Seedance 2.5, job `5f1dbdb3-e9dd-4b54-915d-892b2bdbcb81`. That historical job and its 52-credit preflight do not describe a new generation or new credit expenditure. Its cobalt U motif belongs to the old film and is not presented as the current B logo.
 
-Final files are decoded end to end with FFmpeg, metadata is inspected with ffprobe, and a nine-frame contact sheet samples the three films. The delivery includes the resulting metadata and contact sheet. All three hosted MP4s play and seek in Chromium with no media errors. The actual pitch audio was transcribed using faster-whisper tiny.en and checked against the narration. Mean levels are approximately −18.8 dB and peaks remain below −3.9 dB, with no clipping. Full-size opener and end-card frames were also reviewed. See `videos/browser-playback.json` and `videos/quality-checks.json` for recorded checks.
+The source package contains public sample captures, scripts, narration audio, scene data, and rendering inputs. It excludes environment files, credentials, private wallet data, and production account records. Narration uses the installed macOS Samantha synthetic voice at 155 words per minute for the demo and pitch, and 168 words per minute for the technical walkthrough. No person's voice is cloned and no stock soundtrack is used. Encoding, dimensions, measured durations, and audio measurements are recorded for the version-2 exports.
+
+## Captions, transcripts, and verification
+
+Each MP4 has a matching poster, English WebVTT captions, and a Markdown transcript. Caption timing follows the current narration and render. Public assets and mirrored caption/transcript files describe the same version-2 scenes and speech.
+
+The release verification record covers:
+
+- End-to-end decode and measured duration/codec metadata for all three films.
+- Contact-sheet review of the current B mark, readable app captures, correct sample numbers, and provider labels.
+- Browser playback and seeking with working controls, caption tracks, and no media errors.
+- Audio review for intelligibility, clipping, and synchronization.
+- Matching `/demo` runtime labels, posters, captions, transcripts, and source-release links.
+
+Public exploration and device reports need no sign-in. Optional cloud behavior is covered by SDK tests with mocked transport and the existing owner-only schema/RLS audit. Current production email delivery and real nonproduction auth/report mutation journeys remain unverified; signup and recovery sending stay gated. The public offline calculator and supported-browser PWA installation are included, without claiming native store binaries.
