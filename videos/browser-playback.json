@@ -29,5 +29,18 @@
   "focusedBrowserSuite": {
     "passed": 24,
     "failed": 0
+  },
+  "production": {
+    "origin": "https://bufferonsolana.vercel.app",
+    "verifiedAt": "2026-09-13",
+    "movieChecksPassed": 2,
+    "otherFocusedChecksPassed": 22,
+    "nativeCaptionCues": [
+      17,
+      12,
+      21
+    ],
+    "activeCaptionsAfterSeek": true,
+    "note": "Checks select visible English captions before playback. A previous synthetic hidden-track-after-pause assertion deferred mobile loading; the actual playback path passes."
   }
 }

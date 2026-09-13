@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-09-13T07:46:28.427Z",
+  "origin": "https://bufferonsolana.vercel.app",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/app",
+      "status": 200
+    },
+    {
+      "path": "/auth",
+      "status": 200
+    },
+    {
+      "path": "/demo",
+      "status": 200
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200
+    },
+    {
+      "path": "/api/config",
+      "status": 200
+    }
+  ],
+  "media": [
+    {
+      "name": "buffer-demo",
+      "status": 200,
+      "sha256": "95b9362c6750d524c203a18569f4402faf95135fe02cc1c47e222fd01aa73da5",
+      "bytes": 11863366,
+      "rangeStatus": 206
+    },
+    {
+      "name": "buffer-pitch",
+      "status": 200,
+      "sha256": "7ec7225f7f11f56b0a350cbc1d32e8c7ec74308e4c17421e020af69676e7dc64",
+      "bytes": 9586189,
+      "rangeStatus": 206
+    },
+    {
+      "name": "buffer-technical",
+      "status": 200,
+      "sha256": "e77792f7f9a550139428211e114ce174de49531ed504db624b9b7150aa4f7b0e",
+      "bytes": 16439087,
+      "rangeStatus": 206
+    }
+  ],
+  "providers": [
+    {
+      "protocol": "velocity",
+      "status": 200,
+      "accounts": 1,
+      "positions": 2,
+      "modeled": 2,
+      "retrievedAt": "2026-09-13T07:46:36.675Z",
+      "cache": "no-store"
+    },
+    {
+      "protocol": "pacifica",
+      "status": 200,
+      "accounts": 1,
+      "positions": 22,
+      "modeled": 22,
+      "retrievedAt": "2026-09-13T07:46:38.030Z",
+      "cache": "no-store"
+    },
+    {
+      "protocol": "jupiter",
+      "status": 200,
+      "accounts": 1,
+      "positions": 1,
+      "modeled": 0,
+      "retrievedAt": "2026-09-13T07:46:39.710Z",
+      "cache": "no-store"
+    }
+  ]
+}

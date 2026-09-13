@@ -6,7 +6,12 @@ test('all three hosted videos decode, play and seek with captions available', as
   const videos = page.locator('video');
   await expect(videos).toHaveCount(3);
   for (const video of await videos.all()) {
-    await video.evaluate(async (element: HTMLVideoElement) => { element.muted = true; await element.play(); });
+    await video.scrollIntoViewIfNeeded();
+    await video.evaluate(async (element: HTMLVideoElement) => {
+      element.muted = true;
+      element.textTracks[0].mode = 'showing';
+      await element.play();
+    });
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0);
     await video.evaluate((element: HTMLVideoElement) => new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('Video seek did not complete')), 10_000);
@@ -14,6 +19,7 @@ test('all three hosted videos decode, play and seek with captions available', as
       element.currentTime = 10;
     }));
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(10);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].activeCues?.length ?? 0)).toBeGreaterThan(0);
     const state = await video.evaluate((element: HTMLVideoElement) => ({ width: element.videoWidth, height: element.videoHeight, error: element.error?.message }));
     expect(state).toEqual({ width: 1600, height: 900, error: undefined });
     await video.evaluate((element: HTMLVideoElement) => element.pause());
@@ -23,7 +29,6 @@ test('all three hosted videos decode, play and seek with captions available', as
     const captions = await response.text();
     expect(captions).toMatch(/^WEBVTT/);
     expect(captions).toContain('Jupiter');
-    await video.evaluate((element: HTMLVideoElement) => { element.textTracks[0].mode = 'hidden'; });
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].cues?.length ?? 0)).toBeGreaterThan(0);
   }
   const transcripts = page.getByRole('link', { name: 'Read transcript', exact: true });

@@ -1,4 +1,7 @@
 /videos/
+/work/
+/.env*
+tests/
 e2e/
 screenshots/
 docs/
