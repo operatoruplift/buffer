@@ -7,12 +7,13 @@ test('selected template clips advance only in view, and stage switches without f
   page.on('request', request => { if (request.url().includes('/videos/design/') && request.url().endsWith('.mp4')) mediaRequests.push(request.url()); });
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  const hero = page.locator('video[data-media="B3 hero"]');
+  const hero = page.locator('video[data-media="Meridial Light hero"]');
   await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
   const start = await hero.evaluate(video => (video as HTMLVideoElement).currentTime);
   await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(start + .15);
   // At first paint the portrait cards are below the viewport and have no source.
   expect(mediaRequests.some(url => /\/(positions|coverage|math)\.mp4$/.test(url))).toBe(false);
+  expect(mediaRequests.some(url => /\/meridial-light\.mp4$/.test(url))).toBe(true);
   for (const name of ['positions', 'coverage', 'math']) {
     const video = page.locator(`video[data-media="feature-${name}"]`);
     await video.scrollIntoViewIfNeeded();

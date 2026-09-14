@@ -1,5 +1,6 @@
-/** Supplied B3/B4/B6 clips, optimized from the original sources; see public/videos/design/README.md. */
+/** Meridial Light and the preserved B3/B4/B6 clips; see public/videos/design/README.md for provenance. */
 export const DESIGN_MEDIA = {
+  meridialLight: { src: '/videos/design/meridial-light.mp4', poster: '/videos/design/meridial-light-poster.webp' },
   hero: { src: '/videos/design/hero.mp4', poster: '/videos/design/hero-poster.jpg' },
   stageWide: { src: '/videos/design/stage-wide.mp4', poster: '/videos/design/stage-wide-poster.webp' },
   stageNarrow: { src: '/videos/design/stage-narrow.mp4', poster: '/videos/design/stage-narrow-poster.webp' },

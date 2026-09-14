@@ -4,6 +4,15 @@ The user supplied these exact original clips/posters. Local files are same-sourc
 
 The CDN HEAD responses did not advertise cross-origin canvas access. Local same-origin assets avoid a media proxy and allow verified canvas sampling. No remote source is fetched through a user-controlled endpoint.
 
+## Meridial Light source audit
+
+The Meridial Light hero is a new same-origin derivative. The original source is retained in the handoff work area and is never used as a runtime dependency. The source decoded as H.264, 1080×1916, 24fps, 10.041667 seconds, silent. The local derivative is H.264, 720×1280, 24fps, 10.041667 seconds, silent, CRF26 with faststart. The poster is a 720×1280 WebP frame generated from the supplied source poster.
+
+| File | Source URL | Source SHA256 | Local SHA256 |
+| --- | --- | --- | --- |
+| meridial-light.mp4 | https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260827_142319_f711d024-2a01-47c3-93d9-1224b1496276.mp4 | e859409bf0f7e2cbe86a8bd1ed36f75eb8cc63e35db6ef352f249f456099ae83 | 7f6e70e6e0bccf6f4a41d8c562d7350348a4d922712f2537884571e9e211a6b9 |
+| meridial-light-poster.webp | https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/9df0fbe6-c369-4a24-b0cc-25d538dbb30b.png | 6b4163988ff9f8ee9d6b2a044294ef525cd4fd706a0529641e01386f77fdc26f | 4ec926b4149142fcb7866bdf95ea953827d31d27d0bb79cd725f6b05f053a470 |
+
 | Source file | Original URL | Original SHA256 |
 | --- | --- | --- |
 | hero.mp4 | https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260518_003132_8b7edcb6-c64d-4a52-a9ca-879942e122ad.mp4 | c104c22dbc475487128e642ea5c651bcf88578810ae5142e570626c395cd4fe3 |

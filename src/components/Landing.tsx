@@ -27,8 +27,7 @@ function ArrowLink({ href, children, secondary = false }: {
   </Link>;
 }
 
-function ScenarioPreview() {
-  const [shock, setShock] = useState(-10);
+function ScenarioPreview({ shock, onShockChange }: { shock: number; onShockChange: (value: number) => void }) {
   const scenario = calculateScenario(demoSnapshot, shock);
   const total = scenario.totals[0];
   return (
@@ -52,11 +51,11 @@ function ScenarioPreview() {
         <input id="landing-shock" type="range" min={-20} max={20} step={1} value={shock}
           aria-valuetext={`${shock > 0 ? "+" : ""}${shock} percent price move`}
           style={{ "--range-position": `${((shock + 20) / 40) * 100}%` } as CSSProperties}
-          onChange={(event) => setShock(Number(event.target.value))} />
+          onChange={(event) => onShockChange(Number(event.target.value))} />
         <div className="buffer-preview-range-labels"><span>−20%</span><span>0%</span><span>+20%</span></div>
         <div className="buffer-preview-presets" aria-label="Sample price moves">
           {[-20, -10, 0, 10, 20].map((value) => <button key={value} type="button"
-            aria-pressed={shock === value} onClick={() => setShock(value)}>
+            aria-pressed={shock === value} onClick={() => onShockChange(value)}>
             {value > 0 ? "+" : ""}{value}%
           </button>)}
         </div>
@@ -75,6 +74,16 @@ function ScenarioPreview() {
   );
 }
 
+function ScenarioContextCard({ shock }: { shock: number }) {
+  const scenario = calculateScenario(demoSnapshot, shock);
+  return <aside className="buffer-context-card" aria-label="Sample coverage and assumptions">
+    <div className="buffer-context-card-top"><span><Mark size={17} /> Context</span><span className="buffer-sample-badge">SAMPLE</span></div>
+    <div className="buffer-context-metric"><strong>{scenario.included.length} / {scenario.totalPositions}</strong><span>positions modeled</span></div>
+    <div className="buffer-context-list">{scenario.included.map(position => <div key={position.id}><span className="buffer-context-dot buffer-context-dot-included" /><span>{position.market}</span><strong>Included</strong></div>)}{scenario.excluded.map(position => <div key={position.id}><span className="buffer-context-dot buffer-context-dot-excluded" /><span>{position.market}</span><strong>Excluded</strong></div>)}</div>
+    <div className="buffer-context-foot"><span>Fixed baseline prices</span><span>Price effect only</span></div>
+  </aside>;
+}
+
 const questions = [
   ["What does Buffer calculate?", "Buffer models the incremental price P&L of eligible linear perpetual positions. It multiplies each signed position size by its frozen baseline oracle price and your chosen percentage move, then totals contributions with the same quote currency."],
   ["Do I need a wallet or an account?", "You can explore sample accounts immediately without signing in or connecting a wallet. For a live lookup, enter a public Solana authority address. Save scenarios on your device without an account. Optional cloud sign-in never grants Buffer trading permissions."],
@@ -86,6 +95,8 @@ const questions = [
 
 export default function Landing() {
   const { paused: motionPaused, toggleMotion } = useMotionPreference();
+  const [shock, setShock] = useState(-10);
+  const [scenarioBoardOpen, setScenarioBoardOpen] = useState(false);
   const motionControl = (className: string) => <button type="button" className={`buffer-motion-control ${className}`} onClick={toggleMotion} aria-label={motionPaused ? 'Resume page animations' : 'Pause page animations'} aria-pressed={motionPaused}>
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">{motionPaused ? <path d="m5 3 8 5-8 5Z" /> : <><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></>}</svg>
   </button>;
@@ -102,17 +113,18 @@ export default function Landing() {
       </header>
 
       <main id="main">
-        <section className="buffer-hero">
-          <DecorativeVideo {...DESIGN_MEDIA.hero} paused={motionPaused} className="buffer-hero-video" name="B3 hero" />
-          <div className="buffer-hero-inner">
+        <section className={`buffer-hero${scenarioBoardOpen ? ' buffer-hero-board-open' : ''}`}>
+          <div className="buffer-hero-inner" data-scenario-open={scenarioBoardOpen}>
           <div className="buffer-hero-copy">
             <div className="buffer-kicker"><span /> A clearer view of your perps</div>
-            <h1>Every move.<span className="buffer-heading-icon"><Icon name="sliders" size={25} /></span><br />More perspective.</h1>
-            <p>Explore what a hypothetical price move could mean for your perpetual positions—with the math and coverage in view.</p>
-            <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><a className="buffer-text-link" href="#method">See how it works <Icon name="arrow" size={16} /></a></div>
+            <h1><span>Every position.</span><span>Every price move.</span><span className="buffer-hero-accent">A clearer picture.</span></h1>
+            <p>Explore the price effect on your Solana perpetual positions, with the source, assumptions and coverage in view.</p>
+            <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><button type="button" className="buffer-text-link buffer-board-toggle" onClick={() => setScenarioBoardOpen(true)} disabled={scenarioBoardOpen}>Explore the scenario <Icon name="arrow" size={16} /></button></div>
             <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
           </div>
-          <div className="buffer-hero-stage">
+          <div className={`buffer-hero-stage${scenarioBoardOpen ? ' is-board' : ''}`}>
+            <DecorativeVideo {...DESIGN_MEDIA.meridialLight} paused={motionPaused} className="buffer-hero-video" name="Meridial Light hero" />
+            <div className="buffer-film-wash" aria-hidden="true" />
             <div className="buffer-shader" aria-hidden="true">
               <div className="buffer-shader-grid" />
               <div className="buffer-shader-orb buffer-shader-orb-one" />
@@ -124,8 +136,9 @@ export default function Landing() {
               </svg>
             </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
-            <ScenarioPreview />
-            <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>Move the slider. See the difference.</span>{motionControl('buffer-hero-motion')}</div>
+            <div className="buffer-hero-stage-top"><span>READ-ONLY SCENARIO / SAMPLE</span>{scenarioBoardOpen && <button type="button" onClick={() => setScenarioBoardOpen(false)}><Icon name="arrow" size={14} /> Back to overview</button>}</div>
+            <div className="buffer-hero-board"><ScenarioPreview shock={shock} onShockChange={setShock} /><ScenarioContextCard shock={shock} /></div>
+            <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>{scenarioBoardOpen ? 'Scenario board · state preserved' : 'Move the slider. See the difference.'}</span>{motionControl('buffer-hero-motion')}</div>
           </div>
           </div>
         </section>
