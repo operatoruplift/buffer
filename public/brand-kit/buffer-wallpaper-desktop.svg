@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2880" height="1800" viewBox="0 0 2880 1800" fill="none">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="2880" y2="1800" gradientUnits="userSpaceOnUse"><stop stop-color="#F8F8F3"/><stop offset=".54" stop-color="#EFF2FF"/><stop offset="1" stop-color="#DFE8D7"/></linearGradient>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(2290 170) rotate(133) scale(1110 980)"><stop stop-color="#315FE8" stop-opacity=".26"/><stop offset="1" stop-color="#315FE8" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="2880" height="1800" fill="url(#paper)"/><rect width="2880" height="1800" fill="url(#wash)"/>
+  <path d="M1440 1545C1776 1172 2133 1124 2490 1362c159 105 287 152 476 67" stroke="#315FE8" stroke-opacity=".14" stroke-width="4"/>
+  <path d="M1510 1645c320-344 633-372 966-153 149 98 275 110 455 38" stroke="#315FE8" stroke-opacity=".08" stroke-width="3"/>
+  <g transform="translate(162 160)"><rect width="170" height="170" rx="50" fill="#315FE8"/><path d="M39 16h59c30 0 48 20 48 47h-28c0-12-7-19-20-19H39V16Zm0 49h59c30 0 48 20 48 47h-28c0-12-7-19-20-19H39V65Zm0 49h78v28H39v-28Z" fill="#fff"/></g>
+  <text x="162" y="650" fill="#192636" font-family="Helvetica Neue, Arial, sans-serif" font-size="126" font-weight="600" letter-spacing="-5">Every move.</text>
+  <text x="162" y="790" fill="#315FE8" font-family="Helvetica Neue, Arial, sans-serif" font-size="126" font-weight="600" letter-spacing="-5">More perspective.</text>
+  <text x="162" y="900" fill="#5F685F" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="500" letter-spacing="5">BUFFER / UNDERSTAND YOUR PERP EXPOSURE</text>
+  <text x="162" y="1642" fill="#315FE8" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="6">READ-ONLY SCENARIO EXPLORATION</text>
+</svg>

@@ -95,7 +95,7 @@ export default function Landing() {
       <header className="buffer-nav">
         <Link href="/" aria-label="Buffer home"><Brand /></Link>
         <nav className="buffer-nav-links" aria-label="Main navigation">
-          <a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><a href="#install">Get the app</a>
+          <a href="#features">Features</a><a href="#method">How it works</a><Link href="/demo">Demo</Link><Link href="/brand-kit">Brand kit</Link><a href="#install">Get the app</a>
         </nav>
         <div className="buffer-nav-actions"><Link className="buffer-signin" href="/auth">Sign in</Link><Link className="buffer-nav-open" href="/app">Open Buffer <Icon name="arrow" size={15} /></Link></div>
         <MobileNavigation />
@@ -160,7 +160,7 @@ export default function Landing() {
         <section className="buffer-last-call"><span className="buffer-kicker">Make space for understanding.</span><h2>See the move<br />from a new angle.</h2><ArrowLink href="/app">Explore Buffer</ArrowLink></section>
       </main>
 
-      <footer className="buffer-footer"><div className="buffer-footer-top"><p>A little more perspective<br />on your perpetual positions.</p><nav aria-label="Footer product navigation"><a href="#features">Features</a><a href="#method">Method</a><a href="#install">Get the app</a></nav><nav aria-label="Footer account navigation"><Link href="/app">Open Buffer</Link><Link href="/demo">Watch the demo</Link><Link href="/auth">Cloud sign in</Link><a href="https://github.com/operatoruplift/buffer" target="_blank" rel="noreferrer">Source on GitHub <Icon name="external" size={11} /></a><a href="#faq">Questions</a></nav></div><Link className="buffer-footer-wordmark" href="/" aria-label="Buffer home"><Brand large /></Link><div className="buffer-footer-bottom"><span>© 2026 Buffer</span><p>Read-only scenario exploration. Not trading advice or a liquidation forecast.</p><a href="#privacy">Privacy by design <Icon name="arrow" size={13} /></a></div></footer>
+      <footer className="buffer-footer"><div className="buffer-footer-top"><p>A little more perspective<br />on your perpetual positions.</p><nav aria-label="Footer product navigation"><a href="#features">Features</a><a href="#method">Method</a><a href="#install">Get the app</a></nav><nav aria-label="Footer account navigation"><Link href="/app">Open Buffer</Link><Link href="/demo">Watch the demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/auth">Cloud sign in</Link><a href="https://github.com/operatoruplift/buffer" target="_blank" rel="noreferrer">Source on GitHub <Icon name="external" size={11} /></a><a href="#faq">Questions</a></nav></div><Link className="buffer-footer-wordmark" href="/" aria-label="Buffer home"><Brand large /></Link><div className="buffer-footer-bottom"><span>© 2026 Buffer</span><p>Read-only scenario exploration. Not trading advice or a liquidation forecast.</p><a href="#privacy">Privacy by design <Icon name="arrow" size={13} /></a></div></footer>
     </div>
   );
 }

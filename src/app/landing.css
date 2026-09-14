@@ -397,3 +397,39 @@
 @media (max-width: 520px) { .buffer-site .buffer-nav { min-height: 78px; gap: 9px; } .buffer-site .buffer-nav-open { padding: 10px 13px; min-height: 44px; gap: 8px; } .buffer-site .buffer-hero h1 { font-size: clamp(1.65rem, 7.3vw, 2.3rem); } .buffer-heading-icon { padding: 6px; margin-left: 8px; border-radius: 9px; } .buffer-heading-icon svg { width: 19px; height: 19px; } .buffer-site .buffer-hero-stage { padding: 16px; } .buffer-site .buffer-hero-actions { gap: 15px; } .buffer-hero-inner { padding-top: 40px; gap: 29px; } .buffer-site .buffer-hero-note { line-height: 1.5; } }
 @media (max-height: 500px) and (min-width: 600px) { .buffer-hero-inner { padding-top: 40px; padding-bottom: 40px; } }
 @media (prefers-reduced-motion: reduce) { .buffer-hero h1, .buffer-hero-copy > p, .buffer-hero-actions { animation: none !important; } }
+
+/* B5: unify the landing page surfaces so the video, product preview, and editorial sections read as one system. */
+.buffer-site {
+  --landing-ivory: #f8f8f3;
+  --landing-ink: #192636;
+  --landing-blue-wash: #eef2ff;
+  --landing-sage-wash: #e3ecdc;
+  background: var(--landing-ivory);
+  color: var(--landing-ink);
+}
+.buffer-site .buffer-nav { position: relative; z-index: 4; }
+.buffer-site .buffer-nav-links a[href="/brand-kit"] { color: #536484; }
+.buffer-site .buffer-nav-links a[href="/brand-kit"]:hover { color: var(--cobalt); }
+.buffer-site .buffer-hero { background: linear-gradient(120deg, #f2f4ed 0%, #eef2ff 52%, #e8eee4 100%); }
+.buffer-site .buffer-hero::before { background: linear-gradient(100deg, #f8f8f3f5 0%, #f8f8f3d9 43%, #e8edffb0 100%); }
+.buffer-site .buffer-hero-inner { padding-top: clamp(50px, 8vw, 88px); padding-bottom: clamp(58px, 8vw, 88px); }
+.buffer-site .buffer-hero-stage { background: linear-gradient(145deg, #1f3766f2 0%, #192c51ed 48%, #243b6be8 100%); border-color: #9eb2ec70; box-shadow: 0 24px 80px #243b6b2b, inset 0 1px #ffffff1f; }
+.buffer-site .buffer-hero-stage::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 82% 12%, #b8c8ff2b, transparent 37%), radial-gradient(circle at 16% 93%, #5ce6ce1b, transparent 36%); z-index: 0; }
+.buffer-site .buffer-facts { border-color: #d9dfd6; background: #fafbf7a6; }
+.buffer-site .buffer-features { position: relative; }
+.buffer-site .buffer-coverage-story { border: 1px solid #e2e7dd; box-shadow: 0 20px 55px #2b40240d; }
+.buffer-site .buffer-method { padding-top: clamp(92px, 9vw, 132px); }
+.buffer-site .buffer-formula { background: linear-gradient(115deg, #e9edff 0%, #f0f2fb 100%); border: 1px solid #dce3f6; }
+.buffer-site .buffer-install { background: linear-gradient(135deg, #e9edff 0%, #eef2ff 58%, #e7eee2 100%); border: 1px solid #dce3f0; box-shadow: 0 22px 58px #304d8714; }
+.buffer-site .buffer-install-art { isolation: isolate; }
+.buffer-site .buffer-install-art::before { content: ''; position: absolute; inset: 10% 2%; border-radius: 50%; background: radial-gradient(circle, #ffffff73, transparent 63%); z-index: -1; }
+.buffer-site .buffer-app-caption { color: #315fe8; text-shadow: 0 1px #ffffff80; }
+.buffer-site .buffer-privacy { border-color: #d9dfd6; }
+.buffer-site .buffer-privacy-mark { background: linear-gradient(145deg, #e5ebde, #edf0e8); border: 1px solid #d6dfd0; }
+.buffer-site .buffer-faq { padding-top: clamp(90px, 9vw, 128px); }
+.buffer-site .buffer-last-call { background: linear-gradient(120deg, #315fe8 0%, #3b63de 58%, #4267d7 100%); }
+.buffer-site .buffer-last-call::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 15% 25%, #ffffff18, transparent 33%), radial-gradient(circle at 86% 75%, #8edfd52a, transparent 35%); }
+.buffer-site .buffer-last-call > * { position: relative; z-index: 1; }
+.buffer-site .buffer-footer { background: linear-gradient(145deg, #eef0e8 0%, #f3f4ef 100%); }
+.buffer-site .buffer-footer nav a[href="/brand-kit"] { color: var(--cobalt); font-weight: 600; }
+@media (max-width: 1000px) { .buffer-site .buffer-nav-links a[href="/brand-kit"] { display: none; } }

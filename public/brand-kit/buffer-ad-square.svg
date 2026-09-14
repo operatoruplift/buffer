@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" fill="none">
+  <defs><linearGradient id="bg" x1="90" y1="40" x2="970" y2="1040" gradientUnits="userSpaceOnUse"><stop stop-color="#EEF2FF"/><stop offset=".48" stop-color="#F8F8F3"/><stop offset="1" stop-color="#DFE8D7"/></linearGradient></defs>
+  <rect width="1080" height="1080" rx="72" fill="url(#bg)"/>
+  <circle cx="890" cy="190" r="280" fill="#315FE8" fill-opacity=".1"/>
+  <path d="M-40 842c233-179 421-180 594-21 157 145 309 187 594 22" stroke="#315FE8" stroke-opacity=".14" stroke-width="3"/>
+  <g transform="translate(90 86)"><rect width="122" height="122" rx="36" fill="#315FE8"/><path d="M28 12h42c22 0 34 14 34 34H86c0-8-5-13-14-13H28V12Zm0 36h42c22 0 34 14 34 34H86c0-8-5-13-14-13H28V48Zm0 36h55v20H28V84Z" fill="#fff"/></g>
+  <text x="90" y="430" fill="#192636" font-family="Helvetica Neue, Arial, sans-serif" font-size="82" font-weight="600" letter-spacing="-3">See the move</text>
+  <text x="90" y="522" fill="#315FE8" font-family="Helvetica Neue, Arial, sans-serif" font-size="82" font-weight="600" letter-spacing="-3">from a new angle.</text>
+  <text x="90" y="606" fill="#5F685F" font-family="Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="500" letter-spacing="2">READ-ONLY PERP SCENARIOS</text>
+  <rect x="90" y="835" width="900" height="88" rx="44" fill="#315FE8"/><text x="540" y="891" text-anchor="middle" fill="#fff" font-family="Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" letter-spacing="3">EXPLORE BUFFER</text>
+</svg>

@@ -38,6 +38,7 @@ export function MobileNavigation() {
         <a href="#features">Features <Icon name="arrow" /></a>
         <a href="#method">How it works <Icon name="arrow" /></a>
         <Link href="/demo">Demo <Icon name="arrow" /></Link>
+        <Link href="/brand-kit">Brand kit <Icon name="arrow" /></Link>
         <a href="#install">Get the app <Icon name="arrow" /></a>
         <Link href="/auth">Sign in <Icon name="arrow" /></Link>
         <Link href="/app" className={styles.primary}>Open Buffer <Icon name="arrow" /></Link>
