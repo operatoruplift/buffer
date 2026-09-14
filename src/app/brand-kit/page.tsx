@@ -14,6 +14,7 @@ type Asset = {
   label: string;
   description: string;
   src: string;
+  pngSrc?: string;
   width: number;
   height: number;
   format: string;
@@ -21,13 +22,13 @@ type Asset = {
 
 const assets: Asset[] = [
   { name: 'Profile picture', label: 'Profile · 1:1', description: 'Cobalt mark on a soft, luminous field. Ready for avatars and app profiles.', src: '/icons/icon-512.png', width: 512, height: 512, format: 'PNG' },
-  { name: 'Profile mark', label: 'Profile · crisp vector', description: 'The same mark as an SVG for platforms and design tools that support vectors.', src: '/brand-kit/buffer-profile.svg', width: 1024, height: 1024, format: 'SVG' },
-  { name: 'Social header', label: 'Header · 1500 × 500', description: 'A wide Buffer lockup for X, LinkedIn, YouTube, and community profiles.', src: '/brand-kit/buffer-header.svg', width: 1500, height: 500, format: 'SVG' },
-  { name: 'Phone wallpaper', label: 'Wallpaper · 1290 × 2796', description: 'A quiet blue and ivory gradient sized for modern phone screens.', src: '/brand-kit/buffer-wallpaper-phone.svg', width: 1290, height: 2796, format: 'SVG' },
-  { name: 'Desktop wallpaper', label: 'Wallpaper · 2880 × 1800', description: 'A wide desktop composition with room for your windows and widgets.', src: '/brand-kit/buffer-wallpaper-desktop.svg', width: 2880, height: 1800, format: 'SVG' },
-  { name: 'Square ad', label: 'Social post · 1080 × 1080', description: 'A ready-to-publish launch tile for feeds, stories, and community posts.', src: '/brand-kit/buffer-ad-square.svg', width: 1080, height: 1080, format: 'SVG' },
-  { name: 'Landscape ad', label: 'Social card · 1200 × 628', description: 'A link-preview and campaign card with the Buffer promise up front.', src: '/brand-kit/buffer-ad-landscape.svg', width: 1200, height: 628, format: 'SVG' },
-  { name: 'Soft background', label: 'Background · 1920 × 1080', description: 'An untextured brand field for decks, thumbnails, and custom announcements.', src: '/brand-kit/buffer-background.svg', width: 1920, height: 1080, format: 'SVG' },
+  { name: 'Profile mark', label: 'Profile · crisp vector', description: 'The same mark as an SVG for platforms and design tools that support vectors.', src: '/brand-kit/buffer-profile.svg', pngSrc: '/brand-kit/buffer-profile.png', width: 1024, height: 1024, format: 'PNG + SVG' },
+  { name: 'Social header', label: 'Header · 1500 × 500', description: 'A wide Buffer lockup for X, LinkedIn, YouTube, and community profiles.', src: '/brand-kit/buffer-header.svg', pngSrc: '/brand-kit/buffer-header.png', width: 1500, height: 500, format: 'PNG + SVG' },
+  { name: 'Phone wallpaper', label: 'Wallpaper · 1290 × 2796', description: 'A quiet blue and ivory gradient sized for modern phone screens.', src: '/brand-kit/buffer-wallpaper-phone.svg', pngSrc: '/brand-kit/buffer-wallpaper-phone.png', width: 1290, height: 2796, format: 'PNG + SVG' },
+  { name: 'Desktop wallpaper', label: 'Wallpaper · 2880 × 1800', description: 'A wide desktop composition with room for your windows and widgets.', src: '/brand-kit/buffer-wallpaper-desktop.svg', pngSrc: '/brand-kit/buffer-wallpaper-desktop.png', width: 2880, height: 1800, format: 'PNG + SVG' },
+  { name: 'Square ad', label: 'Social post · 1080 × 1080', description: 'A ready-to-publish launch tile for feeds, stories, and community posts.', src: '/brand-kit/buffer-ad-square.svg', pngSrc: '/brand-kit/buffer-ad-square.png', width: 1080, height: 1080, format: 'PNG + SVG' },
+  { name: 'Landscape ad', label: 'Social card · 1200 × 628', description: 'A link-preview and campaign card with the Buffer promise up front.', src: '/brand-kit/buffer-ad-landscape.svg', pngSrc: '/brand-kit/buffer-ad-landscape.png', width: 1200, height: 628, format: 'PNG + SVG' },
+  { name: 'Soft background', label: 'Background · 1920 × 1080', description: 'An untextured brand field for decks, thumbnails, and custom announcements.', src: '/brand-kit/buffer-background.svg', pngSrc: '/brand-kit/buffer-background.png', width: 1920, height: 1080, format: 'PNG + SVG' },
 ];
 
 const logos = [
@@ -79,7 +80,7 @@ export default function BrandKitPage() {
             <div className={`${styles.preview} ${asset.name === 'Profile picture' || asset.name === 'Profile mark' ? styles.squarePreview : ''}`}><Image src={asset.src} alt={`${asset.name} preview`} width={asset.width} height={asset.height} loading="eager" /></div>
             <div className={styles.assetMeta}><div><span className="eyebrow">{asset.label}</span><h3>{asset.name}</h3></div><span className={styles.format}>{asset.format}</span></div>
             <p>{asset.description}</p>
-            <a className={styles.download} href={asset.src} download><Icon name="download" size={15} /> Save to device</a>
+            <div className={styles.assetActions}><a className={styles.download} href={asset.pngSrc ?? asset.src} download><Icon name="download" size={15} /> Save to device</a>{asset.pngSrc && <a className={`${styles.download} ${styles.vectorDownload}`} href={asset.src} download>SVG</a>}</div>
           </article>)}
         </div>
       </section>
