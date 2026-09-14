@@ -277,6 +277,18 @@ svg {
   border: 1px solid var(--border);
   border-radius: 13px;
 }
+.positions.surface {
+  position: relative;
+  isolation: isolate;
+  background-color: #fff;
+  box-shadow: 0 16px 36px rgba(30, 48, 78, 0.08);
+}
+.positions.surface .panel-heading,
+.positions.surface .position-table,
+.positions.surface .position-cards,
+.positions.surface .table-note {
+  background-color: #fff;
+}
 .address-panel {
   padding: 20px 22px 16px;
 }

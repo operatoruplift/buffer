@@ -34,7 +34,7 @@ test('Pacifica markets, account reads, source timestamps and portable scenarios 
   await page.goto('/app');
   await chooseOption(page, 'Protocol', 'Pacifica');
   await page.getByRole('button', { name: 'Method', exact: true }).click();
-  await expect(page.getByRole('dialog')).toContainText('Sample fixture — not a live read');
+  await expect(page.getByRole('dialog')).toContainText('Reference fixture — no live read');
   await expect(page.getByRole('dialog')).not.toContainText('API price timestamp:');
   await expect(page.getByRole('dialog')).not.toContainText('Pacifica public API');
   await page.keyboard.press('Escape');
@@ -59,7 +59,7 @@ test('Pacifica markets, account reads, source timestamps and portable scenarios 
   await expect(dialog).toContainText('Pacifica public API');
   await expect(dialog).toContainText('API price timestamp:');
   await expect(dialog.locator('dt').filter({ hasText: /^Program$/ })).toHaveCount(0);
-  await expect(dialog).not.toContainText('Unavailable (sample)');
+  await expect(dialog).not.toContainText('Unavailable (fixture)');
   await page.keyboard.press('Escape');
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download report JSON' }).click();

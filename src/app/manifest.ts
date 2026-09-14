@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: 'Open your workspace', short_name: 'Workspace', url: '/app', description: 'Explore accounts and price scenarios' },
-      { name: 'Try the offline sample', short_name: 'Sample', url: '/offline.html', description: 'Explore a deterministic sample without an account' },
+      { name: 'Try offline mode', short_name: 'Offline', url: '/offline.html', description: 'Explore deterministic reference data without an account' },
     ],
   };
 }

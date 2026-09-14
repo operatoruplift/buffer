@@ -87,7 +87,7 @@ export default function PwaClient() {
           if (alive) setReady(true);
         })
         .catch(() => {
-          if (alive) setMessage('Offline sample preparation failed. Reload while online to try again.');
+          if (alive) setMessage('Offline mode preparation failed. Reload while online to try again.');
         });
     }
     return () => {
@@ -124,7 +124,7 @@ export default function PwaClient() {
         <span className={styles.brand}><Mark size={22} /><strong>Buffer, within reach.</strong></span>
         <div className={styles.actions}>
           <span className={styles.status} role="status">
-            {!online ? 'Offline · live data unavailable' : ready ? 'Offline sample ready' : 'Mobile & desktop app'}
+            {!online ? 'Offline · live data unavailable' : ready ? 'Offline mode ready' : 'Mobile & desktop app'}
           </span>
           {standalone || installedThisSession ? <span className={styles.installed}><Icon name="check" size={15} />Installed</span>
             : installPrompt ? <button type="button" className={styles.button} onClick={install} disabled={installing}><Icon name="download" size={16} />{installing ? 'Opening installer…' : 'Install Buffer'}</button>
@@ -136,7 +136,7 @@ export default function PwaClient() {
         </div>
       </div>
       {(!online || message || waiting) && <p className={styles.notice} role="status">
-        {!online && <>Live reads and saved reports need a connection. <a href="/offline.html">Open the offline sample.</a> </>}
+        {!online && <>Live reads and saved reports need a connection. <a href="/offline.html">Open offline mode.</a> </>}
         {message} {waiting && 'A new version is ready. Updating will reload Buffer and reset unsaved scenarios.'}
       </p>}
       <details ref={guide} className={styles.guide} id="buffer-install-guide">
@@ -146,7 +146,7 @@ export default function PwaClient() {
           <p><strong>Android</strong>In Chrome or Edge, use Install Buffer when it appears, or the browser menu’s Install app / Add to Home screen option.</p>
           <p><strong>Desktop</strong>In Chrome or Edge, use the address bar’s install icon or browser menu. In supported Safari versions, choose File → Add to Dock.</p>
         </div>
-        <p className={styles.footnote}>Installation options depend on your browser. If none is offered, Buffer still works in a browser tab. Offline mode includes a fixed sample; live accounts and cloud saves require internet.</p>
+        <p className={styles.footnote}>Installation options depend on your browser. If none is offered, Buffer still works in a browser tab. Offline mode includes fixed reference data; live accounts and cloud saves require internet.</p>
       </details>
     </aside>
   );

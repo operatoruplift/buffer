@@ -63,7 +63,7 @@ interface Scope {
 /** Fail closed if a future SDK changes the program or subscriber binding. */
 export function bindCanonicalDriftProgram(client: DriftClient): void {
   if (!(client.accountSubscriber instanceof PollingDriftClientAccountSubscriber)) {
-    throw new ProviderFailure('INVALID_CONFIGURATION', 'The read-only account subscriber is unavailable.', 503, false);
+    throw new ProviderFailure('INVALID_CONFIGURATION', 'The public account subscriber is unavailable.', 503, false);
   }
   if (DRIFT_PROGRAM_ID !== PROGRAM.toBase58() || !client.program.programId.equals(PROGRAM) || client.accountSubscriber.program !== client.program) throw new ProviderFailure('INVALID_CONFIGURATION', 'The Drift program could not be verified.', 503, false);
 }
@@ -71,8 +71,8 @@ export function bindCanonicalDriftProgram(client: DriftClient): void {
 function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as number[] }, oracleInfos: OracleInfo[] = []): DriftClient {
   const wallet: IWallet = {
     publicKey: scope.authority,
-    async signTransaction() { throw new Error('Buffer is read-only.'); },
-    async signAllTransactions() { throw new Error('Buffer is read-only.'); },
+    async signTransaction() { throw new Error('Buffer does not sign transactions.'); },
+    async signAllTransactions() { throw new Error('Buffer does not sign transactions.'); },
   };
   const client = new DriftClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta', programID: PROGRAM,
     skipLoadUsers: true, userStats: false, perpMarketIndexes: markets.perp, spotMarketIndexes: markets.spot, oracleInfos,
@@ -86,7 +86,7 @@ function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as n
 
 async function withScope<T>(authority: string, run: (scope: Scope) => Promise<T>): Promise<T> {
   const endpoint = process.env.SOLANA_RPC_URL?.trim();
-  if (!endpoint) throw new ProviderFailure('NOT_CONFIGURED', 'Live reads require server-side SOLANA_RPC_URL configuration. Sample accounts are ready to use.', 503, false);
+  if (!endpoint) throw new ProviderFailure('NOT_CONFIGURED', 'Live reads require server-side SOLANA_RPC_URL configuration. Preset accounts are ready to use.', 503, false);
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
   const programAccounts = new Set<string>();

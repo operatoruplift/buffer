@@ -6,7 +6,7 @@ export const metadata = { title: 'Watch Buffer — Demo, pitch and technical wal
 const mediaRevision = '20260913';
 const mediaPath = (id: string, extension: string) => `/videos/buffer-${id}${extension}?v=${mediaRevision}`;
 const videos = [
-  { id: 'demo', title: 'A little more perspective.', label: 'PRODUCT DEMO · 1:22', description: 'Explore a sample, move prices, inspect coverage, and export a scenario report.' },
+  { id: 'demo', title: 'A little more perspective.', label: 'PRODUCT DEMO · 1:22', description: 'Explore a preset, move prices, inspect coverage, and export a scenario report.' },
   { id: 'pitch', title: 'Make room for understanding.', label: 'THE PITCH · 0:52', description: 'Why Buffer exists, with the redesigned experience and real product footage.' },
   { id: 'technical', title: 'Behind the numbers.', label: 'TECHNICAL WALKTHROUGH · 1:46', description: 'Velocity, Pacifica, Jupiter inventory, precise arithmetic, and the boundaries behind every result.' },
 ];
@@ -23,7 +23,7 @@ export default function DemoPage() {
       </video>
       <div className={styles.downloads}><a href={mediaPath(video.id, '-transcript.md')}>Read transcript</a><a href={mediaPath(video.id, '.mp4')} download>Download video ↓</a></div>
     </section>)}
-    <p className={styles.note}>Updated September 13, 2026. Recorded in the current app with illustrative sample positions and prices. Provider availability and modeling limits are explained in each film. English captions and transcripts are included.</p>
+    <p className={styles.note}>Updated September 13, 2026. Recorded in the current app with illustrative positions and prices. Provider availability and modeling limits are explained in each film. English captions and transcripts are included.</p>
     <Link href="/app" className="button primary">Explore the demo yourself →</Link>
   </main>;
 }

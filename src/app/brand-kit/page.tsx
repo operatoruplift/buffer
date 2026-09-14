@@ -90,7 +90,7 @@ export default function BrandKitPage() {
         <div className={styles.logoList}>{logos.map(logo => <a className={styles.logoRow} href={logo.src} download key={logo.src}><span><LogoPreview src={logo.src} /></span><strong>{logo.name}</strong><small>{logo.format} <Icon name="download" size={13} /></small></a>)}</div>
       </section>
 
-      <footer className={styles.footer}><Link href="/" aria-label="Buffer home"><Brand large /></Link><div><span>Buffer · read-only scenario exploration</span><Link href="/app">Open the app <Icon name="arrow" size={14} /></Link></div></footer>
+      <footer className={styles.footer}><Link href="/" aria-label="Buffer home"><Brand large /></Link><div><span>Buffer · public price exploration</span><Link href="/app">Open the app <Icon name="arrow" size={14} /></Link></div></footer>
     </main>
   );
 }

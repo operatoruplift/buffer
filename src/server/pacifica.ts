@@ -74,7 +74,7 @@ export const pacificaProvider: LiveProvider = {
     }
   }),
   snapshot: (authority, subaccount) => withRequest(authority, async (read, startedAt) => {
-    if (subaccount !== 0) throw new ProviderFailure('SUBACCOUNT_NOT_FOUND', 'Select the Pacifica wallet account. Signed subaccount discovery is outside this read-only integration.', 404, false);
+    if (subaccount !== 0) throw new ProviderFailure('SUBACCOUNT_NOT_FOUND', 'Select the Pacifica wallet account. Signed subaccount discovery is outside this public integration.', 404, false);
     const account = await read('/account');
     validatePacificaAccount(account, Date.now());
     const [positions, info, prices, loan] = await Promise.all([read('/positions'), read('/info'), read('/info/prices'), read('/account/loan')]);

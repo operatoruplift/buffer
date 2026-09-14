@@ -60,10 +60,10 @@ test.afterEach(async ({ page }) => {
 
 test('selectors support keyboard navigation, typeahead, dismissal, and a contained mobile menu', async ({ page }) => {
   await page.goto('/app');
-  const selector = page.getByRole('combobox', { name: 'Try a sample', exact: true });
+  const selector = page.getByRole('combobox', { name: 'Try a preset', exact: true });
   await selector.focus();
   await page.keyboard.press('ArrowDown');
-  const list = page.getByRole('listbox', { name: 'Try a sample', exact: true });
+  const list = page.getByRole('listbox', { name: 'Try a preset', exact: true });
   await expect(list).toBeVisible();
   const menu = await list.boundingBox();
   const viewport = page.viewportSize()!;
@@ -104,12 +104,12 @@ test('selectors support keyboard navigation, typeahead, dismissal, and a contain
 
 test('complete deterministic sample journey: positions, preset, keyboard slider, Method, JSON, reset, refresh', async ({ page }) => {
   await page.goto('/app');
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
-  await chooseOption(page, 'Try a sample', 'SOL long');
+  await chooseOption(page, 'Try a preset', 'SOL long');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
-  await chooseOption(page, 'Try a sample', 'Long + short');
+  await chooseOption(page, 'Try a preset', 'Long + short');
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await expect(page.getByRole('heading', { name: 'Your perpetual positions' })).toBeVisible();
   await page.getByRole('button', { name: '-10%', exact: true }).click();
@@ -135,7 +135,7 @@ test('complete deterministic sample journey: positions, preset, keyboard slider,
   const drawer = page.getByRole('dialog', { name: 'Method & coverage' });
   await expect(drawer).toBeVisible();
   await expect(drawer).toContainText('signed size × oracle price × price move');
-  await expect(drawer).toContainText('Sample fixture — not a live read');
+  await expect(drawer).toContainText('Reference fixture — no live read');
   await expect(drawer).toContainText('Modeled positions only: 2 of 2');
   await expect(drawer.getByRole('button', { name: 'Close Method' })).toBeFocused();
   await page.keyboard.press('Escape');
@@ -162,7 +162,7 @@ test('complete deterministic sample journey: positions, preset, keyboard slider,
 
 test('partial sample keeps excluded exposure, spot collateral/debt, and orders visible', async ({ page }) => {
   await page.goto('/app');
-  await chooseOption(page, 'Try a sample', 'Partial coverage');
+  await chooseOption(page, 'Try a preset', 'Partial coverage');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
   await expect(page.locator('.coverage')).toContainText('Modeled positions only: 2 of 3');
@@ -196,7 +196,7 @@ test('invalid address has an explicit error and keeps the sample intact', async 
   await page.goto('/app');
   await readAddress(page, 'invalid address');
   await expect(page.getByRole('alert').filter({ hasText: 'Check the address' })).toContainText('Check the address');
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
 });
 
 test('mocked live provider error is honest, retryable, and never swaps in fixtures', async ({ page }) => {
@@ -220,8 +220,8 @@ test('mocked no-account response offers a working sample entry', async ({ page }
   await page.goto('/app');
   await readAddress(page);
   await expect(page.getByRole('heading', { name: 'No Velocity subaccounts found' })).toBeVisible();
-  await page.getByRole('button', { name: 'Explore a sample' }).click();
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Explore a preset' }).click();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
 });
 
@@ -235,7 +235,7 @@ test('mocked success requires explicit subaccount selection and refresh resets t
   expect(reads).toBe(0);
   await chooseOption(page, 'Subaccount', 'Mock main · #0');
   await expect(page.getByRole('button', { name: 'Add perps', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('combobox', { name: 'Sample denomination', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('combobox', { name: 'Denomination', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+3,500.00');
@@ -357,12 +357,12 @@ test('mocked pending old wallet response cannot replace a newly chosen sample', 
   await page.goto('/app');
   await readAddress(page, OTHER_AUTHORITY);
   await expect.poll(() => requested).toBe(true);
-  await chooseOption(page, 'Try a sample', 'SOL long');
+  await chooseOption(page, 'Try a preset', 'SOL long');
   releaseOld!();
   await oldCompleted;
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Subaccount', { exact: true })).toHaveText('SOL long · #0');
 });
 

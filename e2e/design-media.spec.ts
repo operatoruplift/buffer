@@ -74,5 +74,5 @@ test('mobile sheet contains keyboard focus, restores scroll and reaches real rou
   await page.setViewportSize({ width: 720, height: 450 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('link', { name: 'Continue without an account' }).click();
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
 });

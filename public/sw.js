@@ -48,7 +48,7 @@ self.addEventListener('fetch', (event) => {
         return await fetch(request, { cache: 'no-store' });
       } catch {
         return await caches.match(OFFLINE_URL, { cacheName: CACHE_NAME })
-          ?? new Response('Buffer is offline. Reconnect and reload to prepare the sample.', {
+          ?? new Response('Buffer is offline. Reconnect and reload to prepare offline mode.', {
             status: 503,
             headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
           });

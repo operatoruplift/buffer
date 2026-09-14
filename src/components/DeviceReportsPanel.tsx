@@ -51,7 +51,7 @@ export default function DeviceReportsPanel({ report }: { report: Report | null }
       {error && <p role="alert">{error} <button className="button subtle" onClick={load}>Retry</button></p>}
       {!error && reports.length === 0 && <p>No reports saved yet.</p>}
       <ul className={styles.list}>{reports.map(item => <li key={item.id}>
-        <strong>{item.title}</strong><small>{new Date(item.created_at).toLocaleString()} · {item.report.sourceMode === 'sample' ? 'Sample fixture' : 'Live snapshot'} · Historical</small>
+        <strong>{item.title}</strong><small>{new Date(item.created_at).toLocaleString()} · {item.report.sourceMode === 'sample' ? 'Preset fixture' : 'Live snapshot'} · Historical</small>
         <details className={styles.summary}><summary>View saved explanation</summary>
           <p>Perp price P&amp;L change at {item.report.scenario.shockPercent}%</p>
           {item.report.scenario.totalsByQuoteCurrency.map(total => <p className={styles.total} key={total.quote}>{formatDecimal(total.delta, 2, true)} <span>{total.quote}</span></p>)}

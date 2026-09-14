@@ -19,7 +19,7 @@ export const SAMPLE_MARKET_CATALOG = CONFIGURED_PERP_MARKETS.pacifica.map(market
   price: prices[market.asset],
 }));
 
-const FIXTURE_REASON = 'Editable sample baseline price. No live oracle was read.';
+const FIXTURE_REASON = 'Editable reference price. No live oracle was read.';
 
 function positiveDecimal(value: string, label: string): string {
   if (!/^\d{1,18}(?:\.\d{1,18})?$/.test(value) || new D(value).lessThanOrEqualTo(0)) {
@@ -29,7 +29,7 @@ function positiveDecimal(value: string, label: string): string {
 }
 
 function sampleQuote(value: string): SampleQuote {
-  if (!SAMPLE_QUOTES.some(quote => quote === value)) throw new Error('Choose USDC, USDT, or USD for this sample.');
+  if (!SAMPLE_QUOTES.some(quote => quote === value)) throw new Error('Choose USDC, USDT, or USD for this portfolio.');
   return value as SampleQuote;
 }
 
@@ -45,15 +45,15 @@ function fixtureMetrics(positions: Position[], quote: SampleQuote): Snapshot['me
     else long = long.plus(notional);
   }
   return [
-    { label: 'Gross notional', value: long.plus(short).toFixed(), unit: quote, explanation: 'Modeled sample positions only; excluded positions omitted. Absolute quantity × baseline price in this denomination; exposure, not equity.' },
-    { label: 'Long notional', value: long.toFixed(), unit: quote, explanation: 'Modeled sample positions only; excluded positions omitted. Long exposure stays fixed when you move the scenario slider.' },
-    { label: 'Short notional', value: short.toFixed(), unit: quote, explanation: 'Modeled sample positions only; excluded positions omitted. Absolute short exposure; no collateral or margin health is assumed.' },
+    { label: 'Gross notional', value: long.plus(short).toFixed(), unit: quote, explanation: 'Modeled positions only; excluded positions omitted. Absolute quantity × baseline price in this denomination; exposure, not equity.' },
+    { label: 'Long notional', value: long.toFixed(), unit: quote, explanation: 'Modeled positions only; excluded positions omitted. Long exposure stays fixed when you move the scenario slider.' },
+    { label: 'Short notional', value: short.toFixed(), unit: quote, explanation: 'Modeled positions only; excluded positions omitted. Absolute short exposure; no collateral or margin health is assumed.' },
   ];
 }
 
 function makePosition(asset: string, input: SamplePerpInput, quote: SampleQuote): Position {
   const market = SAMPLE_MARKET_CATALOG.find(entry => entry.asset === asset);
-  if (!market) throw new Error('Choose a perpetual from the sample market catalog.');
+  if (!market) throw new Error('Choose a perpetual from the market catalog.');
   if (input.side !== 'long' && input.side !== 'short') throw new Error('Choose Long or Short.');
   const quantity = positiveDecimal(input.quantity, 'Quantity');
   const price = positiveDecimal(input.price, 'Baseline price');
@@ -66,7 +66,7 @@ function makePosition(asset: string, input: SamplePerpInput, quote: SampleQuote)
   };
 }
 
-/** A new detached sample; neither this factory nor the editor reads a provider. */
+/** A new detached portfolio; neither this factory nor the editor reads a provider. */
 export function getPortfolioSampleSnapshot(): Snapshot {
   const positions = [
     makePosition('SOL', { side: 'long', quantity: '100', price: '150' }, 'USDC'),
@@ -80,12 +80,12 @@ export function getPortfolioSampleSnapshot(): Snapshot {
     retrievedAt: fixtures.capturedAt, expiresAt: null, accountSlot: null, observedSlot: null,
     positions,
     metrics: fixtureMetrics(positions, 'USDC'), spots: [], orders: [], inventoryAvailable: true,
-    warnings: ['Sample portfolio: all quantities and baseline prices are editable fixtures. No account, collateral balance, or trade is created.'],
+    warnings: ['Preset portfolio: all quantities and baseline prices are editable fixtures. No account, collateral balance, or trade is created.'],
     provenance: [
-      'Buffer sample portfolio builder. No wallet address, live account, or RPC slot is associated with this fixture.',
+      'Buffer portfolio builder. No wallet address, live account, or RPC slot is associated with this fixture.',
       'The catalog uses the 76 configured Pacifica perpetual identities. Its protocol metadata identifies the catalog, not a live Pacifica account.',
       `Newly added market defaults are frozen from ${fixtures.source} at ${fixtures.capturedAt}; SOL, BTC, ETH, and XRP use round illustrative values. Existing presets retain their illustrative prices; edited prices are user-supplied fixtures.`,
-      'USDC, USDT, and USD are illustrative sample denominations. Changing denomination preserves numeric inputs, performs no currency conversion, and does not assert venue settlement support.',
+      'USDC, USDT, and USD are illustrative denominations. Changing denomination preserves numeric inputs, performs no currency conversion, and does not assert venue settlement support.',
     ],
   };
 }
@@ -93,7 +93,7 @@ export function getPortfolioSampleSnapshot(): Snapshot {
 function editableSnapshot(snapshot: Snapshot): Snapshot {
   if (snapshot.source !== 'sample' || snapshot.network !== 'fixture' || snapshot.authority !== null ||
       (snapshot.protocol && !isCanonicalProtocol(snapshot.protocol))) {
-    throw new Error('Only sample portfolios can be edited. Live account snapshots are read only.');
+    throw new Error('Only preset portfolios can be edited. Live account snapshots cannot be changed here.');
   }
   const next = structuredClone(snapshot);
   next.protocol = { ...PROTOCOLS.pacifica };
@@ -109,7 +109,7 @@ function editableSnapshot(snapshot: Snapshot): Snapshot {
   // the sample catalog; preserve intentionally unsupported positions as excluded.
   next.positions = next.positions.map(position => {
     const market = SAMPLE_MARKET_CATALOG.find(entry => entry.asset === position.asset && entry.market === position.market);
-    if (!market) return { ...position, modeled: false, exclusionReason: position.exclusionReason ?? 'This market is outside the sample catalog.' };
+    if (!market) return { ...position, modeled: false, exclusionReason: position.exclusionReason ?? 'This market is outside the configured catalog.' };
     return { ...position, marketIndex: market.marketIndex };
   });
   return next;
@@ -132,9 +132,9 @@ export function setSampleQuote(snapshot: Snapshot, value: string): Snapshot {
 
 export function addSamplePerp(snapshot: Snapshot, asset: string, value = getSampleQuote(snapshot)): Snapshot {
   const next = editableSnapshot(snapshot);
-  if (next.positions.some(position => position.asset === asset)) throw new Error('This perpetual is already in your sample. Edit its existing position.');
+  if (next.positions.some(position => position.asset === asset)) throw new Error('This perpetual is already in your portfolio. Edit its existing position.');
   const market = SAMPLE_MARKET_CATALOG.find(entry => entry.asset === asset);
-  if (!market) throw new Error('Choose a perpetual from the sample market catalog.');
+  if (!market) throw new Error('Choose a perpetual from the market catalog.');
   next.positions.push(makePosition(asset, { side: 'long', quantity: '1', price: market.price }, sampleQuote(value)));
   next.metrics = fixtureMetrics(next.positions, sampleQuote(value));
   return next;
@@ -143,7 +143,7 @@ export function addSamplePerp(snapshot: Snapshot, asset: string, value = getSamp
 export function updateSamplePerp(snapshot: Snapshot, id: string, input: SamplePerpInput): Snapshot {
   const next = editableSnapshot(snapshot);
   const index = next.positions.findIndex(position => position.id === id);
-  if (index < 0) throw new Error('This position is no longer in your sample.');
+  if (index < 0) throw new Error('This position is no longer in your portfolio.');
   const position = next.positions[index];
   next.positions[index] = { ...makePosition(position.asset, input, sampleQuote(position.quote)), id: position.id };
   next.metrics = fixtureMetrics(next.positions, getSampleQuote(snapshot));
@@ -152,7 +152,7 @@ export function updateSamplePerp(snapshot: Snapshot, id: string, input: SamplePe
 
 export function removeSamplePerp(snapshot: Snapshot, id: string): Snapshot {
   const next = editableSnapshot(snapshot);
-  if (!next.positions.some(position => position.id === id)) throw new Error('This position is no longer in your sample.');
+  if (!next.positions.some(position => position.id === id)) throw new Error('This position is no longer in your portfolio.');
   next.positions = next.positions.filter(position => position.id !== id);
   next.metrics = fixtureMetrics(next.positions, getSampleQuote(snapshot));
   return next;

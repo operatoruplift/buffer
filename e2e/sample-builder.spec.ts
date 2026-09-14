@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { chooseOption } from './select-helper';
 
-test('build a multi-perp sample, edit exact inputs, switch denomination, refresh and export it', async ({ page }) => {
+test('build a multi-perp portfolio, edit exact inputs, switch denomination, refresh and export it', async ({ page }) => {
   const reads: string[] = [];
   const errors: string[] = [];
   page.on('request', request => { if (/\/api\/(accounts|snapshot)\?/.test(request.url())) reads.push(request.url()); });
@@ -14,7 +14,7 @@ test('build a multi-perp sample, edit exact inputs, switch denomination, refresh
     await expect(image).toBeVisible();
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   }
-  await expect(page.getByRole('combobox', { name: 'Sample denomination', exact: true })).toHaveText('USDC');
+  await expect(page.getByRole('combobox', { name: 'Denomination', exact: true })).toHaveText('USDC');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+1,000.00');
   await expect(page.getByRole('region', { name: 'Baseline account metrics' })).toContainText('90,000.00');
@@ -37,7 +37,7 @@ test('build a multi-perp sample, edit exact inputs, switch denomination, refresh
   const hype = page.getByRole('form', { name: 'Edit HYPE-PERP', exact: true });
   await hype.getByRole('button', { name: 'Short', exact: true }).click();
   await hype.getByRole('textbox', { name: 'Quantity · HYPE', exact: true }).fill('2');
-  await hype.getByRole('textbox', { name: 'Sample price · USDC', exact: true }).fill('100');
+  await hype.getByRole('textbox', { name: 'Reference price · USDC', exact: true }).fill('100');
   await hype.getByRole('button', { name: 'Apply changes', exact: true }).click();
   await expect(hype.getByRole('button', { name: 'Short', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('scenario-total')).toContainText('+1,020.00');
@@ -52,14 +52,14 @@ test('build a multi-perp sample, edit exact inputs, switch denomination, refresh
   await page.getByRole('button', { name: 'Remove XRP-PERP', exact: true }).click();
   await expect(page.getByRole('form', { name: 'Edit XRP-PERP', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('scenario-total')).toContainText('+1,520.00');
-  await chooseOption(page, 'Sample denomination', 'USDT');
+  await chooseOption(page, 'Denomination', 'USDT');
   await expect(page.getByTestId('scenario-total')).toContainText('+1,520.00');
   await expect(page.getByTestId('scenario-total')).toContainText('USDT');
-  await expect(hype.getByRole('textbox', { name: 'Sample price · USDT', exact: true })).toHaveValue('100');
+  await expect(hype.getByRole('textbox', { name: 'Reference price · USDT', exact: true })).toHaveValue('100');
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.getByRole('slider', { name: 'Shared price move' })).toHaveValue('0');
   await expect(hype.getByRole('textbox', { name: 'Quantity · HYPE', exact: true })).toHaveValue('2');
-  await expect(page.getByRole('combobox', { name: 'Sample denomination', exact: true })).toHaveText('USDT');
+  await expect(page.getByRole('combobox', { name: 'Denomination', exact: true })).toHaveText('USDT');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download report JSON' }).click();

@@ -4,7 +4,7 @@ test('Meridial Light hero travels one real scenario into the expanded board and 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const stage = page.locator('.buffer-hero-stage');
-  const preview = page.getByLabel('Interactive sample scenario');
+  const preview = page.getByLabel('Interactive price scenario');
   await expect(page.getByRole('heading', { name: 'Every position. Every price move. A clearer picture.' })).toBeVisible();
   await expect(page.locator('video[data-media="Meridial Light hero"]')).toHaveCount(1);
   await expect.poll(() => page.locator('video[data-media="Meridial Light hero"]').evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);

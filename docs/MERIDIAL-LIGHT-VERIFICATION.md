@@ -8,6 +8,7 @@ Prepared September 14, 2026 for the local Buffer redesign handoff. This document
 - The copy is the three-line product statement: “Every position.” / “Every price move.” / “A clearer picture.”
 - The stage shows the existing two-position long/short fixture and a derived coverage card. At −10%, the engine still reports SOL −1,500, BTC +5,000, and +3,500 USDC.
 - “Explore the scenario” moves the same controlled preview into a wider board. “Back to overview” returns it without resetting the slider or starting another video.
+- The app’s Perpetual positions panel is an explicit opaque white surface with a stable boundary and shadow. Visible fixture copy uses “Demo,” “Examples,” and “Preset” language; the underlying source mode and report schema remain unchanged.
 - B4 feature clips, B6 auth refraction, the app explorer, optional auth, reports, PWA behavior, brand assets, and the three September 13 product films remain on their existing routes.
 
 ## Local evidence

@@ -178,7 +178,7 @@ export function normalizePacificaSnapshot(input: PacificaReadData): Snapshot {
       { label: 'Account balance', value: balance, unit: 'USD', explanation: 'Current balance before settlement, reported by Pacifica in USD units. USDC is the margin asset.' },
       { label: 'Margin in use', value: decimal(account.total_margin_used, 'nonnegative'), unit: 'USD', explanation: 'Current margin used for positions and orders, reported by Pacifica. Not health, available funds, or a safety guarantee.' },
     ], positions, spots, orders, inventoryAvailable: true, warnings,
-    provenance: ['Pacifica public HTTPS API · https://api.pacifica.fi/api/v1 · read-only GET requests. No signing, private keys, or user-supplied endpoints.',
+    provenance: ['Pacifica public HTTPS API · https://api.pacifica.fi/api/v1 · public GET requests. No signing, private keys, or user-supplied endpoints.',
       'Only the supplied wallet account is read. Pacifica’s signed subaccount enumeration is not requested.',
       'Every modeled market matches Buffer’s pinned symbol/base-asset registry and live perpetual metadata. Registry indices are Buffer identifiers, not Pacifica market IDs.',
       'The scenario uses Pacifica’s reported oracle field in USD. Amounts are already market base units, including kBONK, kPEPE, and kSHIB; no thousand-fold conversion is applied.',

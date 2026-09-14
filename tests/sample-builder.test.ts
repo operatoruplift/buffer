@@ -81,7 +81,7 @@ describe('editable sample portfolio', () => {
     const snapshot = updateSamplePerp(original, original.positions[0].id, { side: 'long', quantity: '100', price: '150' });
     expect(snapshot.positions.find(position => position.asset === 'OTHER')).toMatchObject({ modeled: false, notional: '1000' });
     expect(snapshot.metrics.map(metric => metric.value)).toEqual(['65000', '15000', '50000']);
-    expect(snapshot.metrics.every(metric => metric.explanation.includes('Modeled sample positions only; excluded positions omitted'))).toBe(true);
+    expect(snapshot.metrics.every(metric => metric.explanation.includes('Modeled positions only; excluded positions omitted'))).toBe(true);
     expect(calculateScenario(snapshot, -10).totals).toEqual([{ quote: 'USDC', delta: '3500' }]);
   });
 
@@ -116,10 +116,10 @@ describe('editable sample portfolio', () => {
 
   it('rejects all edits to live snapshots, even when their positions resemble fixtures', () => {
     const snapshot = { ...getPortfolioSampleSnapshot(), source: 'live' as const, network: 'mainnet-beta' as const, authority: '11111111111111111111111111111111' };
-    expect(() => addSamplePerp(snapshot, 'HYPE')).toThrow('read only');
-    expect(() => setSampleQuote(snapshot, 'USD')).toThrow('read only');
-    expect(() => removeSamplePerp(snapshot, snapshot.positions[0].id)).toThrow('read only');
-    expect(() => updateSamplePerp(snapshot, snapshot.positions[0].id, { side: 'short', quantity: '1', price: '1' })).toThrow('read only');
+    expect(() => addSamplePerp(snapshot, 'HYPE')).toThrow('cannot be changed');
+    expect(() => setSampleQuote(snapshot, 'USD')).toThrow('cannot be changed');
+    expect(() => removeSamplePerp(snapshot, snapshot.positions[0].id)).toThrow('cannot be changed');
+    expect(() => updateSamplePerp(snapshot, snapshot.positions[0].id, { side: 'short', quantity: '1', price: '1' })).toThrow('cannot be changed');
   });
 
   it('exports and saves edited inputs, exact totals, and explicit sample provenance', () => {

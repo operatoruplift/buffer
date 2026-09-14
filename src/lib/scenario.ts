@@ -14,7 +14,7 @@ export const ASSUMPTIONS = [
   'Unsupported contracts, LP exposure, undecodable positions, and missing, nonpositive, or invalid oracle prices are excluded with a reason.',
   `Live calculations expire ${FRESHNESS_SECONDS} seconds after retrieval, or earlier when the provider marks them expired. This is a conservative app rule, not a protocol liquidation rule.`,
   'Account, market, and oracle reads are not atomic. RPC providers report observed slots; public API providers report available price timestamps without claiming on-chain slot verification.',
-  'Sample accounts, metrics, and prices are deterministic fixtures; they are not live on-chain observations.',
+  'Preset accounts, metrics, and prices are deterministic fixtures; they are not live on-chain observations.',
 ];
 
 // Providers normalize values to plain decimal strings before crossing the boundary.

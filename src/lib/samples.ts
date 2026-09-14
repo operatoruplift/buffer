@@ -5,16 +5,16 @@ export const SAMPLE_ACCOUNTS = [
   { id: 'sol-long', name: 'SOL long', description: 'One position. A clear place to start.' },
   { id: 'long-short', name: 'Long + short', description: 'SOL long and BTC short. Two sides of a move.' },
   { id: 'partial-coverage', name: 'Partial coverage', description: 'An excluded perpetual, collateral, debt, and open orders.' },
-  { id: 'btc-long', name: 'BTC long', description: 'A Bitcoin position. Fixed sample prices.' },
-  { id: 'eth-long', name: 'ETH long', description: 'An Ethereum position. Fixed sample prices.' },
-  { id: 'hype-long', name: 'HYPE long', description: 'Explore Hyperliquid token exposure with fixed sample prices.' },
+  { id: 'btc-long', name: 'BTC long', description: 'A Bitcoin position. Fixed reference prices.' },
+  { id: 'eth-long', name: 'ETH long', description: 'An Ethereum position. Fixed reference prices.' },
+  { id: 'hype-long', name: 'HYPE long', description: 'Explore Hyperliquid token exposure with fixed reference prices.' },
   { id: 'sol-short', name: 'SOL short', description: 'See how a Solana short responds to a move.' },
   { id: 'btc-short', name: 'BTC short', description: 'See how a Bitcoin short responds to a move.' },
   { id: 'eth-short', name: 'ETH short', description: 'See how an Ethereum short responds to a move.' },
   { id: 'hype-short', name: 'HYPE short', description: 'See how a HYPE short responds to a move.' },
   { id: 'market-basket', name: 'Four-market basket', description: 'SOL, BTC, ETH, and HYPE longs in one USDT scenario.' },
   { id: 'hedged-basket', name: 'Mixed four-market basket', description: 'SOL and ETH longs; BTC and HYPE shorts.' },
-  { id: DEFAULT_SAMPLE_ID, name: 'Four-market portfolio', description: 'SOL, BTC, ETH, and XRP. Add more perps and edit your own sample.' },
+  { id: DEFAULT_SAMPLE_ID, name: 'Four-market portfolio', description: 'SOL, BTC, ETH, and XRP. Add more perps and edit your own portfolio.' },
 ];
 
 const FIXTURE_TIME = '2026-09-11T12:00:00.000Z';
@@ -40,14 +40,14 @@ function position(asset: SampleAsset, size: string, price: string, notional: str
     id: `fixture-${asset.toLowerCase()}`, marketIndex: FIXTURE_MARKETS[asset].index,
     market: `${asset}-PERP`, asset, size, price, quote, notional,
     modeled: true, exclusionReason: null, isolated: false,
-    oracle: { slot: null, readSlot: null, valid: true, reason: 'Deterministic sample price; no live oracle was read.' },
+    oracle: { slot: null, readSlot: null, valid: true, reason: 'Deterministic reference price; no live oracle was read.' },
   };
 }
 
 export function getSampleSnapshot(id: string): Snapshot {
   if (id === DEFAULT_SAMPLE_ID) return getPortfolioSampleSnapshot();
   const sample = SAMPLE_ACCOUNTS.find((account) => account.id === id);
-  if (!sample) throw new Error('Unknown sample account. Choose one of the listed samples.');
+  if (!sample) throw new Error('Unknown preset account. Choose one of the listed presets.');
   const expanded = Boolean(SINGLE_MARKET_SAMPLES[id]) || id === 'market-basket' || id === 'hedged-basket';
   const quote = expanded ? 'USDT' : 'USDC';
   let positions = [position('SOL', '100', '150', '15000')];
@@ -66,8 +66,8 @@ export function getSampleSnapshot(id: string): Snapshot {
   if (id === 'partial-coverage') positions.push({
     id: 'fixture-unsupported', marketIndex: -1, market: 'OTHER-PERP', asset: 'OTHER',
     size: '250', price: '4', quote: 'USDC', notional: '1000',
-    modeled: false, exclusionReason: 'Sample unsupported market; only verified linear perpetuals are modeled.',
-    isolated: false, oracle: { slot: null, readSlot: null, valid: true, reason: 'Deterministic sample price; no live oracle was read.' },
+    modeled: false, exclusionReason: 'Preset unsupported market; only verified linear perpetuals are modeled.',
+    isolated: false, oracle: { slot: null, readSlot: null, valid: true, reason: 'Deterministic reference price; no live oracle was read.' },
   });
   return {
     source: 'sample', network: 'fixture', authority: null, sampleName: sample.name,
@@ -86,11 +86,11 @@ export function getSampleSnapshot(id: string): Snapshot {
       ? [{ market: 'SOL-PERP', count: 2 }, { market: 'BTC-PERP', count: 1 }, { market: 'SOL', count: 1 }]
       : [],
     inventoryAvailable: true,
-    warnings: ['Sample account: all positions, prices, inventory, and baseline metrics are deterministic fixtures.'],
+    warnings: ['Preset account: all positions, prices, inventory, and baseline metrics are deterministic fixtures.'],
     provenance: [
-      'Buffer built-in sample provider. No public wallet address, on-chain account, or RPC slot is associated with this fixture.',
+      'Buffer built-in preset provider. No public wallet address, on-chain account, or RPC slot is associated with this fixture.',
       'Fixture values are fixed at 2026-09-11 12:00 UTC for reproducible demonstrations.',
-      'Sample labels and market indices are fixture identifiers, not evidence of a decoded mainnet market.',
+      'Preset labels and market indices are fixture identifiers, not evidence of a decoded mainnet market.',
     ],
   };
 }

@@ -22,7 +22,7 @@ const subscribeReady = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 
-/** B4 uses the supplied fluid media behind real, explicitly labeled sample data. */
+/** B4 uses the supplied fluid media behind real, explicitly labeled reference data. */
 export function VideoFeatures({ paused }: { paused: boolean }) {
   const section = useRef<HTMLElement>(null);
   const seen = useRef(new WeakSet<HTMLElement>());
@@ -69,7 +69,7 @@ export function VideoFeatures({ paused }: { paused: boolean }) {
         <p>Your positions, the scope of the calculation, and the math behind each result. All in view.</p>
       </div>
       <div className={styles.cards}>
-        <FeatureCard index={0} title="Positions" copy="See the size and direction of each position. Start with a sample, or read a public account." link="Explore positions" href="/app" media={DESIGN_MEDIA.positions} paused={motionPaused}>
+        <FeatureCard index={0} title="Positions" copy="See the size and direction of each position. Start with a preset, or read a public account." link="Explore positions" href="/app" media={DESIGN_MEDIA.positions} paused={motionPaused}>
           <PositionsGraphic />
         </FeatureCard>
         <FeatureCard index={1} title="Coverage" copy="Know what makes it into the model. Unsupported exposure stays visible with an explanation." link="See what is included" href="#method" media={DESIGN_MEDIA.coverage} paused={motionPaused}>
@@ -79,7 +79,7 @@ export function VideoFeatures({ paused }: { paused: boolean }) {
           <MathGraphic />
         </FeatureCard>
       </div>
-      <p className={styles.sectionNote}>Illustrative sample positions and fixed prices. Price effects exclude funding, fees, collateral changes, and liquidation.</p>
+      <p className={styles.sectionNote}>Illustrative positions and fixed prices. Price effects exclude funding, fees, collateral changes, and liquidation.</p>
     </div>
   </section>;
 }
@@ -93,14 +93,14 @@ function FeatureCard({ index, title, copy, link, href, media, paused, children }
     <div className={styles.cardWash} aria-hidden="true" />
     <div className={styles.dotMatrix} aria-hidden="true" />
     <div className={styles.cardRim} aria-hidden="true" />
-    <div className={styles.cardLabel}><span>{String(index + 1).padStart(2, '0')}</span><span className={styles.sampleLabel}>SAMPLE</span></div>
+    <div className={styles.cardLabel}><span>{String(index + 1).padStart(2, '0')}</span><span className={styles.sampleLabel}>DEMO</span></div>
     <div className={styles.graphic}>{children}</div>
     <div className={styles.cardCopy}><h3><span>{title}</span></h3><p>{copy}</p><Link href={href}>{link}<Icon name="arrow" size={17} /></Link></div>
   </article>;
 }
 
 function PositionsGraphic() {
-  return <div className={styles.positionsGraphic} aria-label="Sample SOL long and BTC short positions">
+  return <div className={styles.positionsGraphic} aria-label="Example SOL long and BTC short positions">
     <div className={`${styles.windowEcho} ${styles.windowEchoOne}`} aria-hidden="true" />
     <div className={`${styles.windowEcho} ${styles.windowEchoTwo}`} aria-hidden="true" />
     <div className={styles.positionWindow}>
@@ -118,7 +118,7 @@ function PositionsGraphic() {
 
 function CoverageGraphic() {
   const circumference = 2 * Math.PI * 76;
-  return <div className={styles.coverageGraphic} aria-label={`${partial.eligible} of ${partial.totalPositions} sample positions modeled; excluded exposure is listed separately`}>
+  return <div className={styles.coverageGraphic} aria-label={`${partial.eligible} of ${partial.totalPositions} example positions modeled; excluded exposure is listed separately`}>
     <div className={styles.scopeWindow}>
       <div className={styles.scopeTop}><span>MODEL COVERAGE</span><Icon name="sliders" size={16} /></div>
       <div className={styles.gauge}>
@@ -132,12 +132,12 @@ function CoverageGraphic() {
       </div>
       <div className={styles.scopeLegend}><span><i />Included</span><span><i />Excluded</span></div>
     </div>
-    <div className={styles.excludedChip}><Icon name="info" size={14} /><span>{partial.excluded[0].market}<small>Excluded · unsupported sample</small></span></div>
+    <div className={styles.excludedChip}><Icon name="info" size={14} /><span>{partial.excluded[0].market}<small>Excluded · unsupported fixture</small></span></div>
   </div>;
 }
 
 function MathGraphic() {
-  return <div className={styles.mathGraphic} aria-label={`Sample price move ${scenario.shockPercent} percent. SOL contribution ${sol.delta} USDC. Combined result ${total.delta} ${total.quote}.`}>
+  return <div className={styles.mathGraphic} aria-label={`Example price move ${scenario.shockPercent} percent. SOL contribution ${sol.delta} USDC. Combined result ${total.delta} ${total.quote}.`}>
     <svg className={styles.network} viewBox="0 0 320 245" preserveAspectRatio="none" aria-hidden="true">
       <path d="M50 44V90Q50 102 62 102H148Q160 102 160 114V145M270 44V90Q270 102 258 102H172Q160 102 160 114M160 44V145" />
       <circle cx="50" cy="44" r="4" /><circle cx="160" cy="44" r="4" /><circle cx="270" cy="44" r="4" /><circle cx="160" cy="112" r="5" />
@@ -151,7 +151,7 @@ function MathGraphic() {
     </div>
     <div className={styles.mathResult}>
       <div><span>SOL price effect</span><strong>{formatDecimal(sol.delta, 0, true)} <small>USDC</small></strong></div>
-      <div><span>Combined sample</span><strong>{formatDecimal(total.delta, 0, true)} <small>{total.quote}</small></strong></div>
+      <div><span>Combined result</span><strong>{formatDecimal(total.delta, 0, true)} <small>{total.quote}</small></strong></div>
     </div>
     <div className={styles.mathFoot}><span aria-hidden="true">=</span>Every contribution, explained.</div>
   </div>;

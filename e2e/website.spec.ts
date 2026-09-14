@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-test('website sample uses real scenario arithmetic and leads to the explorer', async ({ page }) => {
+test('website preset uses real scenario arithmetic and leads to the explorer', async ({ page }) => {
   await page.goto('/');
-  const preview = page.getByLabel('Interactive sample scenario');
+  const preview = page.getByLabel('Interactive price scenario');
   await expect(preview.locator('.buffer-preview-value')).toContainText('+3,500.00');
   await expect(preview.locator('.buffer-preview-position')).toHaveCount(2);
   await expect(preview.locator('.buffer-preview-position img')).toHaveCount(2);
@@ -16,7 +16,7 @@ test('website sample uses real scenario arithmetic and leads to the explorer', a
   expect(width.document).toBeLessThanOrEqual(width.viewport);
   await page.getByRole('link', { name: 'Explore Buffer', exact: true }).click();
   await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
 });
 
 test('optional account route gives a working public path when cloud setup is pending', async ({ page }) => {
@@ -32,5 +32,5 @@ test('optional account route gives a working public path when cloud setup is pen
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);
   await page.getByRole('link', { name: 'Continue without an account' }).click();
-  await expect(page.getByText('Sample mode', { exact: true })).toBeVisible();
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
 });

@@ -2,13 +2,17 @@ import { chooseOption } from './select-helper';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
-test('sample quick start gives a real result, contribution explanation, Method, and portable report', async ({ page }) => {
+test('preset quick start gives a real result, contribution explanation, Method, and portable report', async ({ page }) => {
   const reads: string[] = [];
   page.on('request', request => {
     if (/\/api\/(accounts|snapshot)\?/.test(request.url())) reads.push(request.url());
   });
   await page.goto('/app');
-  const guide = page.getByRole('region', { name: 'Sample quick start' });
+  const guide = page.getByRole('region', { name: 'Demo quick start' });
+  await expect(page.locator('.positions.surface')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(page.locator('.positions.surface')).toHaveCSS('opacity', '1');
+  await expect(page.locator('body')).not.toContainText('READ-ONLY SCENARIO');
+  await expect(page.locator('body')).not.toContainText('SAMPLE');
   const start = guide.getByRole('button', { name: 'Try a −10% move' });
   await expect(start).toBeInViewport();
   await expect(page.getByTestId('scenario-total')).toContainText('0.00');
@@ -31,7 +35,7 @@ test('sample quick start gives a real result, contribution explanation, Method, 
   const method = guide.getByRole('button', { name: 'Read the method' });
   await method.click();
   const drawer = page.getByRole('dialog', { name: 'Method & coverage' });
-  await expect(drawer).toContainText('Sample fixture — not a live read');
+  await expect(drawer).toContainText('Reference fixture — no live read');
   await page.keyboard.press('Escape');
   await expect(drawer).not.toBeVisible();
   await expect(method).toBeFocused();
@@ -46,10 +50,10 @@ test('sample quick start gives a real result, contribution explanation, Method, 
   expect(report.positions).toHaveLength(4);
   expect(reads).toEqual([]);
 
-  await guide.getByRole('button', { name: 'Hide sample guide' }).click();
+  await guide.getByRole('button', { name: 'Hide demo guide' }).click();
   await expect(start).not.toBeVisible();
-  await guide.getByRole('button', { name: 'Show sample guide' }).click();
-  await chooseOption(page, 'Try a sample', 'SOL long');
+  await guide.getByRole('button', { name: 'Show demo guide' }).click();
+  await chooseOption(page, 'Try a preset', 'SOL long');
   await start.click();
   await expect(page.getByTestId('scenario-total')).toContainText('−1,500.00');
 });
@@ -64,7 +68,7 @@ test('scenario comes before account details on mobile and quick start never appe
     expect(scenario!.y).toBeLessThan(baseline!.y);
     expect(scenario!.y).toBeLessThan(positions!.y);
     for (const control of [
-      page.getByLabel('Try a sample', { exact: true }),
+      page.getByLabel('Try a preset', { exact: true }),
       page.getByLabel('Subaccount', { exact: true }),
       page.getByRole('button', { name: '-10%', exact: true }),
     ]) {
@@ -86,7 +90,7 @@ test('scenario comes before account details on mobile and quick start never appe
   await page.getByRole('textbox', { name: 'Solana wallet address', exact: true }).fill('11111111111111111111111111111111');
   await page.getByRole('button', { name: 'Read account', exact: true }).click();
   await expect(page.getByText('Live mode', { exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Sample quick start' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Demo quick start' })).toHaveCount(0);
   await expect(page.getByTestId('scenario-total')).toHaveCount(0);
   await expect(page.getByRole('alert').filter({ hasText: 'Account read unsuccessful' })).toContainText('Test provider is unavailable.');
 });

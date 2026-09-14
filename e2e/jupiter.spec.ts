@@ -58,5 +58,5 @@ test('Jupiter outage stays an error and is never represented as zero positions',
   await page.getByRole('button', { name: 'Explore a live account' }).click();
   await expect(page.getByText('Jupiter test read unavailable.')).toBeVisible();
   await expect(page.getByText(/No Jupiter Perps/)).toHaveCount(0);
-  await expect(page.getByText('Sample mode', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Demo mode', { exact: true })).toHaveCount(0);
 });

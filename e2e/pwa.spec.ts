@@ -46,9 +46,9 @@ test('real offline navigation provides bounded deterministic fixture arithmetic'
   await prepareWorker(page);
   await context.setOffline(true);
   await page.goto('/app');
-  await expect(page).toHaveTitle('Buffer — Offline sample');
-  await expect(page.getByText('Offline sample · fixed data', { exact: true })).toBeVisible();
-  await expect(page.getByText('This is a deterministic sample, not your account.')).toBeVisible();
+  await expect(page).toHaveTitle('Buffer — Offline mode');
+  await expect(page.getByText('Offline mode · fixed data', { exact: true })).toBeVisible();
+  await expect(page.getByText('This is deterministic reference data, not your account.')).toBeVisible();
   const slider = page.getByRole('slider', { name: 'Shared price move' });
   const total = page.locator('#scenario-total');
   await expect(total).toHaveText('0.00 USDC');
