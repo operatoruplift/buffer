@@ -2,7 +2,8 @@
 
 **Audit date:** 2026-09-15 (Asia/Ho_Chi_Minh)  
 **Audited repository:** `/Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-build/outputs/buffer`  
-**Audited application revision:** `9a4fbcc721536a8016c356b69dca70faec2c1d9c` (`main`)  
+**Audited production baseline revision:** `9a4fbcc721536a8016c356b69dca70faec2c1d9c` (`main`)  
+**Current source revision:** `596e729c72a42ff2910662741f15f91e1b85269b` (`origin/main`)  
 **Remote:** `https://github.com/operatoruplift/buffer.git`  
 **Package manager:** npm with `package-lock.json`  
 **Runtime:** Node 24.x; Next 16.3.4; React 19.3.0; TypeScript 5.9.3; Playwright 1.63.0; Vitest 5.0.0
@@ -56,7 +57,7 @@ Evidence files are local, ignored artifacts under `work/evidence/`; they are ava
 - `0ca09e3` implements the selected Meridial Light landing treatment: light cinematic split, local film/poster pair, real scenario travel, B4 feature media, B6 auth media, shared motion preference, and the selected copy.
 - `9851d3b` makes the social/brand exports full bleed and keeps the asset kit consistent with the shared mark.
 - `9a4fbcc` clarifies portfolio surfaces and public copy. It makes the **Perpetual positions** panel explicitly opaque, removes user-visible “SAMPLE” and “READ-ONLY SCENARIO” wording in favor of `DEMO`, `Examples`, `Preset`, and `Reference`, and preserves the internal report/source schema identifiers required by compatibility.
-- The current risk-context patch adds an optional, schema-validated SDK observation for live Velocity accounts: maintenance collateral, maintenance requirement, exact headroom, and the SDK’s current liquidation-status flag. It is preserved in JSON reports and is unavailable with an explanation when inputs are incomplete or isolated.
+- `596e729` adds an optional, schema-validated SDK observation for live Velocity accounts: maintenance collateral, maintenance requirement, exact headroom, and the SDK’s current liquidation-status flag. It is preserved in JSON reports and is unavailable with an explanation when inputs are incomplete or isolated.
 - The source retains the original B3 footage and provenance files for history, but renders one selected hero rather than a competing legacy hero.
 
 ## Functional and browser evidence
