@@ -1,4 +1,5 @@
 .token { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; border-radius: 50%; background: #f1f4f9; vertical-align: middle; }
 .image { width: 100%; height: 100%; object-fit: contain; }
 .hype { background: #072723; padding: 4px; }
+.sol { padding: 4px; }
 .symbol { color: #5b6878; font: 600 7px/1 Helvetica, Arial, sans-serif; letter-spacing: -.02em; }

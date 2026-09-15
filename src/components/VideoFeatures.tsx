@@ -93,7 +93,7 @@ function FeatureCard({ index, title, copy, link, href, media, paused, children }
     <div className={styles.cardWash} aria-hidden="true" />
     <div className={styles.dotMatrix} aria-hidden="true" />
     <div className={styles.cardRim} aria-hidden="true" />
-    <div className={styles.cardLabel}><span>{String(index + 1).padStart(2, '0')}</span><span className={styles.sampleLabel}>DEMO</span></div>
+    <div className={styles.cardLabel}><span>{String(index + 1).padStart(2, '0')}</span></div>
     <div className={styles.graphic}>{children}</div>
     <div className={styles.cardCopy}><h3><span>{title}</span></h3><p>{copy}</p><Link href={href}>{link}<Icon name="arrow" size={17} /></Link></div>
   </article>;

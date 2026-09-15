@@ -7,6 +7,8 @@ test('website preset uses real scenario arithmetic and leads to the explorer', a
   await expect(preview.locator('.buffer-preview-position')).toHaveCount(2);
   await expect(preview.locator('.buffer-preview-position img')).toHaveCount(2);
   await expect.poll(() => preview.locator('.buffer-preview-position img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  await expect(page.getByText('PUBLIC SCENARIO / DEMO', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('DEMO', { exact: true })).toHaveCount(0);
   await preview.getByRole('button', { name: '0%', exact: true }).click();
   await expect(preview.locator('.buffer-preview-value')).toContainText('0.00');
   await preview.getByRole('button', { name: '+20%', exact: true }).click();

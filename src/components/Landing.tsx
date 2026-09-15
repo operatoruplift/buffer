@@ -34,7 +34,6 @@ function ScenarioPreview({ shock, onShockChange }: { shock: number; onShockChang
     <div className="buffer-preview" aria-label="Interactive price scenario">
       <div className="buffer-preview-top">
         <span className="buffer-preview-title"><Mark size={23} /> Scenario explorer</span>
-        <span className="buffer-sample-badge">DEMO</span>
       </div>
       <div className="buffer-preview-result">
         <div className="buffer-preview-label">Perp price P&amp;L change</div>
@@ -77,7 +76,7 @@ function ScenarioPreview({ shock, onShockChange }: { shock: number; onShockChang
 function ScenarioContextCard({ shock }: { shock: number }) {
   const scenario = calculateScenario(demoSnapshot, shock);
   return <aside className="buffer-context-card" aria-label="Coverage and assumptions">
-    <div className="buffer-context-card-top"><span><Mark size={17} /> Context</span><span className="buffer-sample-badge">DEMO</span></div>
+    <div className="buffer-context-card-top"><span><Mark size={17} /> Context</span></div>
     <div className="buffer-context-metric"><strong>{scenario.included.length} / {scenario.totalPositions}</strong><span>positions modeled</span></div>
     <div className="buffer-context-list">{scenario.included.map(position => <div key={position.id}><span className="buffer-context-dot buffer-context-dot-included" /><span>{position.market}</span><strong>Included</strong></div>)}{scenario.excluded.map(position => <div key={position.id}><span className="buffer-context-dot buffer-context-dot-excluded" /><span>{position.market}</span><strong>Excluded</strong></div>)}</div>
     <div className="buffer-context-foot"><span>Fixed baseline prices</span><span>Price effect only</span></div>
@@ -136,7 +135,7 @@ export default function Landing() {
               </svg>
             </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
-            <div className="buffer-hero-stage-top"><span>PUBLIC SCENARIO / DEMO</span>{scenarioBoardOpen && <button type="button" onClick={() => setScenarioBoardOpen(false)}><Icon name="arrow" size={14} /> Back to overview</button>}</div>
+            {scenarioBoardOpen && <div className="buffer-hero-stage-top"><button type="button" onClick={() => setScenarioBoardOpen(false)}><Icon name="arrow" size={14} /> Back to overview</button></div>}
             <div className="buffer-hero-board"><ScenarioPreview shock={shock} onShockChange={setShock} /><ScenarioContextCard shock={shock} /></div>
             <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>{scenarioBoardOpen ? 'Scenario board · state preserved' : 'Move the slider. See the difference.'}</span>{motionControl('buffer-hero-motion')}</div>
           </div>
