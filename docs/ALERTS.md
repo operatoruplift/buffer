@@ -12,6 +12,6 @@ npm run alert:worker -- --reset
 
 It writes `.local/alert-store.json` (ignored by Git) and prints the worker state, event count, pending count and delivered count. Set `BUFFER_ALERT_STORE=/tmp/buffer-alerts.json` to choose another local file. This worker never contacts a provider or external destination.
 
-The additive migration `supabase/migrations/20260915120000_create_alert_pipeline.sql` defines owner-scoped `alert_rules`, `alert_events` and `alert_outbox` tables. Applying it is a prerequisite for hosted persistence. A hosted worker must use a protected service role, a real scheduler, bounded leases/retries and a provider-restricted destination. No email, Discord, Telegram, webhook or push notification is enabled by this release.
+The additive migration `supabase/migrations/20260915120000_create_alert_pipeline.sql` defines owner-scoped `alert_rules`, `alert_events` and `alert_outbox` tables and is applied to the dedicated Buffer Supabase project. A hosted worker must still use a protected service role, a real scheduler, bounded leases/retries and a provider-restricted destination. No email, Discord, Telegram, webhook or push notification is enabled by this release.
 
 Validation covers owner isolation, stale suppression, rule/version/cadence idempotency, lease claim, mock delivery, pause behavior and malformed-store recovery in `tests/alerts.test.ts`.
