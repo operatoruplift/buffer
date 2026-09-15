@@ -23,6 +23,7 @@ import { JupiterPositions } from './JupiterPositions';
 import Select from "./Select";
 import SampleBuilder from './SampleBuilder';
 import AccountPanel from './AccountPanel';
+import AlertsPanel from './AlertsPanel';
 import Link from 'next/link';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
@@ -913,6 +914,7 @@ export default function Dashboard({
                     <p className="risk-context-note">{snapshot.risk.explanation}</p>
                   </section>
                 )}
+                <AlertsPanel snapshot={snapshot} />
               </div>
               <div className="positions-column">
                 <section
