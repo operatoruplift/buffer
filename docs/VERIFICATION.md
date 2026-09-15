@@ -16,7 +16,7 @@
 | Install caption and motion | The hero and install artwork run continuously beyond the initial five seconds. Caption and icon share one rotation/translation, with a 4px optical offset to the right and an 18px desktop / 15px mobile gap. Both icon-only controls pause the shared motion; reduced motion disables the effects. |
 | Selector, market, and favicon review | Frontend/TypeScript and security reviews passed after correcting excluded-position metrics, catalog capacity, and preset provenance. The browser favicon restores the blue tile SVG with a fresh cache key; the ICO packages the unchanged 192px blue-tile PNG. Shared branding matches the landing header across app, demo, auth, and footer. |
 | Vercel public routes and media | Passed on `https://bufferonsolana.vercel.app`: `/`, `/app`, `/auth`, `/demo`, manifest, service worker, USDT artwork, and all three MP4s returned successfully after the Velocity deployment. |
-| Supabase database | Dedicated Buffer project and both saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. |
+| Supabase database | Dedicated Buffer project and saved-report migrations verified; owner RLS, constraints, and private report CRUD passed. The additive alert migration is committed and locally validated; hosted alert persistence remains gated. |
 | Authentication | Confirmed-account password sign-in and report operations passed with disposable fixtures. Public signup and recovery remain gated until SMTP and Auth settings are verified. |
 
 The earlier **42-case production browser run** and its live Drift endpoint check predate the Velocity cutover. The selector/market revision passed **46 local production-build browser tests**, and the Pacifica adapter revision passed **48**. The current branding, continuous-motion, and sample-builder revision passes **56**, with the two opt-in Supabase fixture tests skipped.
@@ -67,7 +67,7 @@ Production live-example captures are [desktop](../screenshots/live-velocity-proo
 
 ## Cloud database and authentication
 
-Dedicated Supabase project `vhbngdatlowfnwaymvuq` has both saved-report migrations applied. Checks run as real `authenticated` and `anon` roles verified owner-only access, forged-owner rejection, denied anonymous access, restricted insert columns, no UPDATE privilege, malformed/oversized report rejection, title bounds, deletion cascade, and query indexing. See [database evidence](DATABASE-VERIFICATION.md) for SQL and query-plan details.
+Dedicated Supabase project `vhbngdatlowfnwaymvuq` has the saved-report migrations applied. Checks run as real `authenticated` and `anon` roles verified owner-only access, forged-owner rejection, denied anonymous access, restricted insert columns, no UPDATE privilege, malformed/oversized report rejection, title bounds, deletion cascade, and query indexing. The additive alert migration is present in source and covered by local state-machine tests; it is not presented as hosted delivery until the service-role worker and destination are configured. See [database evidence](DATABASE-VERIFICATION.md) for SQL and query-plan details.
 
 Confirmed-account browser tests covered password login and private report requests, including a delayed first-user response after a second user signs in from another tab. They do not test email delivery. The temporary fixture users and reports were deleted after verification, and credentials were never committed.
 

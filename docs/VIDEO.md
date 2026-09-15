@@ -1,8 +1,14 @@
 # Buffer videos
 
-**Updated:** September 13, 2026.
+**Updated:** September 16, 2026.
 
-The version-2 films cover the current Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
+The version-2 films cover the core Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
+
+## Current build update
+
+The films were recorded on September 13, 2026. The live product tour is current as of September 16: open [the explorer](https://bufferonsolana.vercel.app/app) to see the verified Velocity risk-context card when a fresh provider read returns maintenance collateral, maintenance requirement, headroom, and the provider status. The dashboard also includes a local threshold monitor. It lets a judge configure one headroom rule, run a fresh check, and observe the durable rule → event → outbox → lease → mock-delivery path on that device.
+
+The local monitor is deliberately narrow. It never turns a sample, stale response, isolated scope, or missing value into an alert. External email, webhooks, push notifications, and hosted workers remain gated until their Supabase migration, protected worker, destination, and delivery checks are configured. The `/demo` page labels this current-build addition above the recorded films so the recordings and the shipped product are not conflated.
 
 | Film | Story | Timing |
 | --- | --- | --- |

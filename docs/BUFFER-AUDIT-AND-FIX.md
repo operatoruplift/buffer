@@ -1,6 +1,6 @@
 # Buffer implementation audit and fix
 
-**Audit date:** 2026-09-15 (Asia/Ho_Chi_Minh)  
+**Audit date:** 2026-09-16 (Asia/Ho_Chi_Minh)
 **Audited repository:** `/Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-build/outputs/buffer`  
 **Audited production baseline revision:** `9a4fbcc721536a8016c356b69dca70faec2c1d9c` (`main`)  
 **Current source revision:** `origin/main` (deployed release)  
@@ -14,9 +14,9 @@ This report is the current implementation record for the selected Meridial Light
 
 - Local development URL: `http://127.0.0.1:3001` (`npm run dev -- --port 3001`).
 - Production alias: [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app).
-- Production deployment inspected: `https://buffer-pnt66zadg-operatoruplift.vercel.app`.
-- Vercel inspection record: [deployment ByaqihgZkRjaZFoV2VbEVWk6k5XS](https://vercel.com/operatoruplift/buffer/ByaqihgZkRjaZFoV2VbEVWk6k5XS).
-- The inspected production deployment was ready and built from revision `b53e3bb`. The alias and API checks below were made against a fresh public browser/fetch context.
+- Production deployment inspected: `https://buffer-efaoij8l3-operatoruplift.vercel.app`.
+- Vercel inspection record: [deployment HhWEMMXpcRz6mZR4wuRtwMngk8sG](https://vercel.com/operatoruplift/buffer/HhWEMMXpcRz6mZR4wuRtwMngk8sG).
+- The inspected production deployment was ready and aliased to `https://bufferonsolana.vercel.app`. The alias and API checks below were made against a fresh public browser/fetch context; future documentation updates should repeat the route and API checks after the next deploy.
 - The audited worktree was clean at capture time. `next-env.d.ts` was restored after dev-server generation; `work/` is ignored evidence output and is intentionally not part of the application source commit.
 - Production deployment was completed after local review; no environment values were changed. The current alias points to the reviewed release.
 
@@ -52,7 +52,7 @@ Evidence files are local, ignored artifacts under `work/evidence/`; they are ava
 | **R10 — Risk context** | Show current provider health/maintenance observations with method/scope/limits; never present an invented exact liquidation forecast. | **Verified locally; exact liquidation estimate explicitly deferred.** Velocity now exposes SDK maintenance collateral, maintenance requirement, exact headroom, and the current buffer-aware liquidation-status flag as a separate risk context. Values are labeled observations, not forecasts; isolated positions remain unavailable rather than combined. Jupiter inventory and Pacifica limitations are surfaced. | Normalizer tests cover exact headroom, status flags, health/oracle confidence/lag, and exclusion reasons; UI displays the risk context and method text lists collateral, funding, fees, borrowing, future fills, and liquidation exclusions. | App risk-context card, Method drawer, and exclusion surfaces. | A verified collateral/oracle/liquidation contract for every supported venue is required before an exact model can be implemented. |
 | **R11 — Durable alerts** | If advertised, prove rule → fresh evaluation → outbox/event → worker → delivery, including owner isolation, leases, idempotency, cooldown, retries, pause/delete, and stale suppression. | **Implemented locally for the narrow verified wedge; hosted delivery remains configuration-blocked.** One maintenance-headroom rule is owner-scoped, persisted in a bounded store, evaluated only from fresh Velocity risk context, deduplicated by rule/version/cadence, claimed with a lease, and delivered to a local mock sink. Supabase alert tables/RLS are additive and ready for a protected worker role. | `src/lib/alerts.ts`, `AlertsPanel.tsx`, migration, and `scripts/alert-worker.mjs`; no arbitrary webhook or external message is claimed. | Dashboard local threshold-monitor panel and deterministic worker evidence. | Configure a protected hosted worker and verified destination before enabling external delivery. |
 | **R12 — Brand/assets/legal copy** | Correct blue Buffer mark/wordmark, transparent token icons, favicon/manifest identity, local licensed font, and clear financial/privacy limits. | **Verified locally; verified in production render.** Shared ribbon-B mark and wordmark are used across landing/app/auth/footer; token logos are local; Inter is bundled with fallback; legal copy states public read-only intent, no keys/trading permissions, and no liquidation forecast. | Asset/build checks and route browser checks passed; production HTML references the same brand identity. | Landing/app/auth/demo/brand-kit captures. | Third-party brand/API assets remain subject to their own terms; re-check before adding providers. |
-| **R13 — Release** | Reproducible checks, production parity, and a clear release identity. | **Verified live for the current release.** Vercel built revision `b53e3bb`, the production alias is healthy, and post-deploy route, browser, and Velocity risk-context checks passed. | Typecheck, lint, unit, focused browser, build, route, and live API results below. | Public-baseline captures and post-deploy route/risk records. | Future releases should repeat this evidence against the new commit and Vercel deployment. |
+| **R13 — Release** | Reproducible checks, production parity, and a clear release identity. | **Verified live for the current release.** The final Vercel deployment is ready, the production alias is healthy, and post-deploy route, browser, and Velocity risk-context checks passed. | Typecheck, lint, unit, focused browser, build, route, and live API results below. | Public-baseline captures and post-deploy route/risk records. | Future releases should repeat this evidence against the new commit and Vercel deployment. |
 
 ## Corrections shipped in the audited source
 
@@ -87,7 +87,7 @@ Commands run from the repository root:
 | `npm run typecheck` | Pass. |
 | `npm run lint` | Pass. |
 | `npm test` | **374 tests passed**, 18 files. |
-| Focused browser journeys | **27 passed** locally, covering scenarios, app/auth/demo, reports, PWA, failure paths, and local alert persistence/mock delivery. |
+| Focused browser journeys | **18 passed** locally in the deterministic desktop focus run, covering scenarios, app/auth/demo, reports, PWA, failure paths, and local alert persistence/mock delivery. A separate production smoke run passed 3 journeys for alerts, landing, and auth public path. |
 | `npx playwright test --project=desktop --workers=2` | 64 passed, 3 skipped, 4 timing flakes under parallel load. Each failed case was rerun in isolation with one worker and passed: uncertain report write, invalid address, hosted-video playback, and guide hide. These are disclosed as parallel timing flakes, not silently omitted. |
 | `npm run build` | Pass on the audited revision; Vercel production build also completed successfully. |
 | Production route fetch | `/`, `/app`, `/auth`, `/demo`, and `/api/config` returned HTTP 200. |
@@ -126,7 +126,7 @@ Commands run from the repository root:
 2. Select **Explore the scenario**; the card travels into the wider light board. Select **Back to overview** and confirm the state returns without a reload.
 3. Select **Open Buffer**; the four-market preset starts at the documented +1,000 result. Edit the shock, inspect modeled/excluded positions, open **Method**, and download a JSON report.
 4. In the provider selector, use a public Velocity or Pacifica authority from `work/evidence/audit-2026-09-15/api.json`; inspect source, freshness, quote, and provider warnings. Jupiter remains visibly inventory-only where price/collateral inputs are unknown.
-5. Open **Demo** for the current narrated product film and transcript. Open **Auth** to see the configured cloud-auth state, then use guest/device reports without creating an account.
+5. Open **Demo** for the current-build update card, narrated product films, captions, and transcripts. Follow its **Try the current monitor** link to configure the local threshold path in `/app`.
 6. Use **Brand kit** for the profile mark, wallpapers, headers, and ad/background exports. Install/offline mode can be exercised from the PWA install guidance; live reads and cloud reports correctly require a connection.
 
 The audited product is working for the committed read-only scenario, provider-read, report, media, PWA, privacy, and local alert-pipeline flows. The matrix above keeps email delivery, hosted alert delivery, exact liquidation forecasts, and native packages in their correct configuration-blocked or deferred states rather than presenting them as finished capabilities.

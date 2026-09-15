@@ -1,6 +1,6 @@
 # Buffer — a clearer view of perpetual exposure
 
-**Updated:** September 13, 2026.
+**Updated:** September 16, 2026.
 
 [Website](https://bufferonsolana.vercel.app) · [Interactive app](https://bufferonsolana.vercel.app/app) · [Demo and films](https://bufferonsolana.vercel.app/demo) · [Public GitHub repository](https://github.com/operatoruplift/buffer)
 
@@ -23,6 +23,8 @@ The sample builder starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 
 At −10%, this four-market app sample contributes −1,500 + 5,000 − 2,000 − 500 for **+1,000 USDC**. The separate two-position landing example and preserved Long + short fixture total **+3,500 USDC**. Both use fixed illustrative prices. The result is incremental price P&L, with sizes held fixed. It does not forecast account equity, margin health, or liquidation. Funding, fees, fills, borrowing interest, collateral-price changes, and liquidation effects remain outside the calculation.
 
 The Method dialog exposes assumptions, coverage, source identity, freshness, and separate RPC slots or API timestamps. Modeled live snapshots expire within 120 seconds, or earlier when their source price expires. Failed refreshes disable calculations and retain the old snapshot visibly as stale; late requests cannot replace a newly selected account. RPC and REST reads have fixed endpoints, request deadlines, response limits, sanitized errors, and no-store behavior.
+
+The current explorer also shows a verified Velocity risk-context card when a fresh read includes complete cross-margin observations: maintenance collateral, maintenance requirement, exact headroom, and the provider's current status flag. A local threshold monitor can be configured for that headroom, evaluated only from a fresh live Velocity snapshot, and walked through its durable event, outbox, lease, and mock-delivery states. Guest state stays on the device; external email, webhook, push, and hosted-worker delivery remain gated.
 
 A JSON report preserves exact decimal strings, selected shock, contributions, exclusions, and provenance. **My reports** saves historical copies on the device without an account. Optional confirmed cloud accounts have a separate owner-protected Supabase library; guest data is never uploaded automatically. Session-bound auth and SDK storage commits protect against delayed requests replacing a newer login. Public signup and password-recovery sending remain disabled until email delivery and related production settings are verified.
 
@@ -58,7 +60,8 @@ The films use sample footage and the real provider selector. They do not stage l
 | 30–45 seconds | Open **Add perps**, search a market, and inspect editable quantity/price controls. “Choose from 76 configured sample markets. Sample denominations do not convert currencies or create trades.”|
 | 45–60 seconds | Open the provider selector. “Velocity and Pacifica support price scenarios. Jupiter adds inventory with an explicit modeling boundary. Drift stays paused.”|
 | 60–77 seconds | Open **Method**, then **My reports** and save on the device. “The inputs, exclusions, and source remain inspectable. A historical copy needs no sign-up.”|
-| 77–90 seconds | Show JSON export and the mobile layout. “Carry the explanation with you. Supported browsers can install Buffer, and the public sample calculator works offline.”|
+| 77–84 seconds | In the current `/app`, open **Know when headroom changes**, configure a threshold, and run a fresh check. “The current build can prove one verified headroom alert from rule to local mock delivery.”|
+| 84–90 seconds | Show JSON export and the mobile layout. “Carry the explanation with you. Supported browsers can install Buffer, and the public sample calculator works offline.”|
 
 If adding a separate live read, retain its provider, account, timestamp, units, and coverage. Show unavailable or stale results honestly and use the retry path; never replace them with plausible numbers. Public balances should not be memorized into the script.
 

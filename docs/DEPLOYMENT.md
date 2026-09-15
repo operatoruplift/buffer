@@ -1,6 +1,6 @@
 # Deployment and cloud configuration
 
-**Last updated:** September 13, 2026.
+**Last updated:** September 16, 2026.
 
 Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app` is the public explorer with live Velocity as the default, modeled Pacifica reads, and inventory-only Jupiter Perps, and `/auth` contains optional email/password sign-in. The protocol selector also exposes the explicitly paused legacy Drift reader. Scenario functionality, live public reads, device-local reports, and downloads work without a cloud account.
 
@@ -13,6 +13,7 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key; never a service-role or secret key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Public | Set `true` only after email signup, confirmation, recovery, redirects, and password policy are verified. It is currently `false`, so public signup and recovery remain visibly unavailable. |
 | `BUFFER_TEST_AUTHORITY` | Local verification only | Optional public authority for manual checks; the application does not load it automatically. |
+| `BUFFER_ALERT_STORE` | Local worker only | Optional path for the deterministic local alert-store JSON file; defaults to `.local/alert-store.json` and is ignored by Git. |
 
 No AI API key, signing wallet, private key, or service-role key is required by the application. Higgsfield produced marketing media; it is not a runtime integration. No `SITE_URL` application variable is required: auth redirects use the current origin, and Supabase must explicitly allow each deployed `/auth` URL.
 
@@ -26,7 +27,7 @@ The server-side RPC endpoint used by Velocity, Jupiter, and legacy Drift must be
 
 ## Supabase
 
-Create or use the dedicated Buffer project **`vhbngdatlowfnwaymvuq`** in **operatoruplift's Org**. Apply both files in `supabase/migrations/` in timestamp order through the Supabase migration workflow. They create `saved_reports`, the user/date index, authenticated select/insert/delete grants, owner-only row-level security, and strict report/title constraints. Anonymous users have no table privileges. Reports are immutable historical JSON records with a maximum size of 256 KiB and are never inputs to the live reader.
+Create or use the dedicated Buffer project **`vhbngdatlowfnwaymvuq`** in **operatoruplift's Org**. Apply all files in `supabase/migrations/` in timestamp order through the Supabase migration workflow. They create `saved_reports`, the user/date index, authenticated select/insert/delete grants, owner-only row-level security, and strict report/title constraints, plus the additive owner-scoped alert pipeline tables (`alert_rules`, `alert_events`, and `alert_outbox`). Anonymous users have no table privileges. Reports are immutable historical JSON records with a maximum size of 256 KiB and are never inputs to the live reader.
 
 In Auth settings:
 
@@ -41,7 +42,7 @@ The browser SDK manages sessions and refreshes tokens. Database RLS is the autho
 
 ### Provisioning status
 
-The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations are applied; owner isolation, malformed JSON rejection, restricted insert columns, and query indexing have been verified. See [database verification](DATABASE-VERIFICATION.md).
+The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations are applied; owner isolation, malformed JSON rejection, restricted insert columns, and query indexing have been verified. The alert migration is committed and tested locally; apply it before enabling hosted alert persistence. The shipped browser monitor uses bounded localStorage state and a local mock sink, so hosted delivery is not implied by the production deploy. See [database verification](DATABASE-VERIFICATION.md) and the [alert runbook](ALERTS.md).
 
 The original implementation recorded confirmed-account password sign-in and private report CRUD with disposable confirmed accounts. That is historical evidence from the original version. The current redesign's browser auth and report coverage uses the installed Supabase SDK with intercepted/mock transport; it does not prove a current production auth or email journey. Production SMTP delivery, redirect allowlists, Auth password policy, and compromised-password screening still require management-side configuration and verification. Do not treat the built-in restricted Supabase mail sender as public production signup delivery.
 
@@ -50,6 +51,7 @@ The original implementation recorded confirmed-account password sign-in and priv
 The Vercel project is `operatoruplift/buffer`, linked to [the public source repository](https://github.com/operatoruplift/buffer), with the production alias [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app). The current project has `SOLANA_RPC_URL`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in **Production only**. `NEXT_PUBLIC_AUTH_EMAIL_READY=false` is configured in Production, Preview, and Development; keep it false until the Supabase email and Auth management checks above pass. `BUFFER_TEST_AUTHORITY` is a local verification value and is not required for deployment. Use the Next.js framework setting in `vercel.json`, Node route execution, and a 30-second function duration. Do not use static export or edge-only hosting for the RPC routes.
 
 Build with `npm ci` and `npm run build`. From a Node 24 checkout linked to this project, the authenticated Vercel CLI route is `npx --yes vercel@59.16.0 --prod`; the Vercel dashboard's Git production deployment is equivalent. Deploy a final committed state and verify `/`, `/app`, `/auth`, `/demo`, the manifest, and the live API routes after the deployment. Redeploy after changing environment variables. The initial RPC is Solana's shared mainnet endpoint; it is suitable for evaluation but has no application-specific capacity guarantee.
+The latest production verification also exercises `/brand-kit`, `/api/config`, and `/api/snapshot` with a public Velocity authority. The production alias is [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app).
 
 ## Installable app
 
