@@ -14,11 +14,11 @@ This report is the current implementation record for the selected Meridial Light
 
 - Local development URL: `http://127.0.0.1:3001` (`npm run dev -- --port 3001`).
 - Production alias: [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app).
-- Production deployment inspected: `https://buffer-hk2meg9tk-operatoruplift.vercel.app`.
-- Vercel inspection record: [deployment AzydwDdSyEKt8mymvTFhkrmnTA7o](https://vercel.com/operatoruplift/buffer/AzydwDdSyEKt8mymvTFhkrmnTA7o).
-- The inspected production deployment was ready and built from revision `9a4fbcc`. The alias and API checks below were made against a fresh public browser/fetch context.
+- Production deployment inspected: `https://buffer-qojj1vpj3-operatoruplift.vercel.app`.
+- Vercel inspection record: [deployment 4Gs1b3TGNTss7spodW7hwT2TLaSc](https://vercel.com/operatoruplift/buffer/4Gs1b3TGNTss7spodW7hwT2TLaSc).
+- The inspected production deployment was ready and built from revision `b53e3bb`. The alias and API checks below were made against a fresh public browser/fetch context.
 - The audited worktree was clean at capture time. `next-env.d.ts` was restored after dev-server generation; `work/` is ignored evidence output and is intentionally not part of the application source commit.
-- No production configuration or deployment was changed while writing this report. The existing authorized production release remains the release under test.
+- Production deployment was completed after local review; no environment values were changed. The current alias points to the reviewed release.
 
 ## Evidence identity
 
@@ -32,6 +32,7 @@ This report is the current implementation record for the selected Meridial Light
 | Live API capture | Fresh fetches to the production alias, `2026-09-15T07:38:56.722Z`, with public example authorities only. No credentials were printed or stored. |
 | Local risk-context capture | Fresh local Velocity read, `2026-09-15T08:14:01.363Z`, with public authority `DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2`; collateral, maintenance requirement, headroom and current SDK status were returned. |
 | Local alert pipeline | Deterministic fixture run, `2026-09-15T09:38:56Z`; one rule crossed, one event/outbox item was claimed, and one mock delivery was recorded. |
+| Post-deploy risk context | Fresh production Velocity read, `2026-09-15T10:00:26.541Z`; risk context returned `clear` with collateral `1908.644378`, requirement `225.402134`, and headroom `1683.242244`. |
 
 Evidence files are local, ignored artifacts under `work/evidence/`; they are available in the working directory for review and are referenced below.
 
@@ -51,7 +52,7 @@ Evidence files are local, ignored artifacts under `work/evidence/`; they are ava
 | **R10 — Risk context** | Show current provider health/maintenance observations with method/scope/limits; never present an invented exact liquidation forecast. | **Verified locally; exact liquidation estimate explicitly deferred.** Velocity now exposes SDK maintenance collateral, maintenance requirement, exact headroom, and the current buffer-aware liquidation-status flag as a separate risk context. Values are labeled observations, not forecasts; isolated positions remain unavailable rather than combined. Jupiter inventory and Pacifica limitations are surfaced. | Normalizer tests cover exact headroom, status flags, health/oracle confidence/lag, and exclusion reasons; UI displays the risk context and method text lists collateral, funding, fees, borrowing, future fills, and liquidation exclusions. | App risk-context card, Method drawer, and exclusion surfaces. | A verified collateral/oracle/liquidation contract for every supported venue is required before an exact model can be implemented. |
 | **R11 — Durable alerts** | If advertised, prove rule → fresh evaluation → outbox/event → worker → delivery, including owner isolation, leases, idempotency, cooldown, retries, pause/delete, and stale suppression. | **Implemented locally for the narrow verified wedge; hosted delivery remains configuration-blocked.** One maintenance-headroom rule is owner-scoped, persisted in a bounded store, evaluated only from fresh Velocity risk context, deduplicated by rule/version/cadence, claimed with a lease, and delivered to a local mock sink. Supabase alert tables/RLS are additive and ready for a protected worker role. | `src/lib/alerts.ts`, `AlertsPanel.tsx`, migration, and `scripts/alert-worker.mjs`; no arbitrary webhook or external message is claimed. | Dashboard local threshold-monitor panel and deterministic worker evidence. | Configure a protected hosted worker and verified destination before enabling external delivery. |
 | **R12 — Brand/assets/legal copy** | Correct blue Buffer mark/wordmark, transparent token icons, favicon/manifest identity, local licensed font, and clear financial/privacy limits. | **Verified locally; verified in production render.** Shared ribbon-B mark and wordmark are used across landing/app/auth/footer; token logos are local; Inter is bundled with fallback; legal copy states public read-only intent, no keys/trading permissions, and no liquidation forecast. | Asset/build checks and route browser checks passed; production HTML references the same brand identity. | Landing/app/auth/demo/brand-kit captures. | Third-party brand/API assets remain subject to their own terms; re-check before adding providers. |
-| **R13 — Release** | Reproducible checks, production parity, and a clear release identity. | **Verified live for the existing release.** Vercel build completed and the production alias is healthy. This audit adds documentation/evidence only; it does not silently change production configuration. | Typecheck, lint, unit, focused browser, build, route, and live API results below. | Public-baseline captures and route status record. | Future releases should repeat this evidence against the new commit and Vercel deployment. |
+| **R13 — Release** | Reproducible checks, production parity, and a clear release identity. | **Verified live for the current release.** Vercel built revision `b53e3bb`, the production alias is healthy, and post-deploy route, browser, and Velocity risk-context checks passed. | Typecheck, lint, unit, focused browser, build, route, and live API results below. | Public-baseline captures and post-deploy route/risk records. | Future releases should repeat this evidence against the new commit and Vercel deployment. |
 
 ## Corrections shipped in the audited source
 
@@ -73,6 +74,7 @@ The following artifacts were captured during this audit:
 - Live API proof: `work/evidence/audit-2026-09-15/api.json`.
 - Local risk-context proof: `work/evidence/audit-2026-09-15/risk-context.json`.
 - Local alert pipeline proof: `work/evidence/audit-2026-09-15/alert-pipeline.json`.
+- Post-deploy risk proof: `work/evidence/audit-2026-09-15/post-deploy-risk-context.json`.
 
 The screenshots and JSON are ignored by the repository’s `work/` rule so evidence does not inflate the deploy artifact. They remain available in the workspace for review.
 
@@ -90,7 +92,7 @@ Commands run from the repository root:
 | `npm run build` | Pass on the audited revision; Vercel production build also completed successfully. |
 | Production route fetch | `/`, `/app`, `/auth`, `/demo`, and `/api/config` returned HTTP 200. |
 | Production API negative paths | Invalid address and invalid protocol returned sanitized HTTP 400 responses (`INVALID_ADDRESS`, `INVALID_PROTOCOL`). |
-| Production provider reads | Velocity accounts/snapshot 200 with 2 positions; Pacifica accounts/snapshot 200 with 22 positions; Jupiter accounts/snapshot 200 with `inventoryAvailable:false`; the inventory row count is live and can change between reads. The risk-context patch is local until a release containing it is deployed. |
+| Production provider reads | Post-deploy Velocity snapshot returned 200 with 2 positions and current risk context (`clear`, collateral `1908.644378`, requirement `225.402134`, headroom `1683.242244`). Earlier Pacifica/Jupiter captures remain valid read evidence; inventory row counts are live and can change between reads. |
 
 ## Capability matrix and limits
 
@@ -100,7 +102,7 @@ Commands run from the repository root:
 | B4 responsive feature media and B6 video refraction | Verified locally with motion evidence; posters/fallbacks cover unsupported media. |
 | Sample calculator, exact Decimal arithmetic, quote separation | Verified locally and by tests. |
 | Velocity and Pacifica live reads | Verified live with public examples. |
-| Velocity current maintenance risk context | Implemented and verified locally against the installed SDK; not yet present in the inspected production deployment. |
+| Velocity current maintenance risk context | Implemented, verified against the installed SDK, and verified in the current production snapshot. |
 | Jupiter Perps inventory boundary | Verified live; current price/collateral payoff remains unknown by design. |
 | Legacy Drift | Implemented as a paused/historical boundary, not claimed as current live coverage. |
 | Device reports and JSON export | Verified locally. |
