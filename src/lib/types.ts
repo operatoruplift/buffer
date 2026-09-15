@@ -3,6 +3,17 @@ import type { ProtocolInfo } from './protocols';
 export type SourceMode = 'sample' | 'live';
 export interface Subaccount { id: number; name: string; address: string | null }
 export interface Metric { label: string; value: string | null; unit: string; explanation: string }
+export type RiskContextStatus = 'clear' | 'maintenance' | 'liquidating' | 'unavailable';
+/** Current provider-reported margin context. This is an observation, not a forecast. */
+export interface RiskContext {
+  scope: 'cross-margin';
+  totalCollateral: string | null;
+  maintenanceRequirement: string | null;
+  maintenanceHeadroom: string | null;
+  canBeLiquidated: boolean | null;
+  status: RiskContextStatus;
+  explanation: string;
+}
 export interface OracleObservation {
   slot: number | null; readSlot: number | null; valid: boolean; reason: string | null;
   /** Provider-reported price timestamp, when exposed by a public API. */
@@ -24,6 +35,7 @@ export interface Snapshot {
   sampleName: string | null; subaccount: Subaccount;
   retrievedAt: string; expiresAt: string | null; accountSlot: number | null; observedSlot: number | null;
   metrics: Metric[]; positions: Position[]; spots: SpotExposure[]; orders: OrderInventory[];
+  risk?: RiskContext;
   inventoryAvailable: boolean; warnings: string[]; provenance: string[];
 }
 export interface Discovery { authority: string; subaccounts: Subaccount[]; retrievedAt: string; protocol?: ProtocolInfo }

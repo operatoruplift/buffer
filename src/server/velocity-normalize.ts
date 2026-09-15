@@ -7,7 +7,7 @@ import {
   type UserAccount, type PerpMarketAccount, type SpotMarketAccount,
   type OraclePriceData, type StateAccount, type User, type DataAndSlot,
 } from '@velocity-exchange/sdk';
-import type { Metric, OracleObservation, Snapshot, Subaccount } from '../lib/types';
+import type { Metric, OracleObservation, RiskContext, Snapshot, Subaccount } from '../lib/types';
 
 const Money = Decimal.clone({ precision: 80 });
 export const APP_ORACLE_MAX_SLOT_LAG = 150;
@@ -40,7 +40,12 @@ export interface ReadData {
   spotOracles: Map<number, DataAndSlot<OraclePriceData>>;
   // The SDK may use an MM oracle for baseline valuation. Validate those separately.
   valuationOracles: Map<number, OraclePriceData>;
-  user: Pick<User, 'getNetUsdValue' | 'getUnrealizedPNL' | 'getHealth'>;
+  user: Pick<User, 'getNetUsdValue' | 'getUnrealizedPNL' | 'getHealth'> & {
+    getTotalCollateral?: (marginCategory?: 'Initial' | 'Maintenance') => BN;
+    getMaintenanceMarginRequirement?: (liquidationBuffer?: BN, perpMarketIndex?: number) => BN;
+    getLiquidationStatuses?: () => Map<'cross' | number, { canBeLiquidated: boolean }>;
+    isCrossMarginBeingLiquidated?: () => boolean;
+  };
   retrievedAt: string;
 }
 
@@ -192,17 +197,54 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
     if (positions.some((p) => p.isolated)) metrics[2].explanation = 'Unavailable for accounts with isolated positions. Cross-margin health would not describe those positions.';
     else calculate(2, () => { const value = input.user.getHealth(); if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error('Invalid health'); return String(value); });
   }
+  const risk = currentRiskContext(input, issues, positions);
   const warnings = [...issues];
   if (positions.some((p) => p.isolated)) warnings.push('Isolated positions are shown individually; no general account-health claim is made.');
   if (!inventoryAvailable) warnings.push('Some spot or open-order inventory data is unavailable.');
+  if (risk?.status === 'liquidating') warnings.push('Velocity SDK currently marks the cross-margin account as eligible for liquidation. This is a current provider status, not a forecast.');
+  else if (risk?.status === 'maintenance') warnings.push('Velocity SDK currently reports collateral below its maintenance requirement. This is a current provider status, not a forecast.');
   return { source: 'live', network: 'mainnet-beta', authority: input.authority, sampleName: null,
     subaccount: subaccountInfo(account, input.address), retrievedAt: input.retrievedAt,
     expiresAt: new Date(Date.parse(input.retrievedAt) + LIVE_SNAPSHOT_TTL_MS).toISOString(),
     accountSlot: input.accountSlot, observedSlot: input.observedSlot, metrics, positions, spots: spotInventory,
-    orders: [...orderCounts].map(([market, count]) => ({ market, count })), inventoryAvailable, warnings,
+    orders: [...orderCounts].map(([market, count]) => ({ market, count })), ...(risk ? { risk } : {}), inventoryAvailable, warnings,
     provenance: [`Solana mainnet-beta · confirmed commitment · Velocity SDK ${dependencies['@velocity-exchange/sdk']}.`,
       'Separate account, market, and oracle reads are not an atomic same-slot snapshot.',
       'Perp oracle prices pass the SDK AMM validity helper and Buffer’s 150-slot lag limit; spot valuation adds a 1% confidence cap. These are conservative read rules, not liquidation rules.',
       'Snapshots expire after 120 seconds. The scenario uses the external oracle; SDK baseline valuation may use its validated MM oracle.',
       'All modeled perpetual identities are checked against pinned mainnet configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.'] };
+}
+
+function currentRiskContext(input: ReadData, issues: string[], positions: Snapshot['positions']): RiskContext | undefined {
+  // Only the SDK-backed live reader can provide this context. Keeping it
+  // optional preserves deterministic fixture/report compatibility and avoids
+  // treating a missing method as a safe account.
+  const totalCollateral = input.user.getTotalCollateral;
+  const maintenanceRequirement = input.user.getMaintenanceMarginRequirement;
+  if (!totalCollateral || !maintenanceRequirement) return undefined;
+  if (issues.length) return unavailableRisk(`Unavailable: ${issues.join(' ')}`);
+  if (positions.some((position) => position.isolated)) return unavailableRisk('Cross-margin context is unavailable when the selected account contains isolated positions; those scopes must be evaluated separately.');
+  try {
+    const collateral = normalizeRaw(input.user.getTotalCollateral!('Maintenance'), QUOTE_PRECISION);
+    const requirement = normalizeRaw(input.user.getMaintenanceMarginRequirement!(), QUOTE_PRECISION);
+    const headroom = new Money(collateral).sub(requirement).toFixed();
+    const status = input.user.getLiquidationStatuses?.().get('cross');
+    const canBeLiquidated = status?.canBeLiquidated ?? null;
+    const flagged = input.user.isCrossMarginBeingLiquidated?.() ?? false;
+    return {
+      scope: 'cross-margin',
+      totalCollateral: collateral,
+      maintenanceRequirement: requirement,
+      maintenanceHeadroom: headroom,
+      canBeLiquidated,
+      status: flagged ? 'liquidating' : canBeLiquidated === true ? 'maintenance' : canBeLiquidated === false ? 'clear' : 'unavailable',
+      explanation: 'Current Velocity SDK maintenance context. Headroom is unbuffered maintenance collateral minus maintenance requirement; the liquidation status uses the SDK buffer-aware check. This is an observation, not a liquidation-price forecast.',
+    };
+  } catch {
+    return unavailableRisk('The official SDK could not compute a complete cross-margin maintenance context for this account structure.');
+  }
+}
+
+function unavailableRisk(explanation: string): RiskContext {
+  return { scope: 'cross-margin', totalCollateral: null, maintenanceRequirement: null, maintenanceHeadroom: null, canBeLiquidated: null, status: 'unavailable', explanation };
 }

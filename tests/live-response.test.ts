@@ -27,3 +27,11 @@ it('rejects future snapshots and missing provider-specific price evidence', () =
   const api = { ...snapshot(), protocol: PROTOCOLS.pacifica };
   expect(isSnapshotResponse(api, authority, 'pacifica', 0, authority)).toBe(false);
 });
+
+it('accepts a bounded current risk context and rejects unsafe status payloads', () => {
+  const risk = { scope: 'cross-margin', totalCollateral: '11000', maintenanceRequirement: '1000', maintenanceHeadroom: '10000', canBeLiquidated: false, status: 'clear', explanation: 'Current provider observation.' };
+  expect(valid({ ...snapshot(), risk })).toBe(true);
+  expect(valid({ ...snapshot(), risk: { ...risk, maintenanceHeadroom: 'NaN' } })).toBe(false);
+  expect(valid({ ...snapshot(), risk: { ...risk, status: 'safe' } })).toBe(false);
+  expect(isSnapshotResponse({ ...snapshot(), protocol: PROTOCOLS.pacifica, risk }, authority, 'pacifica', 0, authority)).toBe(false);
+});

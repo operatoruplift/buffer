@@ -316,6 +316,19 @@ describe('presentation and local JSON reports', () => {
     expect(report.provenance).toEqual(snapshot.provenance);
   });
 
+  it('keeps current risk context separate from the price-effect scenario', () => {
+    const snapshot = getSampleSnapshot('sol-long');
+    snapshot.source = 'live';
+    snapshot.network = 'mainnet-beta';
+    snapshot.authority = '11111111111111111111111111111111';
+    snapshot.protocol = PROTOCOLS.velocity;
+    snapshot.subaccount = { id: 0, name: 'Primary', address: snapshot.authority };
+    snapshot.risk = { scope: 'cross-margin', totalCollateral: '11000', maintenanceRequirement: '1000', maintenanceHeadroom: '10000', canBeLiquidated: false, status: 'clear', explanation: 'Current provider observation.' };
+    const report = createReport(snapshot, calculateScenario(snapshot, -10, Date.parse(snapshot.retrievedAt) + 1_000));
+    expect(report.riskContext).toEqual(snapshot.risk);
+    expect(report.scenario.totalsByQuoteCurrency).toEqual([{ quote: 'USDC', delta: '-1500' }]);
+  });
+
   it('does not round report values or emit a stale total', () => {
     const snapshot = snapshotWith({ size: '12345678901234567890.123456789', price: '1' });
     const report = createReport(snapshot, calculateScenario(snapshot, 1));

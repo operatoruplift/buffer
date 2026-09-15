@@ -26,6 +26,10 @@ const count = (value: unknown): value is number => integer(value) && value >= 0;
 const slot = (value: unknown) => value === null || count(value);
 const decimal = (value: unknown) => text(value) && value.length <= 128 && /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d{1,4})?$/i.test(value);
 const nullableDecimal = (value: unknown) => value === null || decimal(value);
+const riskContext = (value: unknown) => object(value) && value.scope === 'cross-margin' &&
+  nullableDecimal(value.totalCollateral) && nullableDecimal(value.maintenanceRequirement) && nullableDecimal(value.maintenanceHeadroom) &&
+  (typeof value.canBeLiquidated === 'boolean' || value.canBeLiquidated === null) &&
+  ['clear', 'maintenance', 'liquidating', 'unavailable'].includes(String(value.status)) && text(value.explanation);
 const array = (value: unknown, check: (item: unknown) => boolean): value is unknown[] => Array.isArray(value) && value.every(check);
 const fields = (value: ObjectValue, names: string[], check: (item: unknown) => boolean) => names.every(name => check(value[name]));
 const isoTime = (value: unknown) => text(value) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
@@ -61,6 +65,7 @@ export function isReport(value: unknown): value is Report {
     array(scenario.totalsByQuoteCurrency, item => object(item) && text(item.quote) && decimal(item.delta)) &&
     scenario.modeledPositions === scenario.includedPositions.length &&
     array(value.baselineMetrics, item => object(item) && fields(item, ['label', 'unit', 'explanation'], text) && nullableDecimal(item.value)) &&
+    (value.riskContext === undefined || riskContext(value.riskContext)) &&
     array(value.positions, item => object(item) && fields(item, ['id', 'market', 'asset', 'quote'], text) &&
       (item.inventory === undefined || isJupiterInventory(item.inventory)) &&
       integer(item.marketIndex) && decimal(item.size) && nullableDecimal(item.price) && nullableDecimal(item.notional) &&

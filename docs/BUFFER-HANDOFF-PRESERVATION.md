@@ -1,6 +1,6 @@
 # Buffer handoff preservation ledger
 
-Prepared during the Meridial Light implementation. This ledger records the existing contract that the redesign must preserve.
+Prepared 15 September 2026 against the current Buffer source. This ledger records the existing contract that the redesign and risk-context work must preserve. The original baseline observations below remain historical evidence.
 
 | Feature / boundary | Source | Existing behavior | Intended change | Dependency / storage | Verification |
 | --- | --- | --- | --- | --- | --- |
@@ -13,7 +13,7 @@ Prepared during the Meridial Light implementation. This ledger records the exist
 | Reports | `src/lib/report.ts`, `src/lib/device-reports.ts`, `src/lib/cloud-reports.ts` | Versioned JSON reports, device library and explicit cloud saves/deletes. | Preserve v1 meaning and account-switch cleanup. | Browser storage and Supabase RLS. | Report compatibility, quota and RLS tests. |
 | PWA | `src/app/manifest.ts`, `src/components/PwaClient.tsx`, `public/sw.js` | Installable app and offline deterministic sample with fixed public cache allowlist. | Keep API/auth/report/media responses out of the service-worker cache. | Browser cache only for listed public files. | PWA and offline tests. |
 | Brand | `src/components/Brand.tsx`, `src/components/Icons.tsx`, `public/brand`, `public/icons` | Ribbon-B mark, wordmark, favicon and installed-app icons. | Preserve exact Buffer mark and shared typography. | Public static assets. | Brand-motion and favicon checks. |
-| Risk context / alerts | Not yet enabled | Price-effect scenario is separate from account health; no durable alert worker is active. | Add only verified current metrics and a local, owner-scoped alert pipeline after inputs and worker boundaries are proven. | Requires SDK semantics, Supabase migrations/RLS and a scheduled worker; no external delivery assumed. | Blocked until model/worker evidence exists; never represent a row as delivered monitoring. |
+| Current risk context / alerts | `src/server/velocity-normalize.ts`, `src/components/Dashboard.tsx`, `src/lib/types.ts` | Price-effect scenario is separate from account health; current Velocity health is provider-reported and no durable alert worker is active. | Preserve the new SDK maintenance collateral, requirement, headroom, and current-status observation. Keep isolated scopes unavailable rather than combining them. Keep alerts conditional until a worker and destination are proven. | Velocity SDK margin methods; future Supabase alert migrations/RLS and scheduled worker; no external delivery assumed. | Unit/provider tests cover exact headroom and status flags; alerts remain explicitly deferred. |
 
 ## Evidence captured before the visual change
 
@@ -22,6 +22,10 @@ Baseline screenshots were captured locally at 1440×1000 and 390×844 for `/`, p
 ## Media provenance
 
 The active hero derivative is documented in `public/videos/design/README.md`. The original Meridial CDN URL, source hashes, decode dimensions and local derivative hashes are recorded there. The prior B3 `hero.mp4` remains available and is not overwritten.
+
+## Current risk-context boundary
+
+The live Velocity normalizer now exposes a `risk` object when the installed SDK can compute it from a complete cross-margin scope. It records maintenance collateral, maintenance requirement, exact decimal headroom, the SDK's buffer-aware liquidation status, and an explanation that the values are current observations. If required inputs are incomplete or isolated positions are present, the object is explicitly unavailable with null values; it is never converted to zero or a liquidation-price estimate. The report validator and JSON export preserve this optional context without changing report version 1 meaning.
 
 ## Release boundary
 

@@ -531,6 +531,71 @@ svg {
 .metric-value.unavailable {
   font-size: 22px;
 }
+.risk-context {
+  margin-top: 14px;
+  margin-bottom: 24px;
+  padding: 17px 21px 15px;
+  background: #f8fbff;
+  border-color: #d9e4f1;
+}
+.risk-context-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.risk-context-heading > div > p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.risk-status {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e7f5f1;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1px;
+}
+.risk-context[data-risk-status="maintenance"] .risk-status,
+.risk-context[data-risk-status="liquidating"] .risk-status {
+  background: #fff1d9;
+  color: var(--amber);
+}
+.risk-context[data-risk-status="unavailable"] .risk-status {
+  background: #edf0f4;
+  color: var(--muted);
+}
+.risk-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+.risk-values > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.risk-values span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.risk-values strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.risk-context-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
 .workspace-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
@@ -1609,6 +1674,37 @@ footer {
   }
   .metric-value.unavailable {
     font-size: 16px;
+  }
+  .risk-context {
+    padding: 14px 16px 13px;
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+  .risk-context-heading {
+    gap: 10px;
+  }
+  .risk-context-heading > div > p,
+  .risk-context-note {
+    font-size: 9px;
+  }
+  .risk-status {
+    font-size: 9px;
+    padding: 4px 7px;
+  }
+  .risk-values {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .risk-values > div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .risk-values strong {
+    font-size: 14px;
+    text-align: right;
   }
   .workspace-grid {
     gap: 18px;

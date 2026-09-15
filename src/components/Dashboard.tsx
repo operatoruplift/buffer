@@ -894,6 +894,25 @@ export default function Dashboard({
                     </article>
                   ))}
                 </section>
+                {snapshot.risk && (
+                  <section className="surface risk-context" aria-labelledby="risk-context-heading" data-risk-status={snapshot.risk.status}>
+                    <div className="risk-context-heading">
+                      <div>
+                        <div className="metric-label"><span id="risk-context-heading">Current risk context</span><span title={snapshot.risk.explanation}><Icon name="info" size={14} /></span></div>
+                        <p>Velocity SDK observation · {snapshot.risk.scope}</p>
+                      </div>
+                      <strong className="risk-status">
+                        {snapshot.risk.status === 'clear' ? 'Above maintenance' : snapshot.risk.status === 'maintenance' ? 'Below maintenance' : snapshot.risk.status === 'liquidating' ? 'SDK marked liquidating' : 'Unavailable'}
+                      </strong>
+                    </div>
+                    <div className="risk-values">
+                      <div><span>Maintenance collateral</span><strong>{snapshot.risk.totalCollateral === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.totalCollateral, 2)} USD`}</strong></div>
+                      <div><span>Maintenance requirement</span><strong>{snapshot.risk.maintenanceRequirement === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceRequirement, 2)} USD`}</strong></div>
+                      <div><span>Headroom</span><strong className={snapshot.risk.maintenanceHeadroom !== null && snapshot.risk.maintenanceHeadroom.startsWith('-') ? 'attention' : ''}>{snapshot.risk.maintenanceHeadroom === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceHeadroom, 2, true)} USD`}</strong></div>
+                    </div>
+                    <p className="risk-context-note">{snapshot.risk.explanation}</p>
+                  </section>
+                )}
               </div>
               <div className="positions-column">
                 <section

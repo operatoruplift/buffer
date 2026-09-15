@@ -30,6 +30,7 @@ export function createReport(snapshot: Snapshot, scenario: Scenario) {
       totalsByQuoteCurrency: scenario.totals.map((total) => ({ ...total })),
     },
     baselineMetrics: snapshot.metrics.map((metric) => ({ ...metric })),
+    ...(snapshot.risk ? { riskContext: { ...snapshot.risk } } : {}),
     positions: snapshot.positions.map((position) => ({ ...position, oracle: { ...position.oracle } })),
     inventoryOutsideScenario: {
       available: snapshot.inventoryAvailable,

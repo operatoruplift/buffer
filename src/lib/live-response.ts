@@ -12,6 +12,10 @@ const time = (value: unknown) => text(value) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:
 const retrieved = (value: unknown) => time(value) && Date.parse(value as string) <= Date.now() + 5_000;
 const decimal = (value: unknown) => typeof value === 'string' && value.length <= 128 && /^-?\d+(?:\.\d+)?$/.test(value);
 const optionalDecimal = (value: unknown) => value === null || decimal(value);
+const riskContext = (value: unknown) => object(value) && value.scope === 'cross-margin' &&
+  optionalDecimal(value.totalCollateral) && optionalDecimal(value.maintenanceRequirement) && optionalDecimal(value.maintenanceHeadroom) &&
+  (typeof value.canBeLiquidated === 'boolean' || value.canBeLiquidated === null) &&
+  ['clear', 'maintenance', 'liquidating', 'unavailable'].includes(String(value.status)) && text(value.explanation);
 const list = (value: unknown, check: (value: unknown) => boolean, max = 1024): value is unknown[] => Array.isArray(value) && value.length <= max && value.every(check);
 const subaccount = (value: unknown) => object(value) && count(value.id) && value.id <= 65535 && text(value.name) && optionalText(value.address);
 const identity = (value: RecordValue, authority: string, protocol: ProtocolId) => value.authority === authority && isCanonicalProtocol(value.protocol) && value.protocol.id === protocol;
@@ -27,7 +31,8 @@ export function isSnapshotResponse(value: unknown, authority: string, protocol: 
   if (!object(value) || !identity(value, authority, protocol) || value.source !== 'live' || value.network !== 'mainnet-beta' ||
     value.sampleName !== null || !subaccount(value.subaccount) || !object(value.subaccount) || value.subaccount.id !== accountId ||
     value.subaccount.address !== accountAddress || !retrieved(value.retrievedAt) || !(value.expiresAt === null || time(value.expiresAt)) ||
-    !slot(value.accountSlot) || !slot(value.observedSlot) || typeof value.inventoryAvailable !== 'boolean') return false;
+    !slot(value.accountSlot) || !slot(value.observedSlot) || typeof value.inventoryAvailable !== 'boolean' ||
+    (value.risk !== undefined && (protocol !== 'velocity' || !riskContext(value.risk)))) return false;
   return list(value.positions, item => object(item) && text(item.id) && Number.isSafeInteger(item.marketIndex) &&
     text(item.market) && text(item.asset) && text(item.quote) && decimal(item.size) && optionalDecimal(item.price) && optionalDecimal(item.notional) &&
     (protocol === 'jupiter' ? isJupiterInventory(item.inventory) && item.modeled === false && item.price === null && item.size === '0' && item.quote === 'USD' : item.inventory === undefined) &&

@@ -9,6 +9,7 @@ import {
   MainnetSpotMarkets,
   VELOCITY_PROGRAM_ID,
   VelocityClient,
+  PositionFlag,
   type IWallet,
   type PerpMarketAccount,
   type SpotMarketAccount,
@@ -40,7 +41,11 @@ function marketFixture(index = 3): ReadData {
     authority: authority.toBase58(), address: authority.toBase58(), accountSlot: 1001, observedSlot: 1002, state,
     perps: new Map([[index, market]]), spots: new Map([[0, quote]]), perpOracles: new Map([[index, oracle]]),
     spotOracles: new Map([[0, { data: { ...oracle.data, price: PRICE_PRECISION, slot: zero() }, slot: 0 }]]), valuationOracles: new Map([[index, oracle.data]]),
-    user: { getNetUsdValue: vi.fn(() => QUOTE_PRECISION.mul(new BN(10_000))), getUnrealizedPNL: vi.fn(() => zero()), getHealth: vi.fn(() => 90) }, retrievedAt: '2026-09-11T00:00:00.000Z' };
+    user: {
+      getNetUsdValue: vi.fn(() => QUOTE_PRECISION.mul(new BN(10_000))), getUnrealizedPNL: vi.fn(() => zero()), getHealth: vi.fn(() => 90),
+      getTotalCollateral: vi.fn(() => QUOTE_PRECISION.mul(new BN(11_000))), getMaintenanceMarginRequirement: vi.fn(() => QUOTE_PRECISION.mul(new BN(1_000))),
+      getLiquidationStatuses: vi.fn(() => new Map<'cross' | number, { canBeLiquidated: boolean }>([['cross', { canBeLiquidated: false }]])), isCrossMarginBeingLiquidated: vi.fn(() => false),
+    }, retrievedAt: '2026-09-11T00:00:00.000Z' };
 }
 
 function makeClient() {
@@ -73,7 +78,21 @@ describe('Velocity mainnet compatibility fixtures', () => {
     const data = marketFixture(Number(index));
     const snapshot = { ...normalizeSnapshot(data), protocol: PROTOCOLS.velocity };
     expect(snapshot.positions[0]).toMatchObject({ asset, marketIndex: index, modeled: true, quote: 'USDT', price: '40', size: '500', exclusionReason: null });
+    expect(snapshot.risk).toMatchObject({ totalCollateral: '11000', maintenanceRequirement: '1000', maintenanceHeadroom: '10000', status: 'clear' });
     expect(calculateScenario(snapshot, -10, Date.parse(data.retrievedAt)).totals).toEqual([{ quote: 'USDT', delta: '-2000' }]);
+  });
+
+  it('surfaces the SDK liquidation flag and withholds cross context for isolated scope', () => {
+    const flagged = marketFixture();
+    flagged.user.getLiquidationStatuses = vi.fn(() => new Map<'cross' | number, { canBeLiquidated: boolean }>([['cross', { canBeLiquidated: true }]]));
+    flagged.user.isCrossMarginBeingLiquidated = vi.fn(() => true);
+    const flaggedSnapshot = normalizeSnapshot(flagged);
+    expect(flaggedSnapshot.risk).toMatchObject({ status: 'liquidating', canBeLiquidated: true });
+    expect(flaggedSnapshot.warnings).toEqual(expect.arrayContaining([expect.stringContaining('eligible for liquidation')]));
+
+    const isolated = marketFixture();
+    isolated.account.perpPositions[0].positionFlag = PositionFlag.IsolatedPosition;
+    expect(normalizeSnapshot(isolated).risk).toMatchObject({ status: 'unavailable', totalCollateral: null, maintenanceRequirement: null, maintenanceHeadroom: null });
   });
 
   it.each(['index', 'name', 'oracle', 'source', 'unknown'] as const)('excludes a mismatched %s even when the position ticker looks valid', (mismatch) => {
