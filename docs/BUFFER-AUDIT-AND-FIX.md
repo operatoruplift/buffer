@@ -14,8 +14,8 @@ This report is the current implementation record for the selected Meridial Light
 
 - Local development URL: `http://127.0.0.1:3001` (`npm run dev -- --port 3001`).
 - Production alias: [bufferonsolana.vercel.app](https://bufferonsolana.vercel.app).
-- Production deployment inspected: `https://buffer-qojj1vpj3-operatoruplift.vercel.app`.
-- Vercel inspection record: [deployment 4Gs1b3TGNTss7spodW7hwT2TLaSc](https://vercel.com/operatoruplift/buffer/4Gs1b3TGNTss7spodW7hwT2TLaSc).
+- Production deployment inspected: `https://buffer-pnt66zadg-operatoruplift.vercel.app`.
+- Vercel inspection record: [deployment ByaqihgZkRjaZFoV2VbEVWk6k5XS](https://vercel.com/operatoruplift/buffer/ByaqihgZkRjaZFoV2VbEVWk6k5XS).
 - The inspected production deployment was ready and built from revision `b53e3bb`. The alias and API checks below were made against a fresh public browser/fetch context.
 - The audited worktree was clean at capture time. `next-env.d.ts` was restored after dev-server generation; `work/` is ignored evidence output and is intentionally not part of the application source commit.
 - Production deployment was completed after local review; no environment values were changed. The current alias points to the reviewed release.
