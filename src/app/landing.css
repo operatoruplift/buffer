@@ -125,7 +125,7 @@
 .buffer-method-top > p { color: var(--quiet); font-size: 13px; line-height: 1.8; padding-bottom: 4px; }
 .buffer-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 42px; margin-top: 55px; }
 .buffer-steps article { padding-top: 20px; border-top: 1px solid var(--line); }
-.buffer-steps article > span { color: #7d857b; font-size: 10px; }
+.buffer-steps article > span { color: var(--muted); font-size: 10px; }
 .buffer-steps h3 { font-size: 18px; font-weight: 500; letter-spacing: -.6px; margin: 27px 0 12px; }
 .buffer-steps p { font-size: 12px; line-height: 1.8; color: var(--quiet); max-width: 282px; }
 .buffer-formula { display: flex; align-items: center; gap: 40px; margin-top: 50px; padding: 28px 37px; border-radius: 8px; background: #edeff7; color: #3b5083; }

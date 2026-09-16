@@ -60,7 +60,7 @@
 .footer { padding: 42px max(32px, calc((100vw - 1216px) / 2)) 28px; background: #eef0e8; }
 .footer > a { display: inline-block; text-decoration: none; }
 .footer :global(.large) { font-size: clamp(58px, 13vw, 156px); }
-.footer > div { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 16px; border-top: 1px solid #d4d9cd; color: #68736a; font-size: 10px; }
+.footer > div { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 16px; border-top: 1px solid #d4d9cd; color: #55605a; font-size: 10px; }
 .footer > div a { display: inline-flex; align-items: center; gap: 9px; color: #315fe8; font-weight: 600; text-decoration: none; }
 @keyframes float { 50% { transform: translateY(-12px) rotate(-5deg); } }
 @media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 45px; padding-bottom: 82px; gap: 48px; } .heroArt { min-height: 390px; } .guidelines, .logos { grid-template-columns: 1fr; gap: 38px; } .assetGrid { grid-template-columns: repeat(2, 1fr); } }

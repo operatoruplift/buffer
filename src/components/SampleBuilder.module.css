@@ -18,7 +18,7 @@
 .fields input { width: 100%; height: 42px; border: 1px solid #dfe5ee; border-radius: 7px; background: #fff; color: var(--text); padding: 7px 9px; font-size: 12px; }
 .fields input[aria-invalid="true"] { border-color: #bd4851; }
 .side > div { display: flex; padding: 3px; border: 1px solid #dfe5ee; background: #f0f3f8; border-radius: 8px; }
-.side button { min-width: 0; flex: 1; min-height: 44px; padding: 0 5px; border: 0; border-radius: 5px; background: transparent; color: #697587; font-size: 10px; }
+.side button { min-width: 0; flex: 1; min-height: 44px; padding: 0 5px; border: 0; border-radius: 5px; background: transparent; color: #55637a; font-size: 10px; }
 .side button[aria-pressed="true"] { background: #fff; color: #244dc8; box-shadow: 0 1px 4px #17336915; font-weight: 650; }
 .apply { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
 .apply small { color: var(--muted); font-size: 10px; }
