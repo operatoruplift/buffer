@@ -24,7 +24,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # --omit=optional: the tree pulls the native ws accelerators
+      # (utf-8-validate, bufferutil) through several transitive paths that
+      # resolve differently on macOS and Linux, leaving the lock out of sync on
+      # one of them. They are pure performance add-ons — ws falls back to its
+      # JavaScript implementations — so omitting them makes the install
+      # deterministic across platforms without changing behaviour.
+      - run: npm ci --omit=optional
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -45,7 +51,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --omit=optional
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Test the production build
