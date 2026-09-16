@@ -24,13 +24,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      # --omit=optional: the tree pulls the native ws accelerators
-      # (utf-8-validate, bufferutil) through several transitive paths that
-      # resolve differently on macOS and Linux, leaving the lock out of sync on
-      # one of them. They are pure performance add-ons — ws falls back to its
-      # JavaScript implementations — so omitting them makes the install
-      # deterministic across platforms without changing behaviour.
-      - run: npm ci --omit=optional
+      # package-lock.json is written by npm 11, which resolves the optional
+      # native ws accelerators differently from the npm bundled with Node 22.
+      # npm ci validates lock/package sync before it applies any omit flag, so
+      # the npm version has to match or a perfectly good lock reads as stale.
+      - run: npm install -g npm@11
+      - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -51,7 +50,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --omit=optional
+      - run: npm install -g npm@11
+      - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Test the production build
