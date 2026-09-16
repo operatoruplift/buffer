@@ -28,11 +28,11 @@ test('confirmed sign-in persists through app reload using the real SDK and mocke
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('button', { name: 'My reports', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true })).toHaveCount(0);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key) || 'null')?.user.id, AUTH_STORAGE_KEY)).toBe(authMockUser().id);
   await page.reload();
   await expect(page.getByRole('button', { name: 'My reports', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true })).toHaveCount(0);
 });
 
 test('failed sign-in stays on the form and only shows controlled error text', async ({ page }) => {
@@ -69,7 +69,7 @@ test('leaving a pending sign-in cancels transport and cannot create a late sessi
   release();
   await page.waitForTimeout(250);
   expect(await page.evaluate(key => localStorage.getItem(key), AUTH_STORAGE_KEY)).toBeNull();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'My reports', exact: true }).click();
   await expect(page.getByText('ON THIS DEVICE', { exact: true })).toBeVisible();
 });
@@ -263,7 +263,7 @@ for (const mode of ['signin', 'signup'] as const) {
     await page.evaluate(() => (window as Window & { releaseAuthJson?: () => void }).releaseAuthJson?.());
     await page.waitForTimeout(250);
     expect(await page.evaluate(key => localStorage.getItem(key), AUTH_STORAGE_KEY)).toBeNull();
-    await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   });
 }
 

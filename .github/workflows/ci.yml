@@ -1,0 +1,68 @@
+name: Verify Buffer
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Non-secret fixtures. Browser tests intercept every provider and account
+      # request, so no mainnet RPC or Supabase project is reachable from CI.
+      SOLANA_RPC_URL: ''
+      NEXT_PUBLIC_SUPABASE_URL: https://auth-fixture.invalid
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
+      NEXT_PUBLIC_AUTH_EMAIL_READY: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  # Browser tests are a separate, non-blocking job: several specs read public
+  # mainnet providers, so a provider outage must not turn the repository red.
+  # Run them locally with `npm run test:e2e` before a release.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Test the production build
+        run: |
+          npm run start -- --port 3001 > /tmp/buffer-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3001/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3001
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: browser-failures
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
