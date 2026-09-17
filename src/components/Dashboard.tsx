@@ -341,7 +341,7 @@ export default function Dashboard({
       </a>
       <header className="header">
         <div className="header-inner">
-          <Link className="brand" href="/" aria-label="Buffer home" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link className="brand" href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
             <Brand />
             <span className="brand-divider" />
             <span className="descriptor">

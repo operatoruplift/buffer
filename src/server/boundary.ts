@@ -1,4 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
+import { consumeSharedLimit } from '@/server/rate-limit';
 import type { ApiError, Discovery, Snapshot } from '../lib/types';
 import type { ProtocolId } from '../lib/protocols';
 
@@ -63,6 +64,11 @@ export async function serveRead(request: Request, kind: 'discovery' | 'snapshot'
     const authority = validateAuthority(params.get('authority'));
     const protocol = validateProtocol(params.get('protocol'));
     const subaccount = kind === 'snapshot' ? validateSubaccount(params.get('subaccount')) : null;
+    // Per-client, across every instance, when the shared store is configured.
+    const shared = await consumeSharedLimit(request, 'live-read', 30);
+    if (shared && !shared.allowed) {
+      throw new ProviderFailure('RATE_LIMITED', 'Too many live reads from this connection. Wait a moment and retry.', 429);
+    }
     const now = Date.now();
     if (now - windowStarted >= 60_000) { windowStarted = now; readsInWindow = 0; }
     if (readsInWindow >= 60 || concurrentReads >= 4) {
