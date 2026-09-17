@@ -44,3 +44,7 @@ The Meridial Light hero is a new same-origin derivative. The original source is 
 | stage-narrow.mp4 | 319983 | d1ebf82b82de38288123c8ed29ca9ad642f562932066ef305d4c6de95ca01ce8 |
 | stage-wide-poster.webp | 121670 | 6e803a4a2e6fdb072dad241c9e8cbec430db2ddc68869a4c8de1af044468bf70 |
 | stage-wide.mp4 | 627107 | 15010a44ea642aa2a27063af778e3541182d516ce446e6645ec6c44712414428 |
+
+## Shipped poster derivatives
+
+`positions-poster.webp`, `coverage-poster.webp` and `math-poster.webp` are 720×1280 WebP (quality 82) derivatives of the PNG originals hashed above; the 1.0–1.7 MB PNGs are no longer shipped because they were the landing page's largest contentful paint. Regenerate with Pillow: `Image.open(png).convert('RGB').resize((720, 1280), Image.LANCZOS).save(webp, 'WEBP', quality=82, method=6)`.
