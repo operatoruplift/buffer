@@ -32,8 +32,8 @@ test('Jupiter is selectable and shows exact inventory without a price-effect tot
   await chooseOption(page, 'Protocol', 'Jupiter Perps');
   await expect(page.getByText('3 perpetual markets on Jupiter Perps · inventory only')).toBeVisible();
   await page.getByRole('button', { name: 'Explore a live account' }).click();
-  await expect(page.getByRole('heading', { name: 'Choose one account' })).toBeVisible();
-  await chooseOption(page, 'Account', 'Wallet account · #0');
+  await expect(page.locator('.selected-subaccount')).toContainText('Wallet account · #0');
+  await expect(page.getByRole('button', { name: 'Change account', exact: true })).toBeVisible();
   await expect(page.getByText('Inventory only', { exact: true })).toBeVisible();
   await expect(page.getByText('↘ Short', { exact: true })).toBeVisible();
   await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');

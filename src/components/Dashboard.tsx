@@ -2,7 +2,7 @@
 
 import { isDiscoveryResponse, isSnapshotResponse } from "@/lib/live-response";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type FormEvent } from "react";
 import Decimal from "decimal.js";
 import { SAMPLE_ACCOUNTS, getSampleSnapshot } from "@/lib/samples";
 import { DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot } from "@/lib/sample-builder";
@@ -16,6 +16,7 @@ import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
 import { CONFIGURED_PERP_MARKETS } from "@/lib/perp-markets";
+import { isPublicAddress, LIVE_RISK_EXAMPLE, PUBLIC_ACCOUNT_EXAMPLES, type LiveLink } from "@/lib/live-link";
 import { Icon, Mark } from "./Icons";
 import { Brand } from './Brand';
 import { TokenIcon } from './TokenIcon';
@@ -27,11 +28,6 @@ import AlertsPanel from './AlertsPanel';
 import Link from 'next/link';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
-const PUBLIC_EXAMPLES: Partial<Record<ProtocolId, string>> = {
-  velocity: "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
-  jupiter: "8vXZp5DRsAKGv6QwfqKjZ2MQgMT6arfYYpoCqAN2b9aw",
-  pacifica: "Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2",
-};
 const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
 const tone = (value: string) =>
   new Decimal(value).isZero()
@@ -46,27 +42,31 @@ const time = (stamp: string) =>
 
 export default function Dashboard({
   liveConfigured,
+  initialLiveLink = { state: "none" },
 }: {
   liveConfigured: boolean;
+  initialLiveLink?: LiveLink;
 }) {
   const [sampleId, setSampleId] = useState(DEFAULT_SAMPLE_ID);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(() =>
-    getPortfolioSampleSnapshot(),
+    initialLiveLink.state === "ready" ? null : getPortfolioSampleSnapshot(),
   );
-  const [mode, setMode] = useState<"sample" | "live">("sample");
-  const [protocolId, setProtocolId] = useState<ProtocolId>("velocity");
-  const [publicExample, setPublicExample] = useState(false);
+  const [mode, setMode] = useState<"sample" | "live">(initialLiveLink.state === "ready" ? "live" : "sample");
+  const [protocolId, setProtocolId] = useState<ProtocolId>(initialLiveLink.state === "ready" ? initialLiveLink.selection.protocol : "velocity");
+  const [publicExample, setPublicExample] = useState(initialLiveLink.state === "ready" && PUBLIC_ACCOUNT_EXAMPLES[initialLiveLink.selection.protocol] === initialLiveLink.selection.authority);
   const [marketSearch, setMarketSearch] = useState("");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(initialLiveLink.state === "ready" ? initialLiveLink.selection.authority : "");
   const [discovery, setDiscovery] = useState<Discovery | null>(null);
   const [selectedId, setSelectedId] = useState("");
+  const [choosingAccount, setChoosingAccount] = useState(false);
   const [shock, setShock] = useState(0);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(initialLiveLink.state === "ready" ? `Finding ${PROTOCOLS[initialLiveLink.selection.protocol].label} accounts…` : null);
   const [error, setError] = useState<ApiError | null>(null);
   const [stale, setStale] = useState(false);
   const [notice, setNotice] = useState("");
   const [now, setNow] = useState(0);
   const [guideVisible, setGuideVisible] = useState(true);
+  const routeSeen = useRef(false);
   const request = useRef(0);
   const abort = useRef<AbortController | null>(null);
   const retry = useRef<() => void>(() => {});
@@ -80,7 +80,7 @@ export default function Dashboard({
   const apiSnapshot = snapshot?.source === "live" && snapshotProtocol.id === "pacifica";
   const availableMarkets = CONFIGURED_PERP_MARKETS[protocolId];
   const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
-  const exampleAuthority = PUBLIC_EXAMPLES[protocolId];
+  const exampleAuthority = PUBLIC_ACCOUNT_EXAMPLES[protocolId];
   const accountLabel = mode === "live" && (protocolId === "pacifica" || protocolId === "jupiter") ? "Account" : "Subaccount";
   const selectedAuthority = discovery?.authority ?? address.trim();
   const previousScope = snapshot?.source === 'live' && mode === 'live' && (
@@ -96,6 +96,9 @@ export default function Dashboard({
       abort.current?.abort();
     };
   }, []);
+  useEffect(() => {
+    if (choosingAccount) document.getElementById('subaccount')?.focus();
+  }, [choosingAccount]);
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(""), 4500);
@@ -116,6 +119,7 @@ export default function Dashboard({
     setSnapshot(getSampleSnapshot(id));
     setDiscovery(null);
     setSelectedId("");
+    setChoosingAccount(false);
     setShock(0);
     setError(null);
     setStale(false);
@@ -134,6 +138,7 @@ export default function Dashboard({
     setMarketSearch("");
     setDiscovery(null);
     setSelectedId("");
+    setChoosingAccount(false);
     if (mode === "live") retainLiveSnapshot();
     setShock(0);
     setError(null);
@@ -142,20 +147,36 @@ export default function Dashboard({
     setPublicExample(false);
   }
   async function fetchJson<T>(url: string): Promise<T> {
-    const response = await fetch(url, {
-      signal: abort.current?.signal,
-      cache: "no-store",
-    });
-    const body = await response.json();
-    if (!response.ok)
-      throw (
-        body.error ?? {
-          code: "READ_FAILED",
-          message: "The account could not be read. Please retry.",
-          retryable: true,
+    const timeout = AbortSignal.timeout(25_000);
+    const signal = abort.current ? AbortSignal.any([abort.current.signal, timeout]) : timeout;
+    try {
+      const response = await fetch(url, { signal, cache: "no-store" });
+      if (!response.body) throw new Error('Account response was empty');
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        size += chunk.value.byteLength;
+        if (size > 8 * 1024 * 1024) {
+          await reader.cancel();
+          throw new Error('Account response exceeds the read limit');
         }
-      );
-    return body as T;
+        chunks.push(chunk.value);
+      }
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+      const body = JSON.parse(new TextDecoder().decode(bytes));
+      if (!response.ok) throw body.error ?? {
+        code: "READ_FAILED", message: "The account could not be read. Please retry.", retryable: true,
+      };
+      return body as T;
+    } catch (error) {
+      if (timeout.aborted) throw { code: 'READ_TIMEOUT', message: 'The account read took too long. Retry for a fresh observation.', retryable: true };
+      throw error;
+    }
   }
   function safeError(e: unknown): ApiError {
     if (
@@ -175,12 +196,12 @@ export default function Dashboard({
   }
   async function readAccount(
     event?: FormEvent,
-    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean },
+    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean; subaccount?: number },
   ) {
     event?.preventDefault();
     const authority = (options?.authority ?? address).trim();
     const requestedProtocol = options?.protocol ?? protocolId;
-    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(authority)) {
+    if (!isPublicAddress(authority)) {
       setError({
         code: "INVALID_ADDRESS",
         message:
@@ -197,11 +218,12 @@ export default function Dashboard({
     retainLiveSnapshot();
     setDiscovery(null);
     setSelectedId("");
+    setChoosingAccount(false);
     setShock(0);
     setError(null);
     setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} accounts…`);
     retry.current = () => {
-      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample });
+      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample, subaccount: options?.subaccount });
     };
     try {
       const result = await fetchJson<unknown>(
@@ -210,23 +232,36 @@ export default function Dashboard({
       if (ticket !== request.current) return;
       if (!isDiscoveryResponse(result, authority, requestedProtocol)) throw new Error('Invalid discovery response');
       setDiscovery(result);
+      const selected = options?.subaccount === undefined
+        ? result.subaccounts.length === 1 ? result.subaccounts[0] : undefined
+        : result.subaccounts.find(account => account.id === options.subaccount);
+      if (options?.subaccount !== undefined && !selected) {
+        setError({ code: 'ACCOUNT_NOT_FOUND', message: 'The linked subaccount was not returned for this authority. Choose a discovered account or explore a preset.', retryable: false });
+        setChoosingAccount(true);
+      } else if (selected) {
+        await readSnapshot(String(selected.id), false, result);
+      } else {
+        setChoosingAccount(true);
+      }
     } catch (e) {
       if (ticket === request.current) setError(safeError(e));
     } finally {
       if (ticket === request.current) setLoading(null);
     }
   }
-  async function readSnapshot(id: string, refreshing = false) {
-    if (!discovery || !id) {
+  async function readSnapshot(id: string, refreshing = false, selectedDiscovery = discovery) {
+    if (!selectedDiscovery || !id) {
       cancel();
       setSelectedId("");
+      setChoosingAccount(false);
       retainLiveSnapshot();
       setLoading(null);
       return;
     }
     const ticket = cancel();
-    const requestedProtocol = discovery.protocol?.id ?? protocolId;
+    const requestedProtocol = selectedDiscovery.protocol?.id ?? protocolId;
     setSelectedId(id);
+    setChoosingAccount(false);
     setLoading(
       refreshing ? "Refreshing snapshot…" : "Reading selected subaccount…",
     );
@@ -236,15 +271,15 @@ export default function Dashboard({
       setShock(0);
     }
     retry.current = () => {
-      void readSnapshot(id, refreshing);
+      void readSnapshot(id, refreshing, selectedDiscovery);
     };
     try {
       const result = await fetchJson<unknown>(
-        `/api/snapshot?authority=${encodeURIComponent(discovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}`,
+        `/api/snapshot?authority=${encodeURIComponent(selectedDiscovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}`,
       );
       if (ticket !== request.current) return;
-      const account = discovery.subaccounts.find(account => account.id === Number(id));
-      if (!account || !isSnapshotResponse(result, discovery.authority, requestedProtocol, Number(id), account.address)) throw new Error('Invalid snapshot response');
+      const account = selectedDiscovery.subaccounts.find(account => account.id === Number(id));
+      if (!account || !isSnapshotResponse(result, selectedDiscovery.authority, requestedProtocol, Number(id), account.address)) throw new Error('Invalid snapshot response');
       setSnapshot(result);
       setNow(Date.now());
       setShock(0);
@@ -259,6 +294,23 @@ export default function Dashboard({
       if (ticket === request.current) setLoading(null);
     }
   }
+  const syncLiveLink = useEffectEvent((link: LiveLink) => {
+    if (link.state === 'ready') {
+      const selection = link.selection;
+      void readAccount(undefined, { ...selection, publicExample: PUBLIC_ACCOUNT_EXAMPLES[selection.protocol] === selection.authority });
+    } else if (link.state === 'invalid') {
+      sample(DEFAULT_SAMPLE_ID);
+      setError({ code: 'INVALID_LINK', message: link.message, retryable: false });
+    } else if (routeSeen.current) {
+      sample(DEFAULT_SAMPLE_ID);
+    }
+    routeSeen.current = true;
+  });
+  const liveLinkKey = JSON.stringify(initialLiveLink);
+  // A new server-rendered query is an external navigation: cancel its predecessor and start a bounded public read.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { syncLiveLink(JSON.parse(liveLinkKey) as LiveLink); }, [liveLinkKey]);
+
   function refresh() {
     if (mode === "sample") {
       setShock(0);
@@ -345,77 +397,7 @@ export default function Dashboard({
     setNotice("Scenario report downloaded.");
   }
 
-  return (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to dashboard
-      </a>
-      <header className="header">
-        <div className="header-inner">
-          <Link className="brand" href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Brand />
-            <span className="brand-divider" />
-            <span className="descriptor">
-              Solana <span>·</span> {mode === "sample" ? "Examples" : protocol.label}
-            </span>
-          </Link>
-          <div className="header-actions">
-            <AccountPanel report={snapshot && scenario && !disabled ? createReport(snapshot, scenario) : null} />
-            <span className={`mode ${mode}`}>
-              <i />
-              {mode === "sample" ? "Demo mode" : "Live mode"}
-            </span>
-            <button
-              className="button subtle method-button"
-              onClick={openMethod}
-              ref={methodButton}
-            >
-              <Icon name="info" />
-              Method
-            </button>
-          </div>
-        </div>
-      </header>
-      <main id="main" className="dashboard">
-        <div className="page-heading">
-          <div>
-            <div className="eyebrow">POSITION EXPLORER</div>
-            <h1>A little more perspective.</h1>
-            <p>Your positions today. A clearer view of a market move.</p>
-          </div>
-          <span className="readonly">
-            <Icon name="check" size={15} />
-            Public data. No permissions.
-          </span>
-        </div>
-
-        {mode === "sample" && (
-          <section className={`sample-guide ${guideVisible ? "" : "collapsed"}`} aria-label="Demo quick start">
-            <div className="guide-heading">
-              <div>
-                <span className="sample-tag">DEMO</span>
-                <strong>See a market move in three steps.</strong>
-              </div>
-              <button
-                className="icon-button"
-                aria-label={guideVisible ? "Hide demo guide" : "Show demo guide"}
-                aria-expanded={guideVisible}
-                aria-controls="sample-guide-steps"
-                onClick={() => setGuideVisible(!guideVisible)}
-              >
-                {guideVisible ? <Icon name="close" size={16} /> : <Icon name="info" size={16} />}
-              </button>
-            </div>
-            {guideVisible && (
-              <ol id="sample-guide-steps" className="guide-steps">
-                <li><button onClick={trySampleMove}><span>1</span>Try a −10% move<Icon name="arrow" size={14} /></button></li>
-                <li><button onClick={() => focusSection(contributionsHeading.current)}><span>2</span>Inspect contributions</button></li>
-                <li><button onClick={openMethod}><span>3</span>Read the method</button></li>
-              </ol>
-            )}
-          </section>
-        )}
-
+  const addressPanel = (
         <section
           className="surface address-panel"
           aria-labelledby="address-label"
@@ -517,6 +499,82 @@ export default function Dashboard({
             <span>{protocol.label} public example · balances can change</span>
           </div>}
         </section>
+  );
+
+  return (
+    <>
+      <a className="skip-link" href="#main">
+        Skip to dashboard
+      </a>
+      <header className="header">
+        <div className="header-inner">
+          <Link className="brand" href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Brand />
+            <span className="brand-divider" />
+            <span className="descriptor">
+              Solana <span>·</span> {mode === "sample" ? "Examples" : protocol.label}
+            </span>
+          </Link>
+          <div className="header-actions">
+            <AccountPanel report={snapshot && scenario && !disabled ? createReport(snapshot, scenario) : null} />
+            <span className={`mode ${mode}`}>
+              <i />
+              {mode === "sample" ? "Demo mode" : "Live mode"}
+            </span>
+            <button
+              className="button subtle method-button"
+              onClick={openMethod}
+              ref={methodButton}
+            >
+              <Icon name="info" />
+              Method
+            </button>
+          </div>
+        </div>
+      </header>
+      <main id="main" className={`dashboard ${mode === "live" && snapshot ? "dashboard-has-live" : ""}`}>
+        <div className="page-heading">
+          <div>
+            <div className="eyebrow">POSITION EXPLORER</div>
+            <h1>A little more perspective.</h1>
+            <p>Your positions today. A clearer view of a market move.</p>
+          </div>
+          {mode === 'sample' ? <div className="live-risk-entry">
+            <button className="button primary" onClick={() => void readAccount(undefined, { ...LIVE_RISK_EXAMPLE, publicExample: true })}>
+              Explore live risk <Icon name="arrow" size={16} />
+            </button>
+            <span>Public Velocity account · fresh data · no sign-in</span>
+          </div> : <span className="readonly"><Icon name="check" size={15} />Public data. No permissions.</span>}
+        </div>
+
+        {mode === "sample" && (
+          <section className={`sample-guide ${guideVisible ? "" : "collapsed"}`} aria-label="Demo quick start">
+            <div className="guide-heading">
+              <div>
+                <span className="sample-tag">DEMO</span>
+                <strong>See a market move in three steps.</strong>
+              </div>
+              <button
+                className="icon-button"
+                aria-label={guideVisible ? "Hide demo guide" : "Show demo guide"}
+                aria-expanded={guideVisible}
+                aria-controls="sample-guide-steps"
+                onClick={() => setGuideVisible(!guideVisible)}
+              >
+                {guideVisible ? <Icon name="close" size={16} /> : <Icon name="info" size={16} />}
+              </button>
+            </div>
+            {guideVisible && (
+              <ol id="sample-guide-steps" className="guide-steps">
+                <li><button onClick={trySampleMove}><span>1</span>Try a −10% move<Icon name="arrow" size={14} /></button></li>
+                <li><button onClick={() => focusSection(contributionsHeading.current)}><span>2</span>Inspect contributions</button></li>
+                <li><button onClick={openMethod}><span>3</span>Read the method</button></li>
+              </ol>
+            )}
+          </section>
+        )}
+
+        {!(mode === 'live' && snapshot) && addressPanel}
 
         {error && (
           <div className="alert error" role="alert">
@@ -529,6 +587,7 @@ export default function Dashboard({
               </strong>
               <p>{error.message}</p>
             </div>
+            {mode === 'live' && <button className="button small" onClick={() => sample(DEFAULT_SAMPLE_ID)}>Explore a preset</button>}
             {error.retryable && (
               <button
                 className="button small"
@@ -550,7 +609,7 @@ export default function Dashboard({
           </div>
         )}
         {mode === "live" && publicExample && (
-          <p className="public-example-note">Public example account on {protocol.label}. Balances and positions can change; choose an account to read its current snapshot.</p>
+          <p className="public-example-note">Public example account on {protocol.label}. Balances and positions can change. This is a fresh public read; the account is not yours.</p>
         )}
         {loading && (
           <div className="loading-status" role="status">
@@ -588,6 +647,7 @@ export default function Dashboard({
                     : short(selectedAuthority)}
                   {mode === "live" && (
                     <>
+                      <button className="text-button change-address" onClick={() => { const field = document.getElementById('address'); field?.focus(); field?.scrollIntoView({ block: 'center', behavior: 'auto' }); }}>Change address</button>
                       <button
                         className="icon-button"
                         aria-label="Copy full authority address"
@@ -610,6 +670,11 @@ export default function Dashboard({
               </div>
             </div>
             <div className="subaccount">
+              {mode === 'live' && discovery?.subaccounts.length === 1 && selectedId && !choosingAccount ? <div className="selected-subaccount">
+                <span>{accountLabel}</span>
+                <strong>{discovery?.subaccounts.find(account => String(account.id) === selectedId)?.name} · #{selectedId}</strong>
+                <button type="button" className="text-button" aria-label={`Change ${accountLabel.toLowerCase()}`} onClick={() => setChoosingAccount(true)}>Change</button>
+              </div> : <>
               <label htmlFor="subaccount">{accountLabel}</label>
               <Select
                 id="subaccount"
@@ -629,6 +694,7 @@ export default function Dashboard({
                   : [{ value: String(snapshot?.subaccount.id), label: `${snapshot?.subaccount.name} · #${snapshot?.subaccount.id}` }]
                 }
               />
+              </>}
             </div>
             <div className="freshness">
               {snapshot && (
@@ -692,7 +758,21 @@ export default function Dashboard({
                 </button>
               </div>
             )}
-            <div className="workspace-grid">
+            <div className={`workspace-grid ${mode === 'live' ? 'live-workspace' : ''}`}>
+              {mode === 'live' && <section className="surface risk-context" aria-labelledby="risk-context-heading" data-risk-status={stale || expired || loading ? 'unavailable' : snapshot.risk?.status ?? 'unavailable'}>
+                <div className="risk-context-heading">
+                  <div><h2 id="risk-context-heading">Current risk context</h2><p>{snapshotProtocol.label} · {snapshot.risk?.scope ?? 'Account scope'}</p></div>
+                  <strong className="risk-status">{stale || expired || loading ? 'Stale observation' : snapshot.risk?.status === 'clear' ? 'Meets maintenance' : snapshot.risk?.status === 'maintenance' ? 'Below maintenance' : snapshot.risk?.status === 'liquidating' ? 'SDK liquidation flag' : 'Unavailable'}</strong>
+                </div>
+                <div className="current-headroom"><span>Maintenance headroom</span><strong data-testid="current-headroom">{snapshot.risk?.maintenanceHeadroom == null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceHeadroom, 2, true)} USD`}</strong></div>
+                {snapshot.risk && <div className="risk-values">
+                  <div><span>Maintenance collateral</span><strong>{snapshot.risk.totalCollateral === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.totalCollateral, 2)} USD`}</strong></div>
+                  <div><span>Maintenance requirement</span><strong>{snapshot.risk.maintenanceRequirement === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceRequirement, 2)} USD`}</strong></div>
+                </div>}
+                <p className="risk-context-note">{snapshot.risk?.explanation ?? 'This provider does not supply a verified maintenance-risk reading. Position inventory and supported price scenarios remain separate.'}</p>
+                <p className="risk-context-note risk-freshness">Observed {time(snapshot.retrievedAt)}. {stale || expired || loading ? 'Refresh the selected account for current risk.' : 'Current account observation; not changed by the price slider.'}</p>
+              </section>}
+
               <section
                 className="surface scenario"
                 aria-labelledby="scenario-heading"
@@ -907,26 +987,6 @@ export default function Dashboard({
                     </article>
                   ))}
                 </section>
-                {snapshot.risk && (
-                  <section className="surface risk-context" aria-labelledby="risk-context-heading" data-risk-status={snapshot.risk.status}>
-                    <div className="risk-context-heading">
-                      <div>
-                        <div className="metric-label"><span id="risk-context-heading">Current risk context</span><span title={snapshot.risk.explanation}><Icon name="info" size={14} /></span></div>
-                        <p>Velocity SDK observation · {snapshot.risk.scope}</p>
-                      </div>
-                      <strong className="risk-status">
-                        {stale || expired || loading ? 'Stale observation' : snapshot.risk.status === 'clear' ? 'Meets maintenance' : snapshot.risk.status === 'maintenance' ? 'Below maintenance' : snapshot.risk.status === 'liquidating' ? 'SDK liquidation flag' : 'Unavailable'}
-                      </strong>
-                    </div>
-                    <div className="risk-values">
-                      <div><span>Maintenance collateral</span><strong>{snapshot.risk.totalCollateral === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.totalCollateral, 2)} USD`}</strong></div>
-                      <div><span>Maintenance requirement</span><strong>{snapshot.risk.maintenanceRequirement === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceRequirement, 2)} USD`}</strong></div>
-                      <div><span>Headroom</span><strong className={snapshot.risk.maintenanceHeadroom !== null && snapshot.risk.maintenanceHeadroom.startsWith('-') ? 'attention' : ''}>{snapshot.risk.maintenanceHeadroom === null ? 'Unavailable' : `${formatDecimal(snapshot.risk.maintenanceHeadroom, 2, true)} USD`}</strong></div>
-                    </div>
-                    <p className="risk-context-note">{snapshot.risk.explanation}</p>
-                  </section>
-                )}
-                <AlertsPanel snapshot={snapshot} stale={stale || expired || Boolean(loading)} />
               </div>
               <div className="positions-column">
                 <section
@@ -1081,6 +1141,7 @@ export default function Dashboard({
                   </div>
                 </section>
               </div>
+              <div className="monitoring-section"><AlertsPanel snapshot={snapshot} stale={stale || expired || Boolean(loading)} scopeChanged={Boolean(previousScope || loading)} /></div>
             </div>
             {!!snapshot.warnings.length && (
               <div className="source-warnings">
@@ -1094,6 +1155,8 @@ export default function Dashboard({
             )}
           </>
         )}
+        {mode === 'live' && (!snapshot || !scenario) && <AlertsPanel snapshot={null} scopeChanged={Boolean(loading)} />}
+        {mode === 'live' && snapshot && addressPanel}
         <footer>
           <span className="footer-brand">
             <Mark size={20} />

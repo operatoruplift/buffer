@@ -3,6 +3,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      verify_public_providers:
+        description: Run optional read-only production provider probes
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -31,15 +37,20 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - name: Verify alert migrations and owner isolation
+        run: |
+          npm install --prefix "$RUNNER_TEMP/buffer-pglite" --no-package-lock --no-audit --no-fund @electric-sql/pglite@0.5.8
+          export BUFFER_PGLITE_MODULE="$RUNNER_TEMP/buffer-pglite/node_modules/@electric-sql/pglite/dist/index.js"
+          node scripts/verify-alert-schema.mjs
+          node scripts/verify-hosted-monitoring.mjs
+          node scripts/verify-monitoring-scheduler.mjs
       - run: npm run build
 
-  # Browser tests are a separate, non-blocking job: several specs read public
-  # mainnet providers, so a provider outage must not turn the repository red.
-  # Run them locally with `npm run test:e2e` before a release.
+  # Deterministic browser regressions block the release. External credentials
+  # are absent and all account/provider transport is intercepted by fixtures.
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     env:
       # Match the mocked browser transport at build and test time. Email flows
       # are enabled only against this invalid fixture host; real Auth tests
@@ -78,3 +89,17 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  public-provider-probes:
+    if: github.event_name == 'workflow_dispatch' && inputs.verify_public_providers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Read the public production examples
+        run: node scripts/verify-public-providers.mjs

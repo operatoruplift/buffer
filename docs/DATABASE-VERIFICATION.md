@@ -209,3 +209,15 @@ rollback;
 ## Change and rollback policy
 
 This migration created an empty table and required no data backfill. Keep deployed migrations immutable; make subsequent schema changes in new forward migrations. Dropping `public.saved_reports` is acceptable only for an unpublished disposable environment. Production changes should preserve historical user records.
+
+
+## September 20 hosted monitoring extension
+
+Applied `hosted_monitoring` as hosted migration `20260919183521`; local source is `20260920020000_hosted_monitoring.sql`. Before application, alert rules, destinations and events were empty. The additive extension preserves saved-report tables and enables real owner-authenticated rule configuration, immutable event provenance, versioned episodes, fenced worker transitions and receipt states. Local PostgreSQL verification passed 48 assertions; prior schema verifier covers 55 additional assertions. Private credential/run tables are denied to browser roles; all five public report/alert tables retain RLS.
+
+The security advisor reports intentionally exposed SECURITY DEFINER entry points: the worker/rate-limit RPCs require separate server secrets, and monitoring status/mutation RPCs require `auth.uid()` and enforce owner scope. Anonymous status access and browser access to helper functions are denied. These expected findings are not evidence that browser callers can bypass the explicit checks.
+
+The initial scheduler preparation applied as `20260919183534`, but hosted postflight showed managed pg_net 0.20.4 queue grants could not be revoked by the tenant postgres role. No scheduler was activated and no credential-bearing request entered that queue. The reviewed scheduler setup replaces that transport with a synchronous http 1.6 HEAD helper, fixed destination, strict response acknowledgement and transient Vault-derived header; see deployment/release records for its final migration and activation proof. Vault secret reads and the private trigger helper remain denied to anon/authenticated roles.
+
+
+The synchronous trigger migration applied as `20260919185033` (`use_synchronous_monitoring_trigger`). Hosted checks confirm http 1.6, HEAD-only helper with no net calls, non-debug logging, private-helper execution denied to anon/authenticated/service_role, and Vault reads denied to browser roles. The managed base HTTP function retains browser EXECUTE grants; those do not grant access to the private helper or its Vault credential and no persistent request queue is used. Scheduler activation/actual completed runs are recorded in the release evidence.

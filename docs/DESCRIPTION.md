@@ -2,7 +2,7 @@
 
 ## Short description
 
-Buffer makes Solana perpetual positions easier to understand with read-only price scenarios, transparent coverage, editable samples, and dated reports on any screen.
+Buffer turns Solana perpetual positions into clear price scenarios, verified current risk context, and portable reports on any screen.
 
 ## Full description
 
@@ -21,7 +21,7 @@ The result comes with its explanation: what was included, what was excluded, whi
 - **A portfolio you can shape.** The sample-only builder starts with 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. Add from a searchable catalog of all 76 configured sample perps, choose long or short, edit quantity and baseline price, or remove a position. USDC, USDT, and USD are illustrative sample denominations; switching the label keeps numeric inputs unchanged and performs no FX conversion. Custom edits survive a sample refresh.
 - **Transparent method.** Inspect assumptions, fixed program or API identity, source information, oracle observations, and snapshot freshness in the Method panel. Pacifica uses API timestamps; Velocity exposes Solana read slots.
 - **Current risk context.** When a fresh Velocity read includes complete cross-margin observations, Buffer shows maintenance collateral, maintenance requirement, exact headroom, and the provider's current status separately from price-effect math. It does not invent a liquidation price.
-- **A reviewable threshold monitor.** Configure a device-local headroom rule, check a fresh Velocity observation or explicitly run a labeled fixture, and inspect its mock-delivery state. A separate local SQLite worker proves concurrent processing, restart recovery, retries, and cancellation. Browser checks are manual; hosted scheduling and external delivery are not enabled.
+- **Current risk and optional monitoring.** Open a public Velocity account directly and inspect current maintenance headroom beside the independent price scenario. Owner-authenticated cloud rules use fresh provider observations, durable event/outbox state and protected scheduled work. One Discord adapter separates acceptance from a matching channel receipt; destination setup and authorized live delivery remain explicit gates. Local examples use a separate rehearsal with no outbound path.
 - **Portable reports.** Download a JSON report containing the snapshot, exact scenario values, coverage, protocol metadata, and assumptions.
 - **Useful without an account.** Explore deterministic samples, read public accounts, and save historical reports on this device without signing in or connecting a wallet. Optional cloud accounts keep a separate private library.
 - **A workspace that travels.** Use the responsive web app on mobile, tablet, and desktop, with installation through supported PWA browsers.

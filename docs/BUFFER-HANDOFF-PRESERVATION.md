@@ -35,3 +35,17 @@ This handoff originally did not authorize production deployment. The current tas
 ## September 19 local completion pass
 
 The earlier deployed evidence above remains historical. See [FINAL-VERIFICATION-2026-09-19.md](FINAL-VERIFICATION-2026-09-19.md) for this locally prepared revision, exact checks, new screenshots, and limits. The dashboard now preserves prior live scopes during account changes; risk labels match the installed SDK source; unavailable live alerts never use fixture values; the explicit fixture and manual checks are distinct. The standalone worker now uses SQLite with committed fenced claims and a transactional mock journal. The new database hardening migration is locally verified and **not applied to production**. The latest attached handoff reserves deployment, external delivery, and submission for a separate release decision.
+
+
+## September 20 live-risk and hosted-monitoring extension
+
+| Feature | Source | Prior behavior | Intended change | Dependency preserved | Verification |
+| --- | --- | --- | --- | --- | --- |
+| Public live lookup | Dashboard, live-link, app/page | Manual address/example discovery | Canonical deep link; sole eligible account auto-select; multiple remain deliberate | Public provider identities, fresh snapshots, no stored address | Link unit/browser cases; final release evidence |
+| Current maintenance context | Dashboard, globals.css | Separate card farther down | Beside scenario on desktop, before it on mobile | Exact existing risk data; slider does not mutate current headroom | Slider independence/browser coverage |
+| Alert rehearsal | AlertsPanel, alerts.ts | Browser-only local monitor | Explicit separate fixture namespace/export/entry point | Old namespace preserved; shared evaluator unchanged | Browser persistence/corruption/two-tab tests |
+| Hosted monitoring | LiveMonitoringPanel, monitoring-client, server/monitoring, additive migration | No configured hosted runtime | Owner-bound rules, fresh read, leased worker, Discord receipt states | Reports/auth/private-cache boundaries; no automatic fixture migration | SQL/worker/provider/session tests and integration matrix |
+| Product films | demo/page; public/videos | September 13 narrated films | Current-build text and live-risk link | Every MP4/poster/VTT/transcript/revision parameter unchanged | Caption/seek/download/browser tests |
+| Meridial/B4/B6 and brand | Landing, design-media, DecorativeVideo, AuthForm | Selected delivered treatments | Add live-risk entry; preserve all motion/branding | Same assets, font/mark, motion preference and fallback | Matching before/after route screenshots and motion tests |
+
+Before captures are in `work/evidence/real-alerts-2026-09-20/before`; final after captures and command logs share that evidence directory. No source film or historical report schema is reinterpreted by this extension.

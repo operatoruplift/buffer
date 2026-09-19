@@ -1,0 +1,22 @@
+# Buffer integration status
+
+Updated September 20, 2026. This matrix belongs to the current integration pass. Evidence is point-in-time and distinguishes implementation from hosted execution. Final deployment identifiers and fresh command results are recorded in [the existing release record](RELEASE-2026-09-20.md).
+
+| Integration | Implemented source | Fixture/contract tests | Local runtime | Read-only live provider | Outbound acceptance | Recipient receipt | Scheduler heartbeat | Deployed verification | Remaining prerequisite |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Solana RPC | Bounded mainnet/program/account reads | Network, ownership, timeout, body-bound cases | Existing API routes | Prior release verified; fresh release probe pending | N/A | N/A | N/A | Pending this pass | Sustained traffic needs sufficient RPC capacity |
+| Velocity SDK 0.23.1 | USDT price scenarios; current eligible cross-margin USD maintenance context | Exact risk, oracle/slot, stale/isolated exclusions | Direct live-link and single/multiple account paths | Fresh local public read verified at2026-09-19T18:30Z; production probe pending | N/A | N/A | N/A | Pending this pass | Public account contents can change |
+| Pacifica REST | Fixed-origin public positions; USD scenarios | Domain schema, timestamps, limits and failures | Preserved explorer | Prior release verified; fresh release probe pending | N/A | N/A | N/A | Pending this pass | External public API availability |
+| Jupiter Perps | Canonical inventory only | PDA/program/pool/custody/units | Preserved inventory view | Prior release verified inventory | N/A | N/A | N/A | Pending this pass | No verified oracle/capped-payoff model; excluded from totals |
+| Legacy Drift | Explicitly paused compatibility | Provider identity separation | Paused state preserved | Not claimed active | N/A | N/A | N/A | Pending this pass | No modeled live capability claimed |
+| Supabase | Private reports; owner-authenticated live rule/config APIs; RLS | Two-owner/database/session tests passed | Local intercepted API and saved-rule management verified | New hosted migration applied; RLS/owner functions verified | N/A | N/A | N/A | Pending this pass | Real auth journey requires confirmed test accounts; public email disabled |
+| Durable worker | Shared evaluator, fenced leases, versioned episodes/outbox, protected minute trigger | 48 PostgreSQL assertions; crash/concurrency/uncertain outcomes passed | Coordinator, priority fairness and actual SQL simulation passed | Pending hosted activation | N/A | N/A | Pending actual scheduled run | Pending this pass | Deploy reviewed schema/runtime then observe heartbeat |
+| Discord | One fixed-origin adapter, admin-owned allowlist, metadata verification, redacted preview | 77 contract tests passed with fake fetch; no outbound requests | Rehearsal separated; acceptance/receipt/unknown UI verified | Not configured | **Not run** | **Not run** | Independent worker gate above | Adapter deployment pending | Exact channel, server-side webhook credential/owner mapping and authorized test send |
+
+No mock receipt, saved row, environment variable or HTTP 200 without validated data is counted as a live delivery. Discord “delivered” means a matching message was retrieved from the configured channel, not that a human read it. Signup/recovery SMTP is separately gated and remains disabled. Conditional liquidation estimates remain unimplemented because the SDK linear extrapolation is not a verified full stress model; observed maintenance context and scenario exclusions are retained.
+
+## Current demonstration
+
+The landing and app expose **Explore live risk**, fetching a fresh public Velocity observation without authentication. Exactly one eligible discovered account selects automatically; multiple accounts require a deliberate choice. An explicit deep-linked subaccount must exist in discovery. Current headroom is adjacent to the independent price-effect result. Device report export remains account-free.
+
+The 90-second sequence is: light landing → deterministic scenario and contributions → Explore live risk → source/subaccount/time and current maintenance context → export dated report → separately labeled alert rehearsal. Show a hosted rule and matching real Discord receipt only after that gate is verified. The September 13 narrated films remain intact and are marked historical on `/demo`; the current-build link opens the actual updated explorer.

@@ -13,6 +13,7 @@ import { useMotionPreference } from '@/lib/use-motion-preference';
 import { formatDecimal } from "@/lib/format";
 import { getSampleSnapshot } from "@/lib/samples";
 import { calculateScenario } from "@/lib/scenario";
+import { LIVE_RISK_LINK } from '@/lib/live-link';
 import "@/app/landing.css";
 
 const demoSnapshot = getSampleSnapshot('long-short');
@@ -189,6 +190,7 @@ export default function Landing() {
             <h1><span>Every position.</span><span>Every price move.</span><span className="buffer-hero-accent">A clearer picture.</span></h1>
             <p>Explore the price effect on your Solana perpetual positions, with the source, assumptions and coverage in view.</p>
             <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><button type="button" className="buffer-text-link buffer-board-toggle" onClick={() => changeScenarioBoard(true)} disabled={scenarioBoardOpen}>Explore the scenario <Icon name="arrow" size={16} /></button></div>
+            <Link className="buffer-live-risk-link" href={LIVE_RISK_LINK}>Explore live risk <Icon name="arrow" size={15} /><span>Public Velocity account</span></Link>
             <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
           </div>
           <div className={`buffer-hero-stage${scenarioBoardOpen ? ' is-board' : ''}`}>

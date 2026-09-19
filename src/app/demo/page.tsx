@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LIVE_RISK_LINK } from '@/lib/live-link';
 import { Brand } from '@/components/Brand';
 import styles from './page.module.css';
 
@@ -15,18 +16,18 @@ export default function DemoPage() {
     <nav className={styles.nav}><Link href="/" className={styles.brand} aria-label="Buffer home"><Brand /></Link><Link href="/app" className="button primary">Try the app →</Link></nav>
     <header className={styles.header}><span className="eyebrow">SEE THE WHOLE PICTURE</span><h1>Meet Buffer.</h1><p>A few minutes. A clearer view.</p></header>
     <section className={styles.currentBuild} aria-labelledby="current-build-heading">
-      <div className={styles.currentBuildMarker}>CURRENT BUILD · SEPTEMBER 19, 2026</div>
+      <div className={styles.currentBuildMarker}>CURRENT BUILD · SEPTEMBER 20, 2026</div>
       <div className={styles.currentBuildBody}>
         <div>
           <h2 id="current-build-heading">The product keeps the context attached.</h2>
-          <p>The films below capture the core scenario journey. The live explorer now also shows verified Velocity maintenance headroom when the provider returns it, plus a local threshold monitor that proves the rule, event, outbox, lease, and mock delivery path.</p>
+          <p>The films below capture the core scenario journey. Explore a public Velocity account in the current app to see fresh maintenance headroom beside the price scenario, with the source and observation time attached.</p>
         </div>
-        <Link href="/app#alerts-heading" className="button secondary">Try the current monitor →</Link>
+        <Link href={LIVE_RISK_LINK} className="button secondary">Explore live risk →</Link>
       </div>
       <ul className={styles.currentBuildList}>
         <li><strong>Risk context</strong><span>Current collateral, maintenance requirement, headroom, and provider status stay separate from price-effect math.</span></li>
-        <li><strong>Threshold monitor</strong><span>Configure a headroom rule, run a fresh check, and see a durable local mock delivery on this device.</span></li>
-        <li><strong>Honest boundaries</strong><span>External email, webhook, and hosted workers remain gated until their production prerequisites are configured.</span></li>
+        <li><strong>Threshold monitor</strong><span>Live rules use protected cloud storage and fresh provider checks. Example alerts stay in a separate local rehearsal.</span></li>
+        <li><strong>Honest boundaries</strong><span>Discord delivery needs a verified destination and sending activation. Provider acceptance and a matching message receipt are shown separately.</span></li>
       </ul>
     </section>
     {videos.map(video => <section key={video.id} className={styles.film} id={video.id}>
@@ -38,7 +39,7 @@ export default function DemoPage() {
       </video>
       <div className={styles.downloads}><a href={mediaPath(video.id, '-transcript.md')}>Read transcript</a><a href={mediaPath(video.id, '.mp4')} download>Download video ↓</a></div>
     </section>)}
-    <p className={styles.note}>The films were recorded September 13, 2026 with illustrative positions and prices. This page is current as of September 19, 2026; the films predate the Meridial Light landing page, verified risk context, and local threshold monitor. Try the current explorer above for these additions. Velocity and Pacifica support price scenarios, Jupiter Perps is inventory-only, and legacy Drift reads are paused. English captions and transcripts are included.</p>
+    <p className={styles.note}>The films were recorded September 13, 2026 with illustrative positions and prices. This page is current as of September 20, 2026; the films predate the Meridial Light landing page, direct live-risk journey, and hosted monitoring implementation. Try the current explorer above for these additions. Velocity and Pacifica support price scenarios, Jupiter Perps is inventory-only, and legacy Drift reads are paused. English captions and transcripts are included.</p>
     <Link href="/app" className="button primary">Explore the demo yourself →</Link>
   </main>;
 }

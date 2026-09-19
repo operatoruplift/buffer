@@ -1,14 +1,14 @@
 # Buffer videos
 
-**Updated:** September 19, 2026 (local handoff).
+**Updated:** September 20, 2026 (current implementation and historical film context).
 
 The version-2 films cover the core Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
 
 ## Current build update
 
-The films were recorded on September 13, 2026. The live product tour is current as of September 19: open [the explorer](https://bufferonsolana.vercel.app/app) to see the verified Velocity risk-context card when a fresh provider read returns maintenance collateral, maintenance requirement, headroom, and the provider status. The dashboard also includes a local threshold monitor. It lets a judge configure one headroom rule, run an explicit fixture check or check a fresh selected observation, and observe the rule → event → outbox → mock-delivery path on that device; the separate local SQLite worker proves durable leases and concurrent/restart behavior.
+The films were recorded on September 13, 2026 and remain intact. The current `/demo` introduction opens **Explore live risk** in the actual updated app: fresh public Velocity account, adjacent maintenance context and an independent price scenario. A sole eligible account selects automatically; multiple accounts require deliberate selection.
 
-The local monitor is deliberately narrow. It never turns a sample, stale response, isolated scope, or missing value into an alert. External email, webhooks, push notifications, and hosted workers remain gated until their Supabase migration, protected worker, destination, and delivery checks are configured. The `/demo` page labels this current-build addition above the recorded films so the recordings and the shipped product are not conflated.
+Current monitoring has separate local example and hosted modes. Live rules use authenticated owner-scoped APIs and a durable worker. Discord acceptance and a matching channel receipt are separate statuses. Actual outbound verification still requires a configured destination and authorized test send; neither an intercepted browser test nor a mock journal is presented as delivery. See [integration status](BUFFER-INTEGRATION-STATUS.md). The films predate these changes and their narration is not relabeled as new footage.
 
 | Film | Story | Timing |
 | --- | --- | --- |
