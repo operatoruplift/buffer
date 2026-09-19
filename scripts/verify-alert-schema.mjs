@@ -21,10 +21,27 @@ await db.exec(`
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
   grant usage on schema auth, public to anon, authenticated, service_role;
   grant execute on function auth.uid() to anon, authenticated, service_role;
+  -- Supabase grants these roles EXECUTE directly on new public functions.
+  -- Revoking only PUBLIC must not leave that separate grant untested.
+  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
   insert into auth.users values ('${a}'),('${b}');
+  create schema private;
+  create table private.rate_limits(window_start timestamptz not null);
+  create function private.prune_rate_limits() returns void language sql security definer
+    as $$ delete from private.rate_limits where window_start < now() - interval '1 hour' $$;
+  insert into private.rate_limits values (now() - interval '2 hours'), (now());
 `);
-for (const name of ['20260915120000_create_alert_pipeline.sql','20260919090000_harden_alert_pipeline.sql']) {
+const permissionMigration = await readFile(new URL('../supabase/migrations/20260920010000_harden_function_permissions.sql', import.meta.url), 'utf8');
+for (const name of ['20260915120000_create_alert_pipeline.sql','20260919090000_harden_alert_pipeline.sql', '20260920010000_harden_function_permissions.sql']) {
   await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
+}
+await check(`select coalesce(proconfig @> array['search_path=""'],false) as secured from pg_proc where oid='private.prune_rate_limits()'::regprocedure`, [{ secured: true }]);
+await sql('select private.prune_rate_limits()');
+await check('select count(*)::int as n from private.rate_limits', [{ n: 1 }]);
+for (const role of ['anon', 'authenticated']) {
+  for (const signature of ['guard_alert_rule()', 'cancel_deleted_alert_rule()', 'guard_alert_event()', 'claim_alert_delivery(text)', 'finish_alert_delivery(uuid,uuid,boolean)', 'prune_alert_history()']) {
+    await check(`select has_function_privilege('${role}','public.${signature}','EXECUTE') as permitted`, [{ permitted: false }]);
+  }
 }
 await db.exec(`insert into public.alert_destinations(owner_id) values ('${a}'),('${b}');`);
 const destination = (await sql(`select id from alert_destinations where owner_id=$1`, [a])).rows[0].id;
@@ -107,5 +124,8 @@ await db.exec('reset role; set role service_role');
 await check('select public.prune_alert_history()::int as n', [{ n: 0 }]);
 await sql(`insert into public.alert_events(rule_id,rule_version,owner_id,event_key,state,observed_at,value,threshold,reason) values(null,1,'${a}','old-retained','suppressed',now()-interval '31 days',250,300,'Old fixture')`);
 await check('select public.prune_alert_history()::int as n', [{ n: 1 }]);
+// The followup must also work on a fresh installation without the hosted helper.
+await db.exec('reset role; drop function private.prune_rate_limits()');
+await db.exec(permissionMigration); checks++;
 await db.close();
 console.log(JSON.stringify({ result: 'PASS', assertions: checks, database: 'local PostgreSQL (PGlite)', externalWrites: false }, null, 2));

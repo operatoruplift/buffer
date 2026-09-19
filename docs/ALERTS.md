@@ -1,6 +1,6 @@
 # Buffer threshold monitoring
 
-Updated September 19, 2026. This is a local implementation and verification record; it does not describe hosted delivery.
+Updated September 20, 2026. Browser and SQLite delivery remain local. The database hardening is now applied to hosted Supabase; it does not activate a scheduler or external delivery.
 
 Buffer monitors **current Velocity cross-margin maintenance headroom**, in USD. A rule identifies an owner, exact authority/subaccount, threshold/direction, minimum check interval, timezone, cooldown, recovery distance (hysteresis), and mock destination. It never derives an alert from an estimated liquidation price.
 
@@ -53,7 +53,7 @@ Browser localStorage and worker SQLite are separate stores. There is no implied 
 
 ## Database preparation and external gates
 
-The original `20260915120000_create_alert_pipeline.sql` is recorded as applied to Buffer Supabase. The **new** `20260919090000_harden_alert_pipeline.sql` is prepared and tested locally only. It adds verified mock destinations, owner-linked foreign keys, restricted configuration columns, automatic rule versions, worker-only fenced claim/completion functions, cancellation, and protected 30-day history retention. It does not start a worker or enable external delivery.
+The original `20260915120000_create_alert_pipeline.sql` is recorded as applied to Buffer Supabase. The reviewed `20260919090000_harden_alert_pipeline.sql` and `20260920010000_harden_function_permissions.sql` were applied to Buffer Supabase during the authorized September 20 release. Hosted migration versions are `20260919172720` and `20260919173121` respectively (UTC). It adds verified mock destinations, owner-linked foreign keys, restricted configuration columns, automatic rule versions, worker-only fenced claim/completion functions, cancellation, and protected 30-day history retention. The followup also removes direct Supabase default grants from trigger helpers and fixes the existing rate-limit pruning function’s search path. These migrations do not start a worker or enable external delivery.
 
 Local PostgreSQL semantics can be checked without hosted credentials using PGlite installed in a temporary directory:
 
@@ -62,7 +62,7 @@ npm install --prefix /tmp/buffer-sql-verification --no-audit --no-fund @electric
 BUFFER_PGLITE_MODULE=/tmp/buffer-sql-verification/node_modules/@electric-sql/pglite/dist/index.js node scripts/verify-alert-schema.mjs
 ```
 
-This validates the migrations on a local PostgreSQL engine with simulated Supabase roles. It is not evidence of a hosted migration or multi-session PostgreSQL performance. Hosted activation still requires the forward migration, a deployed provider-polling scheduler, database-coordinated evaluation, quotas, protected credentials, and an authorized verified destination. Email/Discord/Telegram integrations are **not implemented or enabled**. No arbitrary URL is fetched and no external message is sent.
+The 55 local assertions simulate Supabase’s direct function grants and check ownership, trigger behavior and worker permissions. Hosted postflight separately confirms RLS and denied browser execution of protected helpers; this is not multi-session PostgreSQL performance evidence. Hosted activation still requires a deployed provider-polling scheduler, database-coordinated evaluation, quotas, protected credentials, and an authorized verified destination. Email/Discord/Telegram integrations are **not implemented or enabled**. No arbitrary URL is fetched and no external message is sent.
 
 ## Verification
 

@@ -22,12 +22,11 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
-      # package-lock.json is written by npm 11, which resolves the optional
-      # native ws accelerators differently from the npm bundled with Node 22.
-      # npm ci validates lock/package sync before it applies any omit flag, so
-      # the npm version has to match or a perfectly good lock reads as stale.
+      # Keep npm 11 aligned with the checked-in lockfile. npm ci validates
+      # dependency resolution before applying omit flags; pinning the major
+      # avoids lockfile disagreements as runner defaults change.
       - run: npm install -g npm@11
       - run: npm ci
       - run: npm run lint
@@ -48,7 +47,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm install -g npm@11
       - run: npm ci
