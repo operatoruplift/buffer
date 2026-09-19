@@ -71,3 +71,6 @@ The 78-file source archive has SHA256 `8069264a9219ed1d24ebb4165f2de00370740fcd5
 The published films pass desktop/mobile playback with native English captions selected: cues load and activate after seeking. All transcript links return current content. Production MP4 hashes match the verified exports and support HTTP 206 seeking; `videos/production-verification.json` records the check.
 
 The September 19 local pass preserves the September 13 films and their narration, captions, audio, download, and seek controls. The demo-page introduction explicitly identifies them as earlier recordings. No new film generation, narration claim, upload, or media release was performed. The current 90-second script is in the final verification record.
+
+
+Final playback polish: all three native English caption tracks prepare without displaying captions, so they are ready before sequential playback. A viewer/browser preference that already enables captions is preserved. The native play, seek, audio, fullscreen, download and caption controls remain. Final evidence includes actual sequential playback and a separate 23-second recording of hero travel, B4 animation and B6 refraction under `work/evidence/real-alerts-2026-09-20/production/`.

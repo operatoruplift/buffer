@@ -5,13 +5,23 @@ test('all three hosted videos decode, play and seek with captions available', as
   await expect(page.getByRole('heading', { name: 'Meet Buffer.' })).toBeVisible();
   const videos = page.locator('video');
   await expect(videos).toHaveCount(3);
+  // The product prepares every native track without displaying captions or
+  // waiting for a later film to compete with earlier media range downloads.
+  await expect.poll(() => videos.evaluateAll((elements) => elements.map((element) => {
+    const video = element as HTMLVideoElement;
+    return { ready: video.querySelector('track')?.readyState, mode: video.textTracks[0].mode };
+  }))).toEqual(Array.from({ length: 3 }, () => ({ ready: 2, mode: 'hidden' })));
   for (const video of await videos.all()) {
     await video.scrollIntoViewIfNeeded();
-    await video.evaluate(async (element: HTMLVideoElement) => {
+    await video.evaluate((element: HTMLVideoElement) => {
       element.muted = true;
       element.textTracks[0].mode = 'showing';
-      await element.play();
     });
+    // Caption loading is independent of video playback and seeking. Wait for the
+    // browser's track loader before checking active cues at the seek destination.
+    await expect.poll(() => video.locator('track').evaluate((element: HTMLTrackElement) => element.readyState)).toBe(2);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].cues?.length ?? 0)).toBeGreaterThan(0);
+    await video.evaluate((element: HTMLVideoElement) => element.play());
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0);
     await video.evaluate((element: HTMLVideoElement) => new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('Video seek did not complete')), 10_000);
@@ -29,7 +39,6 @@ test('all three hosted videos decode, play and seek with captions available', as
     const captions = await response.text();
     expect(captions).toMatch(/^WEBVTT/);
     expect(captions).toContain('Jupiter');
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].cues?.length ?? 0)).toBeGreaterThan(0);
   }
   const transcripts = page.getByRole('link', { name: 'Read transcript', exact: true });
   await expect(transcripts).toHaveCount(3);

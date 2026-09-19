@@ -379,7 +379,8 @@
 .buffer-site .buffer-hero h1 { margin: 22px 0; font-size: clamp(1.65rem, 5vw, 3rem); line-height: 1.05; letter-spacing: -.01em; font-weight: 700; animation: buffer-b3-rise 600ms cubic-bezier(.22,1,.36,1) backwards; }
 .buffer-heading-icon { display: inline-flex; vertical-align: middle; margin-left: 13px; padding: 9px; border-radius: 13px; background: #ffffffa8; border: 1px solid #ffffffb0; color: var(--cobalt); box-shadow: 0 5px 18px #182b5712; }
 .buffer-site .buffer-hero-copy > p { max-width: 495px; font-size: clamp(.9rem, 2.5vw, 1.1rem); line-height: 1.65; color: #58625f; animation: buffer-b3-rise 600ms 150ms cubic-bezier(.22,1,.36,1) backwards; }
-.buffer-site .buffer-hero-actions { gap: 24px; margin-top: 28px; animation: buffer-b3-rise 600ms 300ms cubic-bezier(.22,1,.36,1) backwards; }
+/* Animate opacity here so focus changes never move a pressed button's hitbox. */
+.buffer-site .buffer-hero-actions { gap: 24px; margin-top: 28px; animation: buffer-b3-fade 600ms 300ms cubic-bezier(.22,1,.36,1) backwards; }
 .buffer-hero-actions .buffer-cta:hover { transform: scale(1.025); }
 .buffer-hero-actions .buffer-cta:active { transform: scale(.98); }
 .buffer-hero-actions .buffer-text-link { min-height: 44px; }
@@ -391,6 +392,7 @@
 .buffer-site[data-motion-paused=true] .buffer-hero h1, .buffer-site[data-motion-paused=true] .buffer-hero-copy > p, .buffer-site[data-motion-paused=true] .buffer-hero-actions { animation: none; }
 .buffer-hero-copy:focus-within h1, .buffer-hero-copy:focus-within > p, .buffer-hero-copy:focus-within .buffer-hero-actions { animation: none; }
 @keyframes buffer-b3-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes buffer-b3-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 1000px) { .buffer-site .buffer-nav-links { gap: 20px; } .buffer-site .buffer-nav-actions { gap: 20px; } .buffer-hero-inner { gap: 30px; grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); } }
 @media (max-width: 800px) { .buffer-hero-inner { grid-template-columns: 1fr; gap: 36px; padding-bottom: 40px; } .buffer-site .buffer-hero-stage { justify-self: start; max-width: 560px; } .buffer-hero::before { background: linear-gradient(130deg, #f8f8f3f2, #f8f8f3ad); } }
 @media (max-width: 520px) { .buffer-site .buffer-nav { min-height: 78px; gap: 9px; } .buffer-site .buffer-nav-open { padding: 10px 13px; min-height: 44px; gap: 8px; } .buffer-site .buffer-hero h1 { font-size: clamp(1.65rem, 7.3vw, 2.3rem); } .buffer-heading-icon { padding: 6px; margin-left: 8px; border-radius: 9px; } .buffer-heading-icon svg { width: 19px; height: 19px; } .buffer-site .buffer-hero-stage { padding: 16px; } .buffer-site .buffer-hero-actions { gap: 15px; } .buffer-hero-inner { padding-top: 40px; gap: 29px; } .buffer-site .buffer-hero-note { line-height: 1.5; } }
