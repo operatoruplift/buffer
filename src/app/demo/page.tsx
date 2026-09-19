@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CaptionTrack from '@/components/CaptionTrack';
 import { LIVE_RISK_LINK } from '@/lib/live-link';
 import { Brand } from '@/components/Brand';
 import styles from './page.module.css';
@@ -34,7 +35,7 @@ export default function DemoPage() {
       <div><span className="eyebrow">{video.label}</span><h2>{video.title}</h2><p>{video.description}</p></div>
       <video controls playsInline preload="metadata" poster={mediaPath(video.id, '-poster.jpg')} aria-label={video.label}>
         <source src={mediaPath(video.id, '.mp4')} type="video/mp4" />
-        <track kind="captions" src={mediaPath(video.id, '.vtt')} srcLang="en" label="English" />
+        <CaptionTrack src={mediaPath(video.id, '.vtt')} />
         Your browser does not support this video. <a href={mediaPath(video.id, '.mp4')}>Download the video</a>.
       </video>
       <div className={styles.downloads}><a href={mediaPath(video.id, '-transcript.md')}>Read transcript</a><a href={mediaPath(video.id, '.mp4')} download>Download video ↓</a></div>

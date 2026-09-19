@@ -1,4 +1,21 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
+
+async function holdHeroEntrance(actions: Locator) {
+  await actions.evaluate(element => {
+    const container = element as HTMLElement;
+    // Replay the native entrance and hold its delay so a fast first click is
+    // reproducible even when the browser or media requests are slow.
+    container.style.animationName = 'none';
+    void container.offsetWidth;
+    container.style.removeProperty('animation-name');
+    const entrance = container.getAnimations().find(animation => animation instanceof CSSAnimation);
+    if (!entrance?.effect) throw new Error('Hero entrance animation is missing');
+    const delay = Number(entrance.effect.getTiming().delay);
+    if (delay <= 0) throw new Error('Hero entrance has no opening delay');
+    entrance.pause();
+    entrance.currentTime = delay / 2;
+  });
+}
 
 test('selected template clips advance only in view, and stage switches without fetching both variants', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -97,4 +114,57 @@ test('failed decorative films retain readable posters, usable scenarios, and nav
   await page.getByRole('link', { name: 'Continue without an account' }).click();
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
+});
+
+test('pointer activation during the hero entrance opens the scenario without losing the click', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.route('**/videos/design/*.mp4', route => route.abort());
+  await page.goto('/');
+  await expect(page.locator('video[data-media="Meridial Light hero"]')).toHaveAttribute('data-video-state', 'unavailable');
+  const preview = page.getByLabel('Interactive price scenario');
+  await preview.getByRole('button', { name: '+20%', exact: true }).click();
+  await expect(preview.locator('.buffer-preview-value')).toContainText('7,000.00');
+  await holdHeroEntrance(page.locator('.buffer-hero-actions'));
+  // Use a real pointer click: dispatchEvent would miss a focus-induced move
+  // between pointerdown and pointerup, which previously swallowed this click.
+  await page.getByRole('button', { name: 'Explore the scenario', exact: true }).click();
+  await expect(page.locator('.buffer-hero-stage')).toHaveClass(/is-board/);
+  await expect(page.getByRole('button', { name: 'Back to overview', exact: true })).toBeVisible();
+  await expect(preview.locator('input[type="range"]')).toHaveCount(1);
+  await expect(preview.locator('.buffer-preview-value')).toContainText('7,000.00');
+});
+
+test('keyboard entry reveals the hero actions and opens the scenario during its entrance', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const actions = page.locator('.buffer-hero-actions');
+  const explore = page.getByRole('button', { name: 'Explore the scenario', exact: true });
+  await holdHeroEntrance(actions);
+  for (let index = 0; index < 20; index++) {
+    await page.keyboard.press('Tab');
+    if (await explore.evaluate(element => element === document.activeElement)) break;
+  }
+  await expect(explore).toBeFocused();
+  await expect(actions).toHaveCSS('opacity', '1');
+  await expect(actions).toHaveCSS('transform', 'none');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.buffer-hero-stage')).toHaveClass(/is-board/);
+  await expect(page.getByRole('button', { name: 'Back to overview', exact: true })).toBeFocused();
+});
+
+test('switching from keyboard focus to a pointer keeps the hero action target stable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const actions = page.locator('.buffer-hero-actions');
+  const openApp = actions.getByRole('link', { name: 'Open Buffer', exact: true });
+  await holdHeroEntrance(actions);
+  for (let index = 0; index < 20; index++) {
+    await page.keyboard.press('Tab');
+    if (await openApp.evaluate(element => element === document.activeElement)) break;
+  }
+  await expect(openApp).toBeFocused();
+  await expect(actions).toHaveCSS('opacity', '1');
+  await page.getByRole('button', { name: 'Explore the scenario', exact: true }).click();
+  await expect(page.locator('.buffer-hero-stage')).toHaveClass(/is-board/);
+  await expect(page.getByRole('button', { name: 'Back to overview', exact: true })).toBeVisible();
 });
