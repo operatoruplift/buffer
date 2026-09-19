@@ -57,3 +57,29 @@ The latest production verification also exercises `/brand-kit`, `/api/config`, a
 ## Installable app
 
 See [PWA details](PWA.md) for supported browser installation and offline behavior. The same responsive web application works on mobile and desktop, and the service worker provides a clearly labeled fixed sample offline. Native App Store/Play Store packages and signed desktop installers are outside this delivery.
+
+## Hosted monitoring addition — September 20
+
+The current monitoring implementation adds authenticated `/api/monitoring` configuration/status/check endpoints and the protected `/api/monitoring/worker` scheduled endpoint. It uses the existing public Supabase SDK key with owner JWTs for RLS, and a separate narrowly scoped worker RPC credential; no service-role key is required. Read [the alert runbook](ALERTS.md) and [Discord contract](DISCORD-ALERTS.md) before activation. The integration matrix records actual live-verification status.
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `BUFFER_ALERT_WORKER_SECRET` | Server only | Random32+ character secret; only its SHA-256 hash is stored in the private worker credential row. |
+| `CRON_SECRET` | Server only | A different32+ character secret authenticating the scheduled endpoint; also stored in Supabase Vault for the scheduler. |
+| `BUFFER_ALERT_SEND_ENABLED` | Server only | Defaults to false. Keepfalse until an exact destination and test message are authorized. |
+| `BUFFER_ALERT_NOTIFICATION_MODE` | Server only | Defaults to `test`; labels genuine live observations as test notifications. `production` is a deliberate separate choice. |
+| `BUFFER_DISCORD_DESTINATIONS_JSON` | Server only | One reviewed Discord configuration with webhook credentials, channel ID, stable config UUID and explicit allowed owner UUIDs. See the exact schema in the provider runbook. |
+
+Apply `20260920020000_hosted_monitoring.sql` only after its PostgreSQL verification passes. Initialize `private.buffer_monitor_credentials` with a SHA-256 hash through the administrator connection. Never commit the plaintext secret or put it in a URL. Deploy the new server variables before scheduling. Worker routes declare60-second duration; their coordinator bounds due-provider work and dispatch. Browser requests time out after45 seconds.
+
+Supabase Pro hosts the minute scheduler. The reviewed `supabase/setup/monitoring-scheduler.sql` installs `pg_cron` and pinned `http` 1.6, creates a private fixed-origin helper with an empty search path, and denies browser/service-role execution. Vault reads are denied to browser roles. Setup attempts to revoke base HTTP execution, but hosted managed grants may remain; postflight records the actual ACL. The private helper and Vault, rather than the general HTTP primitive, protect the scheduler credential. It **does not activate a job**. Store `buffer_monitor_cron_secret` securely in Vault with the same value as Vercel's `CRON_SECRET`; inspect existing `cron.job` entries before scheduling `buffer-monitor-minute` once per minute.
+
+The synchronous helper uses HEAD, the non-redirecting method in reviewed http1.6, with certificate/hostname verification, cleared inherited curl overrides, a five-second connection limit and a55-second total limit. The Vault-derived Authorization header exists only during the request. It refuses debug server logging and requires a200 response with the exact bounded six-field worker acknowledgement. It never includes provider payloads or secrets in scheduler errors. The protected database worker deduplicates each minute across requests.
+
+Initial hosted preparation used pg_net, but postflight found its managed queue grants remained public despite tenant revocation attempts. No Buffer job or credential-bearing queue request was activated. The synchronous helper replaces that path; Buffer does not use the pg_net queue.
+
+Check both `cron.job_run_details` and completed scheduled entries in `private.buffer_monitor_runs`. A valid HTTP acknowledgement can represent a deduplicated request; require a new completed persisted run for heartbeat evidence. Alert status considers scheduled runs only and expires after180 seconds. Manual checks are not scheduler evidence.
+
+To pause or roll back, disable this named cron job, set sending to false and redeploy/promote the known-good website. Keep additive tables and RLS; do not remove owner controls or discard unknown-outcome events. A remotely accepted message cannot be retracted by rollback. Rotate the cron value in both Vercel and Vault while paused; rotate the worker secret and stored hash together, then deploy and recheck authorization/heartbeat. Rotate Discord credentials through the provider runbook.
+
+Official references verified for this pass: [Supabase scheduled functions](https://supabase.com/docs/guides/functions/schedule-functions), [Supabase Cron](https://supabase.com/docs/guides/cron), [Supabase HTTP extension](https://supabase.com/docs/guides/database/extensions/http) and [reviewed http1.6 source](https://github.com/pramsey/pgsql-http/blob/v1.6.0/http.c), and [Vercel cron plan limits](https://vercel.com/docs/cron-jobs/usage-and-pricing).

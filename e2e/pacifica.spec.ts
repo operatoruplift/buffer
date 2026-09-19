@@ -45,7 +45,7 @@ test('Pacifica markets, account reads, source timestamps and portable scenarios 
   await page.getByLabel('Find a market', { exact: true }).fill('not-a-market');
   await expect(page.getByText('No matching markets.')).toBeVisible();
   await page.getByRole('button', { name: 'Explore a live account', exact: true }).click();
-  await chooseOption(page, 'Account', 'Wallet account · #0');
+  await expect(page.locator('.selected-subaccount')).toContainText('Wallet account · #0');
   await page.getByRole('button', { name: '-10%', exact: true }).click();
   await expect(page.getByTestId('scenario-total')).toContainText('+10.00');
   await expect(page.getByTestId('scenario-total')).toContainText('USD');

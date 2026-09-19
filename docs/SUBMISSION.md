@@ -1,6 +1,6 @@
 # Buffer — a clearer view of perpetual exposure
 
-**Updated:** September 19, 2026 (local review package; not a submission or release).
+**Updated:** September 20, 2026 (submission draft; not submitted).
 
 [Website](https://bufferonsolana.vercel.app) · [Interactive app](https://bufferonsolana.vercel.app/app) · [Demo and films](https://bufferonsolana.vercel.app/demo) · [Public GitHub repository](https://github.com/operatoruplift/buffer)
 
@@ -24,7 +24,7 @@ At −10%, this four-market app sample contributes −1,500 + 5,000 − 2,000 �
 
 The Method dialog exposes assumptions, coverage, source identity, freshness, and separate RPC slots or API timestamps. Modeled live snapshots expire within 120 seconds, or earlier when their source price expires. Failed refreshes disable calculations and retain the old snapshot visibly as stale; late requests cannot replace a newly selected account. RPC and REST reads have fixed endpoints, request deadlines, response limits, sanitized errors, and no-store behavior.
 
-The current explorer also shows a verified Velocity risk-context card when a fresh read includes complete cross-margin observations: maintenance collateral, maintenance requirement, exact headroom, and the provider's current status flag. A local threshold monitor can use a fresh live Velocity snapshot or an explicitly labeled deterministic fixture. Browser checks are manual. A separate local SQLite runner proves event/outbox leases, concurrent processing, restart recovery, and mock delivery. Guest state stays on the device; external email, webhook, push, and hosted-worker delivery remain gated.
+The current explorer offers a direct public Velocity live-risk journey and shows verified cross-margin maintenance collateral, requirement, exact headroom and provider status beside the independent price-effect scenario. Local example alerts are isolated from authenticated hosted rules. The protected durable worker and one Discord adapter are implemented; actual scheduler and receipt evidence are tracked separately in [the integration matrix](BUFFER-INTEGRATION-STATUS.md). Do not claim a real notification unless that matrix records the matching channel message.
 
 A JSON report preserves exact decimal strings, selected shock, contributions, exclusions, and provenance. **My reports** saves historical copies on the device without an account. Optional confirmed cloud accounts have a separate owner-protected Supabase library; guest data is never uploaded automatically. Session-bound auth and SDK storage commits protect against delayed requests replacing a newer login. Public signup and password-recovery sending remain disabled until email delivery and related production settings are verified.
 
@@ -60,7 +60,7 @@ The films use sample footage and the real provider selector. They do not stage l
 | 30–45 seconds | Open **Add perps**, search a market, and inspect editable quantity/price controls. “Choose from 76 configured sample markets. Sample denominations do not convert currencies or create trades.”|
 | 45–60 seconds | Open the provider selector. “Velocity and Pacifica support price scenarios. Jupiter adds inventory with an explicit modeling boundary. Drift stays paused.”|
 | 60–77 seconds | Open **Method**, then **My reports** and save on the device. “The inputs, exclusions, and source remain inspectable. A historical copy needs no sign-up.”|
-| 77–84 seconds | In the current `/app`, open **Know when headroom changes**, configure a threshold, and choose **Run fixture check**. “This explicitly labeled fixture demonstrates a threshold and mock delivery; a separate local SQLite runner proves crash and concurrency behavior. Real account checks require fresh verified Velocity inputs.”|
+| 77–84 seconds | In the current `/app`, open **Know when headroom changes**, configure a threshold, and choose **Run example check**. “This explicitly labeled fixture demonstrates a threshold and mock delivery; a separate local SQLite runner proves crash and concurrency behavior. Real account checks fetch fresh verified Velocity inputs through a protected server endpoint; show a real Discord receipt only after its verification gate passes.”|
 | 84–90 seconds | Show JSON export and the mobile layout. “Carry the explanation with you. Supported browsers can install Buffer, and the public sample calculator works offline.”|
 
 If adding a separate live read, retain its provider, account, timestamp, units, and coverage. Show unavailable or stale results honestly and use the retry path; never replace them with plausible numbers. Public balances should not be memorized into the script.

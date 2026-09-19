@@ -23,6 +23,8 @@ Paste a public Solana wallet address, select an account, and explore a shared âˆ
 
 The public site is hosted on Vercel. Fresh local reads verified modeled Velocity and Pacifica positions and Jupiter inventory; these are point-in-time observations, not fixed example balances. Every live load refetches its source and exposes the relevant API timestamps or account/read slots. [Provider coverage](docs/PROVIDER-COVERAGE.md) and [current verification](docs/REDESIGN-VERIFICATION.md) separate implemented behavior, live evidence, and remaining external requirements. **Public signup and password-recovery email actions remain disabled until production SMTP, Auth redirects, and server-side password policy are configured and verified.** The public explorer and device-local reports need no sign-in. See [deployment status](docs/DEPLOYMENT.md) for cloud configuration.
 
+The landing and app offer **Explore live risk**: a validated public Velocity account link, fresh reads, automatic selection for one discovered subaccount and deliberate selection for multiple. Current maintenance context sits beside the independent price scenario. [Alert behavior and setup](docs/ALERTS.md) distinguish rehearsal, live checks, Discord acceptance and a matching message receipt.
+
 ## Run locally
 
 ```sh
@@ -114,7 +116,7 @@ The application uses Next.js **16.3.4**, React **19.3.0**, TypeScript **5.9.3**,
 
 RPC requests have an 18-second total abort deadline, an 8 MiB decoded response bound, and request-owned loaders without polling timers. Pacifica has its own 18-second/1 MiB fixed-origin boundary. Reads reject redirects and use no-store. The process cap is 60 reads/minute and four concurrent reads; a scaled service needs a shared ingress limit. Provider errors are sanitized and never silently replaced by samples. A failed refresh retains the old snapshot visibly as stale and disables calculations. Generation checks prevent late account, subaccount, or previous-user responses from replacing current state. Auth writes and SDK storage commits are bound to the initiating user and session; uncertain cloud writes require reloading the library before retry.
 
-There is no wallet signing, custody, transaction, trading, or background monitoring path. The PWA caches only its explicit public offline assets; API responses, Supabase requests, auth, saved reports, and live page data bypass that cache. Browser-supported installation is included; native store packages and signed desktop installers are not.
+There is no wallet signing, custody, transaction or trading path. Hosted maintenance-headroom monitoring uses a separately configured protected worker; Discord sending stays disabled until destination verification and authorization. Example alerts are an isolated local rehearsal. The PWA caches only its explicit public offline assets; API responses, Supabase requests, auth, saved reports, and live page data bypass that cache. Browser-supported installation is included; native store packages and signed desktop installers are not.
 
 ## Verify and deploy
 
@@ -128,7 +130,7 @@ npm run test:e2e
 
 Install Chromium with `npx playwright install chromium` if necessary. Playwright normally launches or reuses port 3001. Set `PLAYWRIGHT_BASE_URL` to exercise an already running deployment. The real Auth suite additionally needs `BUFFER_AUTH_FIXTURES` pointing to a private JSON array of two disposable confirmed accounts (`email` and `password`); otherwise those two desktop/mobile cases are skipped. Never commit fixture credentials. Most live UI state cases deliberately mock API responses and do not prove RPC success.
 
-Vercel uses the explicit Next.js framework setting in `vercel.json`, Node route execution, and 30-second RPC function limits. The dedicated Supabase project, saved-report migrations, and owner-scoped alert tables are deployed; a protected worker and destination are still required before hosted delivery is enabled. The server RPC must be a Solana mainnet endpoint; use a dedicated endpoint for sustained production capacity. Follow [deployment](docs/DEPLOYMENT.md) for cloud configuration and email setup, [database verification](docs/DATABASE-VERIFICATION.md) for ownership checks, and [PWA documentation](docs/PWA.md) for installation limitations.
+Vercel uses the explicit Next.js framework setting in `vercel.json`, Node route execution, and 30-second RPC function limits. The dedicated Supabase project, saved-report migrations, and owner-scoped alert tables are deployed; the new protected worker and Discord adapter have separate scheduler and recipient-verification gates. See the [integration status](docs/BUFFER-INTEGRATION-STATUS.md) for actual activation evidence. The server RPC must be a Solana mainnet endpoint; use a dedicated endpoint for sustained production capacity. Follow [deployment](docs/DEPLOYMENT.md) for cloud configuration and email setup, [database verification](docs/DATABASE-VERIFICATION.md) for ownership checks, and [PWA documentation](docs/PWA.md) for installation limitations.
 
 ## Descriptions, design, and videos
 

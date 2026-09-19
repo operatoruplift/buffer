@@ -546,3 +546,9 @@
   .buffer-site .buffer-nav-actions { margin-left: auto; }
   .buffer-site .buffer-nav-open { gap: 6px; font-size: 11px; padding-inline: 10px; }
 }
+
+.buffer-live-risk-link { display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; min-height: 44px; margin-top: 15px; color: #174bcf; font-size: 12px; font-weight: 600; text-decoration: none; }
+.buffer-live-risk-link > span { color: #697689; font-size: 10px; font-weight: 450; margin-left: 6px; }
+.buffer-live-risk-link:hover { color: #102e80; }
+.buffer-live-risk-link:focus-visible { outline: 2px solid #275df2; outline-offset: 4px; border-radius: 4px; }
+@media (max-width: 520px) { .buffer-live-risk-link { max-width: 100%; margin-top: 10px; } }
