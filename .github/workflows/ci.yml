@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Non-secret fixtures. Browser tests intercept every provider and account
-      # request, so no mainnet RPC or Supabase project is reachable from CI.
+      # Non-secret fixtures for build verification; no hosted account is used.
       SOLANA_RPC_URL: ''
       NEXT_PUBLIC_SUPABASE_URL: https://auth-fixture.invalid
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
@@ -41,6 +40,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
+    env:
+      # Match the mocked browser transport at build and test time. Email flows
+      # are enabled only against this invalid fixture host; real Auth tests
+      # still require the separate, opt-in BUFFER_AUTH_FIXTURES credentials.
+      SOLANA_RPC_URL: ''
+      NEXT_PUBLIC_SUPABASE_URL: https://auth-fixture.invalid
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
+      NEXT_PUBLIC_AUTH_EMAIL_READY: 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
