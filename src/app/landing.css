@@ -512,3 +512,37 @@
   .buffer-context-card { padding: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .buffer-site .buffer-hero-inner, .buffer-site .buffer-hero-stage, .buffer-site .buffer-hero-stage .buffer-preview, .buffer-context-card { transition: none; } .buffer-site .buffer-last-call h2::after { animation: none; display: none; } }
+
+/* Keep both cards readable; measured element travel owns their transforms. */
+.buffer-site .buffer-hero-inner { position: relative; transition: none; }
+.buffer-site .buffer-hero-stage { min-height: 740px; transition: box-shadow 700ms ease; }
+.buffer-site .buffer-hero-board { width: 100%; min-height: 0; }
+.buffer-site .buffer-hero-stage .buffer-preview { margin: 0 auto 16px; transition: box-shadow 700ms ease; animation: none; transform: none; }
+.buffer-site .buffer-context-card { position: relative; inset: auto; width: min(100%, 420px); margin: 0 auto 17px; display: grid; grid-template-columns: .9fr 1.1fr; column-gap: 16px; padding: 12px 15px; transform: none; transition: none; }
+.buffer-site .buffer-context-card-top, .buffer-site .buffer-context-foot { grid-column: 1 / -1; }
+.buffer-site .buffer-context-card-top { padding-bottom: 8px; }
+.buffer-site .buffer-context-metric { padding: 10px 0; flex-wrap: wrap; align-content: center; row-gap: 0; }
+.buffer-site .buffer-context-list { border-top: 0; }
+.buffer-site .buffer-context-foot { padding-top: 8px; }
+.buffer-site .buffer-hero-inner[data-scenario-open=true] .buffer-hero-copy { position: absolute; left: var(--overview-copy-left, 0); top: var(--overview-copy-top, 0); width: var(--overview-copy-width, 100%); opacity: 0; pointer-events: none; }
+.buffer-site .buffer-hero-stage.is-board { min-height: 740px; }
+.buffer-site .buffer-hero-stage.is-board .buffer-hero-board { width: 100%; }
+.buffer-site .buffer-hero-stage.is-board .buffer-context-card { display: block; margin: 0 auto; transform: none; }
+.buffer-site .buffer-hero-stage.is-board .buffer-preview { max-width: 570px; }
+.buffer-site .buffer-hero-stage-top { width: 100%; justify-content: flex-start; }
+.buffer-site .buffer-hero-stage-top button { min-height: 44px; font-size: 11px; }
+.buffer-site .buffer-hero-stage.is-board .buffer-stage-bottom > span:nth-child(2) { animation: buffer-board-caption 566ms 900ms cubic-bezier(.33,0,.2,1) both; }
+.buffer-site[data-motion-paused=true] .buffer-hero-stage.is-board .buffer-stage-bottom > span:nth-child(2) { animation: none; }
+@keyframes buffer-board-caption { from { clip-path: inset(0 100% 0 0); opacity: .3; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
+.buffer-site .buffer-nav-open { white-space: nowrap; }
+@media (max-width: 800px) {
+  .buffer-site .buffer-hero-stage, .buffer-site .buffer-hero-stage.is-board { min-height: 0; }
+  .buffer-site .buffer-hero-stage .buffer-preview, .buffer-site .buffer-hero-stage.is-board .buffer-preview { margin-top: 8px; }
+  .buffer-site .buffer-hero-stage.is-board .buffer-context-card { display: grid; }
+}
+@media (max-width: 520px) {
+  .buffer-site .buffer-hero h1 { font-size: clamp(33px, 10.8vw, 55px); }
+  .buffer-site .buffer-nav { padding-inline: 16px; }
+  .buffer-site .buffer-nav-actions { margin-left: auto; }
+  .buffer-site .buffer-nav-open { gap: 6px; font-size: 11px; padding-inline: 10px; }
+}

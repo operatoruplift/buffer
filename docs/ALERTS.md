@@ -1,17 +1,69 @@
 # Buffer threshold monitoring
 
-Buffer ships a narrow, reviewable monitoring wedge for one verified Velocity metric: current cross-margin maintenance headroom. A rule selects the authority/subaccount, `below` or `above` direction, decimal threshold, cadence and the local mock destination. Rules, versioned events, outbox work and mock deliveries are persisted in an owner-keyed browser store. When Supabase auth is available, the owner key is the authenticated user ID; otherwise the panel is clearly labeled as a deterministic guest demo and never claims private ownership.
+Updated September 19, 2026. This is a local implementation and verification record; it does not describe hosted delivery.
 
-The browser panel only evaluates fresh live Velocity snapshots that contain a complete `risk` context. It never treats a sample, stale response, isolated scope or missing value as a triggered alert. Event keys include rule version, cadence bucket and metric, so a repeated check is idempotent. The local worker claims one pending item with a 30-second lease, records an attempt, and writes a mock delivery state. Pause disables future evaluation.
+Buffer monitors **current Velocity cross-margin maintenance headroom**, in USD. A rule identifies an owner, exact authority/subaccount, threshold/direction, minimum check interval, timezone, cooldown, recovery distance (hysteresis), and mock destination. It never derives an alert from an estimated liquidation price.
 
-Run the deterministic worker locally:
+## Browser experience
+
+The dashboard stores rules on the current device, partitioned by the current authenticated owner or the guest device profile. Session and account changes clear the displayed state and cancel pending checks. Cross-tab edits use Web Locks and reload the latest persisted state before writing. A storage failure is visible and does not report a successful save.
+
+**Run fixture check** appears only while exploring a deterministic example; its event is explicitly labeled as a fixture. **Check current snapshot** uses the selected live observation, without pretending to fetch a new one. Unsupported, incomplete, isolated, stale, failed-refresh, and mismatched scopes do not become fixtures. Refresh the account to obtain a new provider observation. The UI reports idle after each manual pass. Closing the tab stops browser work; cadence is a minimum interval, not a background scheduling promise.
+
+## Durable local worker
+
+Use Node 24 and the existing npm lockfile:
 
 ```sh
-npm run alert:worker -- --reset
+npm ci
+npm run alert:worker -- --fixture
+npm run alert:worker -- --fixture --watch --interval 5
+npm run alert:worker -- --status
 ```
 
-It writes `.local/alert-store.json` (ignored by Git) and prints the worker state, event count, pending count and delivered count. Set `BUFFER_ALERT_STORE=/tmp/buffer-alerts.json` to choose another local file. This worker never contacts a provider or external destination.
+The default database is `.local/alerts.sqlite`, ignored by Git. `BUFFER_ALERT_STORE` selects another local SQLite path. The fixture flag is explicit and refreshes only deterministic test input. No provider or destination is contacted. To consume a real, locally saved Buffer Velocity snapshot:
 
-The additive migration `supabase/migrations/20260915120000_create_alert_pipeline.sql` defines owner-scoped `alert_rules`, `alert_events` and `alert_outbox` tables and is applied to the dedicated Buffer Supabase project. A hosted worker must still use a protected service role, a real scheduler, bounded leases/retries and a provider-restricted destination. No email, Discord, Telegram, webhook or push notification is enabled by this release.
+```sh
+npm run alert:worker -- --snapshot /absolute/path/velocity-snapshot.json --owner local-reviewer
+```
 
-Validation covers owner isolation, stale suppression, rule/version/cadence idempotency, lease claim, mock delivery, pause behavior and malformed-store recovery in `tests/alerts.test.ts`.
+`--watch` rereads this file. An old file becomes unavailable after at most 120 seconds, including when `expiresAt` is absent; it is never restamped as fresh. This worker does not fetch new observations. The file must be refreshed independently by a reviewed read-only provider adapter before a real scheduled monitor can be enabled.
+
+Use the rule ID printed by `--status`:
+
+```sh
+npm run alert:worker -- --pause RULE_ID
+npm run alert:worker -- --resume RULE_ID
+npm run alert:worker -- --delete RULE_ID
+npm run alert:worker -- --rule RULE_ID --threshold 300 --cooldown 15 --hysteresis 10
+```
+
+Browser localStorage and worker SQLite are separate stores. There is no implied browser-to-worker sync. The former JSON fixture file is not silently imported: the new worker rejects non-SQLite input rather than resetting delivery history.
+
+## Reliability contract
+
+- SQLite WAL, full synchronization, and `BEGIN IMMEDIATE` serialize process mutations. A revision comparison detects stale writes.
+- A claim with a random token and 30-second lease commits **before** completion. An expired worker cannot complete another worker's claim.
+- Versioned rule + breach episode keys prevent duplicate events through restarts, cadence ticks, and multiple runners. Hysteresis requires recovery beyond the configured distance before another crossing. Cooldown limits repeated episodes.
+- A local mock delivery journal and event/outbox completion commit in the same transaction. This proves one mock delivery per event; it is not a claim of exactly-once external email/webhook delivery.
+- Retries have bounded exponential backoff and stop after three attempts. `--fail-sink` and `--claim-only` expose test paths.
+- Pausing, editing, or deleting invalidates queued/claimed work before delivery. Deletion retains the event history.
+- Stale/incomplete input marks monitoring unavailable, preserves unresolved breaches, and does not advance the last-fresh timestamp.
+- Corrupt or oversized state fails closed. Limits are 20 rules and 10,000 rows per journal collection; no unresolved history is silently discarded. Back up/rotate a local test database explicitly when full.
+
+## Database preparation and external gates
+
+The original `20260915120000_create_alert_pipeline.sql` is recorded as applied to Buffer Supabase. The **new** `20260919090000_harden_alert_pipeline.sql` is prepared and tested locally only. It adds verified mock destinations, owner-linked foreign keys, restricted configuration columns, automatic rule versions, worker-only fenced claim/completion functions, cancellation, and protected 30-day history retention. It does not start a worker or enable external delivery.
+
+Local PostgreSQL semantics can be checked without hosted credentials using PGlite installed in a temporary directory:
+
+```sh
+npm install --prefix /tmp/buffer-sql-verification --no-audit --no-fund @electric-sql/pglite@0.5.8
+BUFFER_PGLITE_MODULE=/tmp/buffer-sql-verification/node_modules/@electric-sql/pglite/dist/index.js node scripts/verify-alert-schema.mjs
+```
+
+This validates the migrations on a local PostgreSQL engine with simulated Supabase roles. It is not evidence of a hosted migration or multi-session PostgreSQL performance. Hosted activation still requires the forward migration, a deployed provider-polling scheduler, database-coordinated evaluation, quotas, protected credentials, and an authorized verified destination. Email/Discord/Telegram integrations are **not implemented or enabled**. No arbitrary URL is fetched and no external message is sent.
+
+## Verification
+
+`tests/alerts.test.ts` covers threshold semantics, freshness, null inputs, owner isolation, bounded retries, hysteresis/cooldown, version invalidation, and fenced leases. `tests/alert-worker.test.ts` runs real child processes against SQLite, including six concurrent runners, restart deduplication, expired-lease recovery, crash rollback, and corrupt-store rejection. `e2e/alerts.spec.ts` covers explicit fixtures, persistence, idle/paused state, unavailable live risk, cross-tab coordination, and mocked owner switches.

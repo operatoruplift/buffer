@@ -1,5 +1,7 @@
 # Meridial Light local verification
 
+Historical September 14 record. For the September 19 source corrections, current risk context, durable local worker, and fresh browser captures, see [final verification](FINAL-VERIFICATION-2026-09-19.md). Earlier labels and risk/alert statuses below are retained as dated history, not current claims.
+
 Prepared September 14, 2026 for the local Buffer redesign handoff. This document supplements the preservation ledger and records the reviewable local result. It does not describe a production deployment.
 
 ## Changed surface

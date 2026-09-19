@@ -69,7 +69,7 @@ export function DecorativeVideo({ src, poster, paused = false, className, media,
   return <video ref={attach} crossOrigin="anonymous" poster={media ? undefined : poster} preload="none" muted loop playsInline
     aria-hidden="true" tabIndex={-1} className={className} data-media={name ?? src}
     data-video-state={state} data-reduced-motion={reducedMotion}
-    onPlaying={() => setState('playing')} onPause={() => setState('paused')}
+    onPlaying={() => setState('playing')} onPause={() => setState(current => current === 'unavailable' ? current : 'paused')}
     onError={() => setState('unavailable')}
   />;
 }

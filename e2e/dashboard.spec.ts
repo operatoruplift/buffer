@@ -292,6 +292,70 @@ test('mocked failed refresh retains the original snapshot and pauses calculation
   await expect(page.getByRole('heading', { name: 'Your perpetual positions' })).toBeVisible();
 });
 
+test('a failed subaccount switch retains and labels the previous scope until a successful retry', async ({ page }) => {
+  await mockedDiscovery(page);
+  let failSecond = true;
+  await page.route('**/api/snapshot?*', route => {
+    const id = Number(new URL(route.request().url()).searchParams.get('subaccount'));
+    return id === 1 && failSecond
+      ? route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'Second account unavailable.', retryable: true } } })
+      : route.fulfill({ json: mockSnapshot(id, id === 0 ? 'Mock main' : 'Mock second') });
+  });
+  await page.goto('/app');
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  const originalTime = await page.locator('.freshness small').textContent();
+  await chooseOption(page, 'Subaccount', 'Mock second · #1');
+  await expect(page.getByRole('alert').filter({ hasText: 'Showing the previous Velocity observation' })).toContainText('Mock main · #0');
+  await expect(page.getByRole('combobox', { name: 'Subaccount', exact: true })).toHaveText('Mock second · #1');
+  await expect(page.locator('.freshness small')).toHaveText(originalTime!);
+  await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');
+  await expect(page.getByRole('slider')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Download report JSON' })).toBeDisabled();
+  failSecond = false;
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await expect(page.getByText('Stale snapshot · calculations paused', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('slider')).toBeEnabled();
+  await page.getByRole('button', { name: 'Method', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Mock second · #1');
+});
+
+test('a failed wallet lookup preserves the prior live account without presenting it as the new wallet', async ({ page }) => {
+  await page.route('**/api/accounts?*', route => {
+    const authority = new URL(route.request().url()).searchParams.get('authority');
+    return authority === AUTHORITY
+      ? route.fulfill({ json: discovery() })
+      : route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'New wallet unavailable.', retryable: true } } });
+  });
+  await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
+  await page.goto('/app');
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await readAddress(page, OTHER_AUTHORITY);
+  const prior = page.getByRole('alert').filter({ hasText: 'Showing the previous Velocity observation' });
+  await expect(prior).toContainText(AUTHORITY);
+  await expect(prior).toContainText('These values do not describe the new selection.');
+  await expect(page.getByRole('link', { name: 'View authority on Solana Explorer' })).toHaveAttribute('href', `https://explorer.solana.com/address/${OTHER_AUTHORITY}`);
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeDisabled();
+  await expect(page.getByRole('slider')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Download report JSON' })).toBeDisabled();
+  await noOverflow(page);
+});
+
+test('changing providers labels the retained observation and requires a new account selection', async ({ page }) => {
+  await mockedDiscovery(page);
+  await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
+  await page.goto('/app');
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await chooseOption(page, 'Protocol', 'Pacifica');
+  await expect(page.getByRole('alert').filter({ hasText: 'Showing the previous Velocity observation' })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Account', exact: true })).toHaveText('Select an account');
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeDisabled();
+  await expect(page.getByRole('slider')).toBeDisabled();
+  await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');
+});
+
 test('mocked live freshness expiry disables the result without replacing the snapshot', async ({ page }) => {
   await page.clock.install();
   await mockedDiscovery(page);

@@ -83,7 +83,7 @@ test('real offline navigation provides bounded deterministic fixture arithmetic'
 test('service worker caches only fixed public files and cannot replay private responses', async ({ page, context }) => {
   await prepareWorker(page);
   const privatePaths = ['/api/pwa-private-probe/account', '/auth/pwa-private-probe/session', '/app/reports/pwa-private-probe/report'];
-  await page.route('**/pwa-private-probe/**', (route) => route.fulfill({
+  await context.route('**/pwa-private-probe/**', (route) => route.fulfill({
     json: { privateTestPayload: true },
     headers: { 'Cache-Control': 'no-store' },
   }));
@@ -100,7 +100,7 @@ test('service worker caches only fixed public files and cannot replay private re
     return paths.sort();
   });
   expect(keys).toEqual(publicAssets);
-  await page.unroute('**/pwa-private-probe/**');
+  await context.unroute('**/pwa-private-probe/**');
   await context.setOffline(true);
   for (const path of privatePaths) {
     const outcome = await page.evaluate(async (url) => {

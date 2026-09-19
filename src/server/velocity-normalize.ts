@@ -201,7 +201,7 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
   const warnings = [...issues];
   if (positions.some((p) => p.isolated)) warnings.push('Isolated positions are shown individually; no general account-health claim is made.');
   if (!inventoryAvailable) warnings.push('Some spot or open-order inventory data is unavailable.');
-  if (risk?.status === 'liquidating') warnings.push('Velocity SDK currently marks the cross-margin account as eligible for liquidation. This is a current provider status, not a forecast.');
+  if (risk?.status === 'liquidating') warnings.push('Velocity SDK currently marks the cross-margin account as being liquidated or bankrupt. This is a current provider flag, not a forecast or a new eligibility calculation.');
   else if (risk?.status === 'maintenance') warnings.push('Velocity SDK currently reports collateral below its maintenance requirement. This is a current provider status, not a forecast.');
   return { source: 'live', network: 'mainnet-beta', authority: input.authority, sampleName: null,
     subaccount: subaccountInfo(account, input.address), retrievedAt: input.retrievedAt,
@@ -238,7 +238,7 @@ function currentRiskContext(input: ReadData, issues: string[], positions: Snapsh
       maintenanceHeadroom: headroom,
       canBeLiquidated,
       status: flagged ? 'liquidating' : canBeLiquidated === true ? 'maintenance' : canBeLiquidated === false ? 'clear' : 'unavailable',
-      explanation: 'Current Velocity SDK maintenance context. Headroom is unbuffered maintenance collateral minus maintenance requirement; the liquidation status uses the SDK buffer-aware check. This is an observation, not a liquidation-price forecast.',
+      explanation: 'Current Velocity SDK maintenance context. Headroom is unbuffered maintenance collateral minus maintenance requirement. Status is the installed SDK’s current cross-margin comparison; account liquidation flags take precedence. This is an observation, not a liquidation-price forecast.',
     };
   } catch {
     return unavailableRisk('The official SDK could not compute a complete cross-margin maintenance context for this account structure.');

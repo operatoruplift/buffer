@@ -1,6 +1,6 @@
 # Deployment and cloud configuration
 
-**Last updated:** September 16, 2026.
+**Last updated:** September 19, 2026. The September 19 changes are locally prepared; no deployment or hosted migration is claimed by this update.
 
 Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app` is the public explorer with live Velocity as the default, modeled Pacifica reads, and inventory-only Jupiter Perps, and `/auth` contains optional email/password sign-in. The protocol selector also exposes the explicitly paused legacy Drift reader. Scenario functionality, live public reads, device-local reports, and downloads work without a cloud account.
 
@@ -12,8 +12,9 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Dedicated Buffer project's API URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key; never a service-role or secret key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Public | Set `true` only after email signup, confirmation, recovery, redirects, and password policy are verified. It is currently `false`, so public signup and recovery remain visibly unavailable. |
+| `RATE_LIMIT_SECRET` | Server only | Optional secret for the protected Supabase `consume_rate_limit` RPC; absent/unreachable shared storage falls back to process limits. Never expose this value to the browser. |
 | `BUFFER_TEST_AUTHORITY` | Local verification only | Optional public authority for manual checks; the application does not load it automatically. |
-| `BUFFER_ALERT_STORE` | Local worker only | Optional path for the deterministic local alert-store JSON file; defaults to `.local/alert-store.json` and is ignored by Git. |
+| `BUFFER_ALERT_STORE` | Local worker only | Optional path for the durable local SQLite worker; defaults to `.local/alerts.sqlite` and is ignored by Git. |
 
 No AI API key, signing wallet, private key, or service-role key is required by the application. Higgsfield produced marketing media; it is not a runtime integration. No `SITE_URL` application variable is required: auth redirects use the current origin, and Supabase must explicitly allow each deployed `/auth` URL.
 
@@ -23,7 +24,7 @@ No AI API key, signing wallet, private key, or service-role key is required by t
 
 The default live provider is the official `@velocity-exchange/sdk` **0.23.1**, bound to Velocity program `vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P`. Current Velocity settlement uses verified USDT spot market index `0` and fresh Pyth Lazer oracle reads. Pacifica is a fixed-origin, read-only public API provider covering Buffer's 76 configured perpetual identities; it needs no API key or RPC. Jupiter Perps uses the fixed mainnet program `PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu` for bounded inventory reads only: canonical positions, entry data, collateral custody, locked collateral-token units, and read metadata are shown, while current prices and collateral-dependent capped payoff remain unmodeled and never enter scenario totals. The legacy Drift provider uses `@drift-labs/sdk` **2.161.0-beta.5** and program `dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH` only when selected explicitly; its scenario path is paused and does not represent migrated Velocity state. See [provider details](PROVIDER.md) for PDA, oracle, freshness, and migration behavior.
 
-The server-side RPC endpoint used by Velocity, Jupiter, and legacy Drift must be Solana **mainnet-beta**. Those providers reject a different genesis hash, check program ownership and account identity, and never substitute a sample when a live read fails. Requests have an 18-second abort deadline; Vercel functions need at least 30 seconds. Each process allows 60 reads per minute and four concurrent reads. A dedicated RPC is recommended before sustained traffic; add shared ingress limits when running more than one instance. Pacifica uses its fixed HTTPS API boundary and its own timestamp freshness rule.
+The server-side RPC endpoint used by Velocity, Jupiter, and legacy Drift must be Solana **mainnet-beta**. Those providers reject a different genesis hash, check program ownership and account identity, and never substitute a sample when a live read fails. Requests have an 18-second abort deadline; Vercel functions need at least 30 seconds. Each process allows 60 reads per minute and four concurrent reads. The live-read route also applies the configured distributed limit when available; see `src/server/rate-limit.ts` and the environment template for its current readiness. A dedicated RPC is still needed for sustained provider capacity. Pacifica uses its fixed HTTPS API boundary and its own timestamp freshness rule.
 
 ## Supabase
 
@@ -42,7 +43,7 @@ The browser SDK manages sessions and refreshes tokens. Database RLS is the autho
 
 ### Provisioning status
 
-The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations and the additive alert migration are applied; owner isolation, malformed JSON rejection, restricted insert columns, query indexing, and the alert tables' RLS posture have been verified. The shipped browser monitor uses bounded localStorage state and a local mock sink, so hosted delivery is not implied by the production deploy; a protected worker and destination are still required. See [database verification](DATABASE-VERIFICATION.md) and the [alert runbook](ALERTS.md).
+The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations and the September 15 additive alert migration are recorded as applied; the September 19 hardening migration remains local and unapplied; owner isolation, malformed JSON rejection, restricted insert columns, query indexing, and the alert tables' RLS posture have been verified. The shipped browser monitor uses bounded localStorage state and a local mock sink, so hosted delivery is not implied by the production deploy; a protected worker and destination are still required. See [database verification](DATABASE-VERIFICATION.md) and the [alert runbook](ALERTS.md).
 
 The original implementation recorded confirmed-account password sign-in and private report CRUD with disposable confirmed accounts. That is historical evidence from the original version. The current redesign's browser auth and report coverage uses the installed Supabase SDK with intercepted/mock transport; it does not prove a current production auth or email journey. Production SMTP delivery, redirect allowlists, Auth password policy, and compromised-password screening still require management-side configuration and verification. Do not treat the built-in restricted Supabase mail sender as public production signup delivery.
 

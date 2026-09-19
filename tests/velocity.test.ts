@@ -9,6 +9,7 @@ import {
   MainnetSpotMarkets,
   VELOCITY_PROGRAM_ID,
   VelocityClient,
+  User,
   PositionFlag,
   type IWallet,
   type PerpMarketAccount,
@@ -21,6 +22,7 @@ import { normalizeSnapshot, type ReadData } from '../src/server/velocity-normali
 import { calculateScenario } from '../src/lib/scenario';
 import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
 import { PROTOCOLS } from '../src/lib/protocols';
+import { MarginCalculation, MarginContext } from '@velocity-exchange/sdk/lib/node/marginCalculation';
 
 const program = new PublicKey(VELOCITY_PROGRAM_ID);
 const authority = new PublicKey('11111111111111111111111111111111');
@@ -88,11 +90,73 @@ describe('Velocity mainnet compatibility fixtures', () => {
     flagged.user.isCrossMarginBeingLiquidated = vi.fn(() => true);
     const flaggedSnapshot = normalizeSnapshot(flagged);
     expect(flaggedSnapshot.risk).toMatchObject({ status: 'liquidating', canBeLiquidated: true });
-    expect(flaggedSnapshot.warnings).toEqual(expect.arrayContaining([expect.stringContaining('eligible for liquidation')]));
+    expect(flaggedSnapshot.warnings).toEqual(expect.arrayContaining([expect.stringContaining('being liquidated or bankrupt')]));
 
     const isolated = marketFixture();
     isolated.account.perpPositions[0].positionFlag = PositionFlag.IsolatedPosition;
     expect(normalizeSnapshot(isolated).risk).toMatchObject({ status: 'unavailable', totalCollateral: null, maintenanceRequirement: null, maintenanceHeadroom: null });
+  });
+
+  it('keeps risk money precise beyond JavaScript safe integers', () => {
+    const data = marketFixture();
+    data.user.getTotalCollateral = vi.fn(() => new BN('9007199254740993123456789'));
+    data.user.getMaintenanceMarginRequirement = vi.fn(() => new BN('9007199254740993123456788'));
+    expect(normalizeSnapshot(data).risk).toMatchObject({
+      totalCollateral: '9007199254740993123.456789',
+      maintenanceRequirement: '9007199254740993123.456788',
+      maintenanceHeadroom: '0.000001',
+    });
+    expect(data.user.getTotalCollateral).toHaveBeenCalledWith('Maintenance');
+    expect(data.user.getMaintenanceMarginRequirement).toHaveBeenCalledWith();
+  });
+
+  it('retains exact zero for an observed no-liability account and negative collateral for an underfunded account', () => {
+    const empty = marketFixture();
+    empty.user.getTotalCollateral = vi.fn(zero);
+    empty.user.getMaintenanceMarginRequirement = vi.fn(zero);
+    expect(normalizeSnapshot(empty).risk).toMatchObject({ totalCollateral: '0', maintenanceRequirement: '0', maintenanceHeadroom: '0', status: 'clear' });
+    const underfunded = marketFixture();
+    underfunded.user.getTotalCollateral = vi.fn(() => new BN(-1));
+    underfunded.user.getLiquidationStatuses = vi.fn(() => new Map<'cross' | number, { canBeLiquidated: boolean }>([['cross', { canBeLiquidated: true }]]));
+    expect(normalizeSnapshot(underfunded).risk).toMatchObject({ totalCollateral: '-0.000001', maintenanceHeadroom: '-1000.000001', status: 'maintenance' });
+  });
+
+  it('keeps status unavailable when the SDK cannot provide a cross-scope status', () => {
+    const data = marketFixture();
+    data.user.getLiquidationStatuses = vi.fn(() => new Map());
+    expect(normalizeSnapshot(data).risk).toMatchObject({ maintenanceHeadroom: '10000', canBeLiquidated: null, status: 'unavailable' });
+  });
+
+  it('withholds the complete risk context after an SDK calculation error', () => {
+    const data = marketFixture();
+    data.user.getMaintenanceMarginRequirement = vi.fn(() => { throw new Error('Unsupported account'); });
+    expect(normalizeSnapshot(data).risk).toMatchObject({ totalCollateral: null, maintenanceRequirement: null, maintenanceHeadroom: null, canBeLiquidated: null, status: 'unavailable' });
+  });
+
+  it('retains the liquidation flag independently of a recovered eligibility check', () => {
+    const data = marketFixture();
+    data.user.isCrossMarginBeingLiquidated = vi.fn(() => true);
+    expect(normalizeSnapshot(data).risk).toMatchObject({ status: 'liquidating', canBeLiquidated: false });
+    expect(normalizeSnapshot(data).warnings).toContain('Velocity SDK currently marks the cross-margin account as being liquidated or bankrupt. This is a current provider flag, not a forecast or a new eligibility calculation.');
+  });
+
+  it('withholds risk values for isolated market index zero and stale oracle input', () => {
+    const isolatedZero = marketFixture(0);
+    isolatedZero.account.perpPositions[0].positionFlag = PositionFlag.IsolatedPosition;
+    expect(normalizeSnapshot(isolatedZero).risk).toMatchObject({ status: 'unavailable', maintenanceHeadroom: null });
+    const stale = marketFixture();
+    stale.perpOracles.get(3)!.data.slot = new BN(800);
+    expect(normalizeSnapshot(stale).risk).toMatchObject({ status: 'unavailable', maintenanceHeadroom: null });
+    expect(stale.user.getTotalCollateral).not.toHaveBeenCalled();
+  });
+
+  it('pins SDK status semantics separately from the explicit buffered requirement', () => {
+    const margin = new MarginCalculation(MarginContext.liquidation(new BN(100), new Map()));
+    margin.addCrossMarginTotalCollateral(new BN(105));
+    margin.addCrossMarginRequirement(new BN(100), new BN(1000));
+    // SDK 0.23.1 compares the plain fields, even though the buffer is present.
+    expect(margin.meetsCrossMarginRequirementWithBuffer()).toBe(false);
+    expect(User.prototype.getLiquidationStatuses.call({} as User, margin).get('cross')).toMatchObject({ canBeLiquidated: false });
   });
 
   it.each(['index', 'name', 'oracle', 'source', 'unknown'] as const)('excludes a mismatched %s even when the position ticker looks valid', (mismatch) => {

@@ -1,12 +1,12 @@
 # Buffer videos
 
-**Updated:** September 16, 2026.
+**Updated:** September 19, 2026 (local handoff).
 
 The version-2 films cover the core Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
 
 ## Current build update
 
-The films were recorded on September 13, 2026. The live product tour is current as of September 16: open [the explorer](https://bufferonsolana.vercel.app/app) to see the verified Velocity risk-context card when a fresh provider read returns maintenance collateral, maintenance requirement, headroom, and the provider status. The dashboard also includes a local threshold monitor. It lets a judge configure one headroom rule, run a fresh check, and observe the durable rule → event → outbox → lease → mock-delivery path on that device.
+The films were recorded on September 13, 2026. The live product tour is current as of September 19: open [the explorer](https://bufferonsolana.vercel.app/app) to see the verified Velocity risk-context card when a fresh provider read returns maintenance collateral, maintenance requirement, headroom, and the provider status. The dashboard also includes a local threshold monitor. It lets a judge configure one headroom rule, run an explicit fixture check or check a fresh selected observation, and observe the rule → event → outbox → mock-delivery path on that device; the separate local SQLite worker proves durable leases and concurrent/restart behavior.
 
 The local monitor is deliberately narrow. It never turns a sample, stale response, isolated scope, or missing value into an alert. External email, webhooks, push notifications, and hosted workers remain gated until their Supabase migration, protected worker, destination, and delivery checks are configured. The `/demo` page labels this current-build addition above the recorded films so the recordings and the shipped product are not conflated.
 
@@ -69,3 +69,5 @@ All three final Higgsedit exports are H.264, 1600 × 900, nominal 24 fps, with A
 The 78-file source archive has SHA256 `8069264a9219ed1d24ebb4165f2de00370740fcd596077444921af9c1ab12ca9` and records the captured application source commit `f612c22`. It contains no environment files or credentials. The original films remain preserved in the version-1 release.
 
 The published films pass desktop/mobile playback with native English captions selected: cues load and activate after seeking. All transcript links return current content. Production MP4 hashes match the verified exports and support HTTP 206 seeking; `videos/production-verification.json` records the check.
+
+The September 19 local pass preserves the September 13 films and their narration, captions, audio, download, and seek controls. The demo-page introduction explicitly identifies them as earlier recordings. No new film generation, narration claim, upload, or media release was performed. The current 90-second script is in the final verification record.

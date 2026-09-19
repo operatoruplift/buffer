@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, Mark } from "@/components/Icons";
 import { Brand } from "@/components/Brand";
 import { TokenIcon } from "@/components/TokenIcon";
@@ -87,15 +87,85 @@ const questions = [
   ["What does Buffer calculate?", "Buffer models the incremental price P&L of eligible linear perpetual positions. It multiplies each signed position size by its frozen baseline oracle price and your chosen percentage move, then totals contributions with the same quote currency."],
   ["Do I need a wallet or an account?", "You can explore preset accounts immediately without signing in or connecting a wallet. For a live lookup, enter a public Solana authority address. Save scenarios on your device without an account. Optional cloud sign-in never grants Buffer trading permissions."],
   ["Is this a liquidation or account-equity forecast?", "No. The result covers the modeled perpetual price effect. It does not recalculate account equity, margin health, or liquidation thresholds. Collateral changes, funding, fees, future fills, and borrowing interest remain outside the model."],
-  ["Which positions are supported?", "Explore 76 configured perpetual markets on Pacifica, spanning crypto, equities, commodities, and FX, plus SOL, BTC, ETH, and HYPE on Velocity. Browse the market list in the app. Each live position must pass market and price checks. Legacy Drift remains available for historical reads. Unsupported exposure is excluded with an explanation."],
+  ["Which positions are supported?", "Explore 76 configured perpetual markets on Pacifica, spanning crypto, equities, commodities, and FX, plus SOL, BTC, ETH, and HYPE on Velocity. Browse the market list in the app. Each live position must pass market and price checks. Jupiter Perps shows verified inventory without a price-effect estimate; legacy Drift reads are paused. Unsupported exposure is excluded with an explanation."],
   ["Are the example numbers live market prices?", "No. Examples are deterministic fixtures, clearly labeled in the app. Live lookups use Pacifica’s public API or a Solana RPC provider and show source and freshness information. Live calculations expire after at most two minutes and require a refresh."],
   ["Can I use Buffer on my phone or desktop?", "Yes. The responsive web app adapts to phones, tablets, and desktop browsers. Where supported, use your browser’s install or Add to Home Screen option for an app window. Live account data and account sync require an internet connection."],
 ];
 
 export default function Landing() {
-  const { paused: motionPaused, toggleMotion } = useMotionPreference();
+  const { paused: motionPaused, reducedMotion, toggleMotion } = useMotionPreference();
   const [shock, setShock] = useState(-10);
   const [scenarioBoardOpen, setScenarioBoardOpen] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const pendingTravel = useRef<Map<string, DOMRect> | null>(null);
+  const travelAnimations = useRef<Animation[]>([]);
+  const changeScenarioBoard = (open: boolean) => {
+    if (open === scenarioBoardOpen) return;
+    if (open && heroRef.current) {
+      const copy = heroRef.current.querySelector('.buffer-hero-copy')?.getBoundingClientRect();
+      const frame = heroRef.current.getBoundingClientRect();
+      if (copy) {
+        heroRef.current.style.setProperty('--overview-copy-width', `${copy.width}px`);
+        heroRef.current.style.setProperty('--overview-copy-left', `${copy.left - frame.left}px`);
+        heroRef.current.style.setProperty('--overview-copy-top', `${copy.top - frame.top}px`);
+      }
+    }
+    const selectors = ['.buffer-hero-stage', '.buffer-preview', '.buffer-context-card'];
+    pendingTravel.current = new Map(selectors.flatMap(selector => {
+      const element = heroRef.current?.querySelector(selector);
+      return element ? [[selector, element.getBoundingClientRect()] as const] : [];
+    }));
+    travelAnimations.current.forEach(animation => animation.cancel());
+    setScenarioBoardOpen(open);
+  };
+
+  useLayoutEffect(() => {
+    const previous = pendingTravel.current;
+    const hero = heroRef.current;
+    pendingTravel.current = null;
+    if (!previous || !hero) return;
+    const focusTarget = hero.querySelector<HTMLButtonElement>(scenarioBoardOpen ? '.buffer-hero-stage-top button' : '.buffer-board-toggle');
+    focusTarget?.focus({ preventScroll: true });
+    if (motionPaused || reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const stage = hero.querySelector<HTMLElement>('.buffer-hero-stage');
+    const oldStage = previous.get('.buffer-hero-stage');
+    if (!stage || !oldStage || typeof stage.animate !== 'function') return;
+    const newStage = stage.getBoundingClientRect();
+    const scaleX = oldStage.width / newStage.width;
+    const scaleY = oldStage.height / newStage.height;
+    const timing = { duration: 1000, easing: 'cubic-bezier(.33,0,.2,1)' };
+    const animations: Animation[] = [];
+    const afterRects = new Map([...previous.keys()].flatMap(selector => {
+      const element = hero.querySelector(selector);
+      return element ? [[selector, element.getBoundingClientRect()] as const] : [];
+    }));
+    // Counter-scale the existing cards inside the widening film so their text
+    // travels with the surface. No second controls or video are mounted.
+    for (const [selector, before] of previous) {
+      const element = hero.querySelector<HTMLElement>(selector);
+      const after = afterRects.get(selector);
+      if (!element || !after) continue;
+      const isStage = element === stage;
+      const x = isStage ? before.left - after.left : (before.left - oldStage.left) / scaleX - (after.left - newStage.left);
+      const y = isStage ? before.top - after.top : (before.top - oldStage.top) / scaleY - (after.top - newStage.top);
+      const sx = before.width / after.width / (isStage ? 1 : scaleX);
+      const sy = before.height / after.height / (isStage ? 1 : scaleY);
+      animations.push(element.animate([
+        { transformOrigin: '0 0', transform: `translate(${x}px, ${y}px) scale(${sx}, ${sy})` },
+        { transformOrigin: '0 0', transform: 'none' },
+      ], timing));
+    }
+    const copy = hero.querySelector<HTMLElement>('.buffer-hero-copy');
+    if (copy) animations.push(copy.animate([
+      { opacity: scenarioBoardOpen ? 1 : 0, transform: scenarioBoardOpen ? 'none' : 'translateX(-24px)' },
+      { opacity: scenarioBoardOpen ? 0 : 1, offset: .66 },
+      { opacity: scenarioBoardOpen ? 0 : 1, transform: scenarioBoardOpen ? 'translateX(-24px)' : 'none' },
+    ], { duration: 500, easing: 'cubic-bezier(.33,0,.2,1)' }));
+    travelAnimations.current = animations;
+    const cancel = () => animations.forEach(animation => animation.cancel());
+    window.addEventListener('resize', cancel, { once: true });
+    return () => { window.removeEventListener('resize', cancel); cancel(); };
+  }, [scenarioBoardOpen, motionPaused, reducedMotion]);
   const motionControl = (className: string) => <button type="button" className={`buffer-motion-control ${className}`} onClick={toggleMotion} aria-label={motionPaused ? 'Resume page animations' : 'Pause page animations'} aria-pressed={motionPaused}>
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">{motionPaused ? <path d="m5 3 8 5-8 5Z" /> : <><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></>}</svg>
   </button>;
@@ -113,12 +183,12 @@ export default function Landing() {
 
       <main id="main">
         <section className={`buffer-hero${scenarioBoardOpen ? ' buffer-hero-board-open' : ''}`}>
-          <div className="buffer-hero-inner" data-scenario-open={scenarioBoardOpen}>
-          <div className="buffer-hero-copy">
+          <div ref={heroRef} className="buffer-hero-inner" data-scenario-open={scenarioBoardOpen}>
+          <div className="buffer-hero-copy" aria-hidden={scenarioBoardOpen} inert={scenarioBoardOpen}>
             <div className="buffer-kicker"><span /> A clearer view of your perps</div>
             <h1><span>Every position.</span><span>Every price move.</span><span className="buffer-hero-accent">A clearer picture.</span></h1>
             <p>Explore the price effect on your Solana perpetual positions, with the source, assumptions and coverage in view.</p>
-            <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><button type="button" className="buffer-text-link buffer-board-toggle" onClick={() => setScenarioBoardOpen(true)} disabled={scenarioBoardOpen}>Explore the scenario <Icon name="arrow" size={16} /></button></div>
+            <div className="buffer-hero-actions"><ArrowLink href="/app">Open Buffer</ArrowLink><button type="button" className="buffer-text-link buffer-board-toggle" onClick={() => changeScenarioBoard(true)} disabled={scenarioBoardOpen}>Explore the scenario <Icon name="arrow" size={16} /></button></div>
             <div className="buffer-hero-note"><Icon name="check" size={15} /> No wallet connection. No trading permissions.</div>
           </div>
           <div className={`buffer-hero-stage${scenarioBoardOpen ? ' is-board' : ''}`}>
@@ -135,7 +205,7 @@ export default function Landing() {
               </svg>
             </div>
             <div className="buffer-stage-orbit buffer-stage-orbit-one" aria-hidden="true" /><div className="buffer-stage-orbit buffer-stage-orbit-two" aria-hidden="true" />
-            {scenarioBoardOpen && <div className="buffer-hero-stage-top"><button type="button" onClick={() => setScenarioBoardOpen(false)}><Icon name="arrow" size={14} /> Back to overview</button></div>}
+            {scenarioBoardOpen && <div className="buffer-hero-stage-top"><button type="button" onClick={() => changeScenarioBoard(false)}><Icon name="arrow" size={14} /> Back to overview</button></div>}
             <div className="buffer-hero-board"><ScenarioPreview shock={shock} onShockChange={setShock} /><ScenarioContextCard shock={shock} /></div>
             <div className="buffer-stage-bottom"><span className="buffer-tiny-cross" aria-hidden="true">+</span><span>{scenarioBoardOpen ? 'Scenario board · state preserved' : 'Move the slider. See the difference.'}</span>{motionControl('buffer-hero-motion')}</div>
           </div>
@@ -155,7 +225,7 @@ export default function Landing() {
 
         <section id="method" className="buffer-section buffer-method">
           <div className="buffer-method-top"><div><span className="buffer-kicker">02 / From positions to perspective</span><h2>A simple question.<br />An explainable answer.</h2></div><p>Start with a preset or a public address.<br />The account stays yours. The math stays visible.</p></div>
-          <div className="buffer-steps"><article><span>01</span><h3>Choose an account</h3><p>Explore fixed presets or read a public account on Pacifica or Velocity. Legacy Drift reads are available too.</p></article><article><span>02</span><h3>Set the price move</h3><p>Apply one percentage move to eligible perpetual prices. Position quantities stay fixed.</p></article><article><span>03</span><h3>Follow the contribution</h3><p>Read the per-position effect, quote-currency totals, and exclusions. Export the details.</p></article></div>
+          <div className="buffer-steps"><article><span>01</span><h3>Choose an account</h3><p>Explore fixed presets or read a public account on Pacifica or Velocity. Inspect Jupiter Perps inventory with its modeling limits in view.</p></article><article><span>02</span><h3>Set the price move</h3><p>Apply one percentage move to eligible perpetual prices. Position quantities stay fixed.</p></article><article><span>03</span><h3>Follow the contribution</h3><p>Read the per-position effect, quote-currency totals, and exclusions. Export the details.</p></article></div>
           <div className="buffer-formula"><div><span>THE CORE CALCULATION</span><p>Signed size <b>×</b> Baseline price <b>×</b> Price move</p></div><span>=</span><strong>Price P&amp;L change</strong></div>
           <p className="buffer-method-note">A first-order price scenario, with fixed sizes. Funding, fees, collateral changes, future fills, borrowing interest, and liquidation effects are outside the model.</p>
         </section>

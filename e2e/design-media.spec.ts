@@ -76,3 +76,25 @@ test('mobile sheet contains keyboard focus, restores scroll and reaches real rou
   await page.getByRole('link', { name: 'Continue without an account' }).click();
   await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
 });
+
+test('failed decorative films retain readable posters, usable scenarios, and navigation', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.route('**/videos/design/*.mp4', route => route.abort());
+  await page.goto('/');
+  const hero = page.locator('video[data-media="Meridial Light hero"]');
+  await hero.scrollIntoViewIfNeeded();
+  await expect(hero).toHaveAttribute('data-video-state', 'unavailable');
+  await expect(hero).toHaveAttribute('poster', /meridial-light-poster/);
+  const preview = page.getByLabel('Interactive price scenario');
+  await preview.getByRole('button', { name: '+20%', exact: true }).click();
+  await expect(preview.locator('.buffer-preview-value')).toContainText('7,000.00');
+  await page.getByRole('button', { name: 'Explore the scenario', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Back to overview', exact: true })).toBeVisible();
+  await page.locator('#features').scrollIntoViewIfNeeded();
+  await expect(page.getByRole('heading', { name: 'Explainable math', exact: true })).toBeVisible();
+  await page.goto('/auth');
+  await expect(page.getByRole('heading', { name: 'Sign in to Buffer', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Continue without an account' }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByText('Demo mode', { exact: true })).toBeVisible();
+});

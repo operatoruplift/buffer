@@ -82,6 +82,12 @@ export default function Dashboard({
   const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
   const exampleAuthority = PUBLIC_EXAMPLES[protocolId];
   const accountLabel = mode === "live" && (protocolId === "pacifica" || protocolId === "jupiter") ? "Account" : "Subaccount";
+  const selectedAuthority = discovery?.authority ?? address.trim();
+  const previousScope = snapshot?.source === 'live' && mode === 'live' && (
+    snapshotProtocol.id !== protocolId || snapshot.authority !== discovery?.authority ||
+    selectedId === '' || snapshot.subaccount.id !== Number(selectedId)
+  );
+  const canRefresh = mode === 'sample' || Boolean(discovery && selectedId !== '');
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -116,15 +122,20 @@ export default function Dashboard({
     setLoading(null);
     setNotice("Preset loaded. Price move reset to 0%.");
   }
+  function retainLiveSnapshot() {
+    // A new live selection must never show a fixture as if it came from that
+    // account. Keep an earlier live observation only, explicitly marked stale.
+    setSnapshot(previous => previous?.source === 'live' ? previous : null);
+    setStale(snapshot?.source === 'live');
+  }
   function changeProtocol(id: ProtocolId) {
     cancel();
     setProtocolId(id);
     setMarketSearch("");
     setDiscovery(null);
     setSelectedId("");
-    if (mode === "live") setSnapshot(null);
+    if (mode === "live") retainLiveSnapshot();
     setShock(0);
-    setStale(false);
     setError(null);
     setLoading(null);
     setNotice("");
@@ -183,11 +194,10 @@ export default function Dashboard({
     setProtocolId(requestedProtocol);
     setPublicExample(Boolean(options?.publicExample));
     setMode("live");
-    setSnapshot(null);
+    retainLiveSnapshot();
     setDiscovery(null);
     setSelectedId("");
     setShock(0);
-    setStale(false);
     setError(null);
     setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} accounts…`);
     retry.current = () => {
@@ -210,7 +220,7 @@ export default function Dashboard({
     if (!discovery || !id) {
       cancel();
       setSelectedId("");
-      setSnapshot(null);
+      retainLiveSnapshot();
       setLoading(null);
       return;
     }
@@ -222,9 +232,8 @@ export default function Dashboard({
     );
     setError(null);
     if (!refreshing) {
-      setSnapshot(null);
+      retainLiveSnapshot();
       setShock(0);
-      setStale(false);
     }
     retry.current = () => {
       void readSnapshot(id, refreshing);
@@ -256,7 +265,7 @@ export default function Dashboard({
       setError(null);
       setNotice('Preset inputs kept. Price move reset to 0%.');
     }
-    else void readSnapshot(selectedId, true);
+    else if (canRefresh) void readSnapshot(selectedId, true);
   }
   function editSample(next: Snapshot) {
     if (mode !== 'sample' || snapshot?.source !== 'sample' || next.source !== 'sample') return;
@@ -300,7 +309,9 @@ export default function Dashboard({
     ? calculateScenario(snapshot, shock, now || undefined)
     : null;
   const disabled = stale
-    ? "Previous snapshot retained after a failed refresh. Retry to calculate."
+    ? previousScope
+      ? "Previous account snapshot retained. Load the selected account before calculating."
+      : "Previous snapshot retained after a failed read. Retry to calculate."
     : loading
       ? "Wait for the account read to finish."
       : scenario?.disabledReason;
@@ -574,20 +585,20 @@ export default function Dashboard({
                 <div className="account-name">
                   {mode === "sample"
                     ? snapshot?.sampleName
-                    : short(discovery!.authority)}
+                    : short(selectedAuthority)}
                   {mode === "live" && (
                     <>
                       <button
                         className="icon-button"
                         aria-label="Copy full authority address"
-                        onClick={() => copy(discovery!.authority)}
+                        onClick={() => copy(selectedAuthority)}
                       >
                         <Icon name="copy" size={15} />
                       </button>
                       <a
                         className="icon-button"
                         aria-label="View authority on Solana Explorer"
-                        href={`https://explorer.solana.com/address/${discovery!.authority}`}
+                        href={`https://explorer.solana.com/address/${selectedAuthority}`}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -638,7 +649,7 @@ export default function Dashboard({
             </div>
             <button
               className="button small"
-              disabled={!!loading || !snapshot}
+              disabled={!!loading || !snapshot || !canRefresh}
               onClick={refresh}
             >
               <Icon name="refresh" size={15} />
@@ -667,13 +678,14 @@ export default function Dashboard({
                 <div>
                   <strong>Stale snapshot · calculations paused</strong>
                   <p>
-                    The original retrieval time is preserved. Refresh for
-                    current data.
+                    {previousScope
+                      ? `Showing the previous ${snapshotProtocol.label} observation for ${snapshot.authority}, ${snapshot.subaccount.name} · #${snapshot.subaccount.id}. These values do not describe the new selection. Load the selected account for current data.`
+                      : 'The original retrieval time is preserved. Refresh for current data.'}
                   </p>
                 </div>
                 <button
                   className="button small"
-                  disabled={!!loading}
+                  disabled={!!loading || !canRefresh}
                   onClick={refresh}
                 >
                   Retry refresh
@@ -903,7 +915,7 @@ export default function Dashboard({
                         <p>Velocity SDK observation · {snapshot.risk.scope}</p>
                       </div>
                       <strong className="risk-status">
-                        {snapshot.risk.status === 'clear' ? 'Above maintenance' : snapshot.risk.status === 'maintenance' ? 'Below maintenance' : snapshot.risk.status === 'liquidating' ? 'SDK marked liquidating' : 'Unavailable'}
+                        {stale || expired || loading ? 'Stale observation' : snapshot.risk.status === 'clear' ? 'Meets maintenance' : snapshot.risk.status === 'maintenance' ? 'Below maintenance' : snapshot.risk.status === 'liquidating' ? 'SDK liquidation flag' : 'Unavailable'}
                       </strong>
                     </div>
                     <div className="risk-values">
@@ -914,7 +926,7 @@ export default function Dashboard({
                     <p className="risk-context-note">{snapshot.risk.explanation}</p>
                   </section>
                 )}
-                <AlertsPanel snapshot={snapshot} />
+                <AlertsPanel snapshot={snapshot} stale={stale || expired || Boolean(loading)} />
               </div>
               <div className="positions-column">
                 <section
