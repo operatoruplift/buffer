@@ -2,6 +2,8 @@
 
 This record supersedes earlier statements that every handoff requirement was already applied. The checkout started clean on `main` at `130dcac` and preserves the subsequent performance, accessibility, and shared-rate-limit work. No production deployment, GitHub publication, hosted migration, event submission, transaction, paid generation, or external alert send was performed in this pass. The latest attached implementation handoff explicitly reserves those actions for a separate release decision.
 
+Tested implementation commit: `827f6ef672b6ad13b513f13ee9260a3d2b11b80c`. The subsequent record-only commit adds this identifier; application source is unchanged. This revision is committed locally and has not been pushed.
+
 ## Delivered changes
 
 - **Visible composition:** hero scenario/context surfaces no longer obscure the slider or denomination. Narrow header/headline wrapping is corrected. The single existing scenario/video animates into the board with measured travel, cancellation, focus restoration, reduced-motion behavior and the closing-line wipe. Film failure remains in a poster state instead of being overwritten by a pause event. Landing DEMO badges stay removed, the positions panel remains opaque, and the Buffer/transparent Solana assets remain intact.
