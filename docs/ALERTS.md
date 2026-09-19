@@ -21,7 +21,7 @@ The additive migration `20260920020000_hosted_monitoring.sql` extends the existi
 - A separate `CRON_SECRET` protects `/api/monitoring/worker`. The database admits a scheduled minute key once across concurrent invocations. Manual checks do not establish a scheduler heartbeat.
 - Fenced database claims coordinate due checks and dispatch. Each invocation atomically selects one kind of work: a fresh queued delivery first, a receipt lookup next, or a due account observation. A slow provider read cannot consume the dispatch turn. Observations use the shared exact-decimal alert engine and persist the resulting episode/event before delivery.
 - Cadence, cooldown and hysteresis survive unavailable observations and restarts. Pausing, deleting or changing a rule version invalidates pending work. History is retained; a remotely accepted message cannot be recalled.
-- The scheduler is bounded server work, not a browser timer. A heartbeat expires after180 seconds, including on a page left open. UI separates attempted check, last fresh observation, next check, provider acceptance and matching receipt.
+- The scheduler is bounded server work, not a browser timer. A heartbeat expires after 180 seconds, including on a page left open. UI separates attempted check, last fresh observation, next check, provider acceptance and matching receipt.
 
 ## Exactly one outbound provider: Discord
 
@@ -49,7 +49,7 @@ SQLite `.local/alerts.sqlite` uses WAL, full synchronization and transactional r
 
 1. Apply the reviewed additive migration and verify RLS/function privileges. Use the existing Buffer Supabase project; do not create another project or replace its report tables.
 2. Generate distinct random worker and cron credentials. Store the worker hash in the private credential row, and put the actual values in server-only Vercel variables. Configure `BUFFER_ALERT_SEND_ENABLED=false` and `BUFFER_ALERT_NOTIFICATION_MODE=test` initially. Deploy before activating the scheduler.
-3. Use Supabase Pro `pg_cron` + pinned synchronous `http`1.6 HEAD to invoke the fixed production worker once per minute. Keep the cron credential in Supabase Vault. [Deployment](DEPLOYMENT.md) records the activation/rollback procedure. Check actual cron result and persisted heartbeat; environment variables alone do not prove execution.
+3. Use Supabase Pro `pg_cron` + pinned synchronous `http` 1.6 HEAD to invoke the fixed production worker once per minute. Keep the cron credential in Supabase Vault. [Deployment](DEPLOYMENT.md) records the activation/rollback procedure. Check actual cron result and persisted heartbeat; environment variables alone do not prove execution.
 4. Configure exactly one Discord destination for the intended confirmed Supabase owner. Verify its metadata; prepare the exact redacted message and destination. Obtain recipient-send authorization before turning on sends. Existing signup/recovery email stays disabled independently.
 5. Save an authorized test threshold around a real current observation. Confirm event ID, rule version, source slot/time, provider message ID and matching channel receipt. Retain redacted evidence, then pause/delete the test rule. Do not call this step verified until a real receipt exists.
 

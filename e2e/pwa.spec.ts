@@ -81,12 +81,14 @@ test('real offline navigation provides bounded deterministic fixture arithmetic'
 });
 
 test('service worker caches only fixed public files and cannot replay private responses', async ({ page, context }) => {
-  await prepareWorker(page);
   const privatePaths = ['/api/pwa-private-probe/account', '/auth/pwa-private-probe/session', '/app/reports/pwa-private-probe/report'];
+  // Install interception before registration so the worker starts with routing enabled.
+  // Enabling it after clients.claim() can race Chromium's service-worker network session.
   await context.route('**/pwa-private-probe/**', (route) => route.fulfill({
     json: { privateTestPayload: true },
     headers: { 'Cache-Control': 'no-store' },
   }));
+  await prepareWorker(page);
   for (const path of privatePaths) {
     expect(await page.evaluate(async (url) => (await fetch(url)).json(), path)).toEqual({ privateTestPayload: true });
   }
