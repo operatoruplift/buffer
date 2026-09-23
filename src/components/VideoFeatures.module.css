@@ -83,14 +83,15 @@
 .mathResult small { font-size: 7px; color: #7c8696; font-weight: 400; letter-spacing: 0; }
 .mathFoot { display: flex; align-items: center; justify-content: center; gap: 7px; position: relative; font-size: 8px; color: #6c5d5a; margin-top: 13px; }
 .mathFoot > span { font-size: 15px; color: #606f90; }
-.card[data-reveal="animate"] { animation: cardEnter 760ms cubic-bezier(.22, 1, .36, 1) var(--entrance-delay) both; }
-.card[data-reveal="animate"] .cardCopy h3 > span { animation: titleRise 620ms cubic-bezier(.22, 1, .36, 1) calc(var(--entrance-delay) + 100ms) both; }
-.card[data-reveal="animate"] .graphic { animation: graphicReveal 820ms cubic-bezier(.22, 1, .36, 1) calc(var(--entrance-delay) + 80ms) both; }
-.card[data-reveal="animate"] .cardLabel, .card[data-reveal="animate"] .cardCopy > p, .card[data-reveal="animate"] .cardCopy > a { animation: labelReveal 620ms ease calc(var(--entrance-delay) + 220ms) both; }
+.card[data-scroll-state="revealing"] { animation: cardEnter 560ms cubic-bezier(.16, 1, .3, 1) var(--entrance-delay) both; }
+.card[data-scroll-state="revealing"] .cardCopy h3 > span { animation: titleRise 620ms cubic-bezier(.16, 1, .3, 1) calc(var(--entrance-delay) + 60ms) both; }
+.card[data-scroll-state="revealing"] .graphic { animation: graphicReveal 680ms cubic-bezier(.16, 1, .3, 1) var(--entrance-delay) both; }
+.card[data-scroll-state="revealing"] .cardLabel, .card[data-scroll-state="revealing"] .cardCopy > p { animation: labelReveal 500ms ease calc(var(--entrance-delay) + 100ms) both; }
+/* Link hitboxes stay at their final coordinates throughout the entrance. */
 .card:focus-within, .card:focus-within .graphic, .card:focus-within .cardCopy > *, .card:focus-within .cardCopy h3 > span { animation: none !important; }
-@keyframes cardEnter { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes cardEnter { from { opacity: .35; } to { opacity: 1; } }
 @keyframes titleRise { from { transform: translateY(110%); } to { transform: none; } }
-@keyframes graphicReveal { from { opacity: 0; transform: translateY(12px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes graphicReveal { from { opacity: .2; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes labelReveal { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
 @media (min-width: 768px) and (max-width: 1023px) {
   .section { padding-left: 22px; padding-right: 22px; }
@@ -113,6 +114,7 @@
   .heading > p { margin-top: 20px; font-size: 13px; max-width: 360px; }
   .cards { grid-template-columns: minmax(0, 1fr); gap: 18px; max-width: 429px; margin: 0 auto; }
   .card { width: 100%; min-height: 452px; }
+  .card[data-scroll-state="revealing"] { --entrance-delay: 0ms !important; }
   .cardLabel { padding: 22px 23px 0; }
   .graphic { top: 12%; height: 52%; padding: 0 20px; }
   .cardCopy { left: 23px; right: 23px; bottom: 15px; }

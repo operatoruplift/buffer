@@ -2,6 +2,12 @@
 
 Research and implementation date: September 12, 2026.
 
+## Current landing motion — September 23, 2026
+
+The selected Meridial Light hero and supplied B4/B6 media remain the current design; the catalog recommendations below record the earlier September 12 research. Premium access to [Scroll Landing Page](https://motionsites.ai/?prompt=scroll-landing) was verified through the MotionSites connector on September 23. Its viewport-triggered editorial pacing and exponential easing informed the new scroll treatment. Buffer implements that treatment with native CSS, IntersectionObserver and a bounded animation-frame callback in its existing Next.js application. The template's football identity, dark full-screen layout, fixed loading screen and video scrubbing are not part of Buffer.
+
+Sections now enter with short, one-time text and illustration reveals. The coverage illustration and install rings have gentle scroll depth, with less travel on small screens. Links, buttons and FAQ summaries retain stable coordinates. Native anchor scrolling is smooth while motion is enabled; the shared pause setting and reduced-motion preference disable it. The final heading highlight starts when the heading enters view. Server-rendered content remains visible when JavaScript or observers are unavailable, and new scroll work stops when the page is hidden or unmounted.
+
 ## Recommended MotionSites starting point
 
 **[USD Halo](https://motionsites.ai/?prompt=halo-usd-landing) remains the best starting point for Buffer’s landing page among the prompts inspected.** Its offwhite canvas, large editorial type, rounded product stage, and restrained calls to action fit a product that should feel calm and understandable. The hero now adds a native CSS/SVG shader layer inspired by the motion language of [Animated Shader Hero](https://motionsites.org/prompts/ravikatiyar162-animated-shader-hero), alongside Buffer’s ribbon B monogram and its own interactive scenario preview, copy, section composition, and calculations.

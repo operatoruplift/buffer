@@ -10,6 +10,7 @@ import { MobileNavigation } from '@/components/MobileNavigation';
 import { VideoFeatures } from '@/components/VideoFeatures';
 import { DESIGN_MEDIA } from '@/lib/design-media';
 import { useMotionPreference } from '@/lib/use-motion-preference';
+import { useLandingMotion } from '@/lib/use-landing-motion';
 import { formatDecimal } from "@/lib/format";
 import { getSampleSnapshot } from "@/lib/samples";
 import { calculateScenario } from "@/lib/scenario";
@@ -97,7 +98,9 @@ export default function Landing() {
   const { paused: motionPaused, reducedMotion, toggleMotion } = useMotionPreference();
   const [shock, setShock] = useState(-10);
   const [scenarioBoardOpen, setScenarioBoardOpen] = useState(false);
+  const siteRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  useLandingMotion(siteRef, motionPaused, reducedMotion);
   const pendingTravel = useRef<Map<string, DOMRect> | null>(null);
   const travelAnimations = useRef<Animation[]>([]);
   const changeScenarioBoard = (open: boolean) => {
@@ -171,7 +174,7 @@ export default function Landing() {
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">{motionPaused ? <path d="m5 3 8 5-8 5Z" /> : <><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></>}</svg>
   </button>;
   return (
-    <div className="buffer-site" data-motion-paused={motionPaused}>
+    <div ref={siteRef} className="buffer-site" data-motion-paused={motionPaused}>
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="buffer-nav">
         <Link href="/" aria-label="Buffer home"><Brand /></Link>
@@ -214,37 +217,37 @@ export default function Landing() {
           </div>
         </section>
 
-        <div className="buffer-facts" aria-label="Product essentials"><span>Built for curious humans.</span><div><span>No trading permissions</span><span>Transparent calculations</span><span>Solana perpetuals</span></div></div>
+        <div className="buffer-facts" aria-label="Product essentials" data-scroll-reveal="fade"><span>Built for curious humans.</span><div><span>No trading permissions</span><span>Transparent calculations</span><span>Solana perpetuals</span></div></div>
 
         <VideoFeatures paused={motionPaused} />
 
         <section className="buffer-coverage-story" aria-labelledby="coverage-heading">
           <div className="buffer-coverage-art">
-            <div className="buffer-coverage-card"><div className="buffer-coverage-card-title"><Icon name="check" size={19} /><span>Coverage, made visible.</span></div><div className="buffer-coverage-big">2 <span>of 3 positions modeled</span></div><div className="buffer-coverage-track" aria-hidden="true"><span /><span /><span /></div><div className="buffer-coverage-row"><span>SOL-PERP</span><span>Included</span></div><div className="buffer-coverage-row"><span>BTC-PERP</span><span>Included</span></div><div className="buffer-coverage-row buffer-coverage-excluded"><span>OTHER-PERP</span><span>Unsupported market</span></div><p>Illustrative partial-coverage view</p></div>
+            <div className="buffer-coverage-depth" data-scroll-depth="coverage"><div data-scroll-reveal="rise"><div className="buffer-coverage-card"><div className="buffer-coverage-card-title"><Icon name="check" size={19} /><span>Coverage, made visible.</span></div><div className="buffer-coverage-big">2 <span>of 3 positions modeled</span></div><div className="buffer-coverage-track" aria-hidden="true"><span /><span /><span /></div><div className="buffer-coverage-row"><span>SOL-PERP</span><span>Included</span></div><div className="buffer-coverage-row"><span>BTC-PERP</span><span>Included</span></div><div className="buffer-coverage-row buffer-coverage-excluded"><span>OTHER-PERP</span><span>Unsupported market</span></div><p>Illustrative partial-coverage view</p></div></div></div>
           </div>
-          <div className="buffer-coverage-copy"><span className="buffer-kicker">The whole story includes the limits</span><h2>Clarity is knowing<br />what’s left out.</h2><p>A precise number is only useful when you know what it means. Buffer keeps the modeled price effect separate from your account’s equity, health, and liquidation risk.</p><a className="buffer-text-link" href="#method">Read the method <Icon name="arrow" size={17} /></a></div>
+          <div className="buffer-coverage-copy"><span className="buffer-kicker" data-scroll-reveal="rise">The whole story includes the limits</span><h2 id="coverage-heading" data-scroll-reveal="rise">Clarity is knowing<br />what’s left out.</h2><p data-scroll-reveal="rise">A precise number is only useful when you know what it means. Buffer keeps the modeled price effect separate from your account’s equity, health, and liquidation risk.</p><a className="buffer-text-link" href="#method">Read the method <Icon name="arrow" size={17} /></a></div>
         </section>
 
         <section id="method" className="buffer-section buffer-method">
-          <div className="buffer-method-top"><div><span className="buffer-kicker">02 / From positions to perspective</span><h2>A simple question.<br />An explainable answer.</h2></div><p>Start with a preset or a public address.<br />The account stays yours. The math stays visible.</p></div>
-          <div className="buffer-steps"><article><span>01</span><h3>Choose an account</h3><p>Explore fixed presets or read a public account on Pacifica or Velocity. Inspect Jupiter Perps inventory with its modeling limits in view.</p></article><article><span>02</span><h3>Set the price move</h3><p>Apply one percentage move to eligible perpetual prices. Position quantities stay fixed.</p></article><article><span>03</span><h3>Follow the contribution</h3><p>Read the per-position effect, quote-currency totals, and exclusions. Export the details.</p></article></div>
-          <div className="buffer-formula"><div><span>THE CORE CALCULATION</span><p>Signed size <b>×</b> Baseline price <b>×</b> Price move</p></div><span>=</span><strong>Price P&amp;L change</strong></div>
+          <div className="buffer-method-top"><div data-scroll-reveal="rise"><span className="buffer-kicker">02 / From positions to perspective</span><h2>A simple question.<br />An explainable answer.</h2></div><p data-scroll-reveal="rise">Start with a preset or a public address.<br />The account stays yours. The math stays visible.</p></div>
+          <div className="buffer-steps"><article data-scroll-reveal="rise"><span>01</span><h3>Choose an account</h3><p>Explore fixed presets or read a public account on Pacifica or Velocity. Inspect Jupiter Perps inventory with its modeling limits in view.</p></article><article data-scroll-reveal="rise"><span>02</span><h3>Set the price move</h3><p>Apply one percentage move to eligible perpetual prices. Position quantities stay fixed.</p></article><article data-scroll-reveal="rise"><span>03</span><h3>Follow the contribution</h3><p>Read the per-position effect, quote-currency totals, and exclusions. Export the details.</p></article></div>
+          <div className="buffer-formula" data-scroll-reveal="rise"><div><span>THE CORE CALCULATION</span><p>Signed size <b>×</b> Baseline price <b>×</b> Price move</p></div><span>=</span><strong>Price P&amp;L change</strong></div>
           <p className="buffer-method-note">A first-order price scenario, with fixed sizes. Funding, fees, collateral changes, future fills, borrowing interest, and liquidation effects are outside the model.</p>
         </section>
 
         <section id="install" className="buffer-install">
-          <div className="buffer-install-copy"><span className="buffer-kicker">03 / A little more room to think</span><h2>Your perspective.<br />Wherever you are.</h2><p>A focused workspace for your phone, tablet, or desktop. Open it in your browser, or install Buffer for a place of its own.</p><ArrowLink href="/app">Open the app</ArrowLink><div className="buffer-install-platforms"><span>Mobile</span><span>Tablet</span><span>Desktop</span></div><details className="buffer-install-help"><summary>How to install Buffer <span>+</span></summary><p>On a supported desktop browser, choose its install-app option. On iPhone or iPad, open Buffer in Safari, tap Share, then Add to Home Screen. On Android, open the browser menu and choose Install app or Add to Home screen. Availability depends on your browser.</p></details></div>
-          <div className="buffer-install-art"><div className="buffer-install-ring ring-one" aria-hidden="true" /><div className="buffer-install-ring ring-two" aria-hidden="true" /><div className="buffer-install-ring ring-three" aria-hidden="true" /><div className="buffer-app-lockup" aria-hidden="true"><div className="buffer-app-icon"><Mark size={112} /></div><span className="buffer-app-caption">BUFFER, WITH YOU.</span></div>{motionControl('buffer-install-motion')}</div>
+          <div className="buffer-install-copy"><span className="buffer-kicker" data-scroll-reveal="rise">03 / A little more room to think</span><h2 data-scroll-reveal="rise">Your perspective.<br />Wherever you are.</h2><p data-scroll-reveal="rise">A focused workspace for your phone, tablet, or desktop. Open it in your browser, or install Buffer for a place of its own.</p><ArrowLink href="/app">Open the app</ArrowLink><div className="buffer-install-platforms" data-scroll-reveal="fade"><span>Mobile</span><span>Tablet</span><span>Desktop</span></div><details className="buffer-install-help"><summary>How to install Buffer <span>+</span></summary><p>On a supported desktop browser, choose its install-app option. On iPhone or iPad, open Buffer in Safari, tap Share, then Add to Home Screen. On Android, open the browser menu and choose Install app or Add to Home screen. Availability depends on your browser.</p></details></div>
+          <div className="buffer-install-art"><div className="buffer-install-depth" data-scroll-depth="install" aria-hidden="true"><div className="buffer-install-ring ring-one" /><div className="buffer-install-ring ring-two" /><div className="buffer-install-ring ring-three" /></div><div className="buffer-app-lockup" aria-hidden="true"><div className="buffer-app-icon"><Mark size={112} /></div><span className="buffer-app-caption">BUFFER, WITH YOU.</span></div>{motionControl('buffer-install-motion')}</div>
         </section>
 
-        <section id="privacy" className="buffer-privacy"><div className="buffer-privacy-mark"><Mark size={43} /></div><h2>Curiosity shouldn’t<br />need your keys.</h2><div><p>Buffer never asks for a seed phrase, private key, or trading approval. Public account reads use the selected provider’s API or Solana RPC. Save scenarios on your device without signing in. Optional cloud accounts keep a separate private library.</p><Link className="buffer-text-link" href="/app">Save your perspective <Icon name="arrow" size={17} /></Link></div></section>
+        <section id="privacy" className="buffer-privacy"><div className="buffer-privacy-mark" data-scroll-reveal="rise"><Mark size={43} /></div><h2 data-scroll-reveal="rise">Curiosity shouldn’t<br />need your keys.</h2><div><p data-scroll-reveal="rise">Buffer never asks for a seed phrase, private key, or trading approval. Public account reads use the selected provider’s API or Solana RPC. Save scenarios on your device without signing in. Optional cloud accounts keep a separate private library.</p><Link className="buffer-text-link" href="/app">Save your perspective <Icon name="arrow" size={17} /></Link></div></section>
 
-        <section id="faq" className="buffer-section buffer-faq"><div><span className="buffer-kicker">A few good questions</span><h2>Before you<br />dive in.</h2><Link className="buffer-text-link" href="/app">Try a preset <Icon name="arrow" size={17} /></Link></div><div className="buffer-faq-list">{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+        <section id="faq" className="buffer-section buffer-faq"><div><span className="buffer-kicker" data-scroll-reveal="rise">A few good questions</span><h2 data-scroll-reveal="rise">Before you<br />dive in.</h2><Link className="buffer-text-link" href="/app">Try a preset <Icon name="arrow" size={17} /></Link></div><div className="buffer-faq-list">{questions.map(([question, answer]) => <details key={question} data-scroll-reveal="fade"><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
 
-        <section className="buffer-last-call"><span className="buffer-kicker">Make space for understanding.</span><h2>See the move<br />from a new angle.</h2><ArrowLink href="/app">Explore Buffer</ArrowLink></section>
+        <section className="buffer-last-call"><span className="buffer-kicker" data-scroll-reveal="rise">Make space for understanding.</span><h2 data-scroll-reveal="shine">See the move<br />from a new angle.</h2><ArrowLink href="/app">Explore Buffer</ArrowLink></section>
       </main>
 
-      <footer className="buffer-footer"><div className="buffer-footer-top"><p>A little more perspective<br />on your perpetual positions.</p><nav aria-label="Footer product navigation"><a href="#features">Features</a><a href="#method">Method</a><a href="#install">Get the app</a></nav><nav aria-label="Footer account navigation"><Link href="/app">Open Buffer</Link><Link href="/demo">Watch the demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/auth">Cloud sign in</Link><a href="https://github.com/operatoruplift/buffer" target="_blank" rel="noreferrer">Source on GitHub <Icon name="external" size={11} /></a><a href="#faq">Questions</a></nav></div><Link className="buffer-footer-wordmark" href="/" aria-label="Buffer home"><Brand large /></Link><div className="buffer-footer-bottom"><span>© 2026 Buffer</span><p>Public price scenarios. Not trading advice or a liquidation forecast.</p><a href="#privacy">Privacy by design <Icon name="arrow" size={13} /></a></div></footer>
+      <footer className="buffer-footer"><div className="buffer-footer-top"><p data-scroll-reveal="rise">A little more perspective<br />on your perpetual positions.</p><nav aria-label="Footer product navigation"><a href="#features">Features</a><a href="#method">Method</a><a href="#install">Get the app</a></nav><nav aria-label="Footer account navigation"><Link href="/app">Open Buffer</Link><Link href="/demo">Watch the demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/auth">Cloud sign in</Link><a href="https://github.com/operatoruplift/buffer" target="_blank" rel="noreferrer">Source on GitHub <Icon name="external" size={11} /></a><a href="#faq">Questions</a></nav></div><Link className="buffer-footer-wordmark" href="/" aria-label="Buffer home"><Brand large /></Link><div className="buffer-footer-bottom"><span>© 2026 Buffer</span><p>Public price scenarios. Not trading advice or a liquidation forecast.</p><a href="#privacy">Privacy by design <Icon name="arrow" size={13} /></a></div></footer>
     </div>
   );
 }
