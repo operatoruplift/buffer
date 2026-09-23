@@ -52,8 +52,10 @@ export function MobileNavigation() {
         const link = (event.target as Element).closest('a');
         if (!link) return;
         const href = link.getAttribute('href');
-        const followsAnchor = href?.startsWith('#') && !event.defaultPrevented && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
-        anchorDestination.current = followsAnchor ? document.getElementById(href.slice(1)) : null;
+        // A modified click opens a new tab or window, so the menu must not claim the destination.
+        const opensElsewhere = event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        // Narrowing stays inside this expression; a separate boolean would leave href nullable.
+        anchorDestination.current = href?.startsWith('#') && !opensElsewhere ? document.getElementById(href.slice(1)) : null;
         close();
       }}>
         <a href="#features">Features <Icon name="arrow" /></a>
