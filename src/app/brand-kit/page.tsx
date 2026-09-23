@@ -2,95 +2,92 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Brand } from '@/components/Brand';
 import { Icon, Mark } from '@/components/Icons';
+import { BRAND_ASSETS, BRAND_KIT_ARCHIVE, BRAND_KIT_REVISION } from '@/lib/brand-assets';
+import { AssetGallery } from './AssetGallery';
 import styles from './page.module.css';
 
 export const metadata = {
-  title: 'Buffer brand kit — logos, wallpapers and social assets',
-  description: 'Download Buffer logos, profile images, wallpapers, headers, ads, and backgrounds for your social profiles.',
+  title: 'The Buffer collection — wallpapers, social assets and logos',
+  description: 'A considered collection of Buffer wallpapers, profile pictures, social posts, headers and backgrounds. Preview every composition and save the original to your device.',
 };
-
-type Asset = {
-  name: string;
-  label: string;
-  description: string;
-  src: string;
-  pngSrc?: string;
-  width: number;
-  height: number;
-  format: string;
-};
-
-const assets: Asset[] = [
-  { name: 'Profile picture', label: 'Profile · 1:1', description: 'Cobalt mark on a soft, luminous field. Ready for avatars and app profiles.', src: '/icons/icon-512.png', width: 512, height: 512, format: 'PNG' },
-  { name: 'Profile mark', label: 'Profile · crisp vector', description: 'The same mark as an SVG for platforms and design tools that support vectors.', src: '/brand-kit/buffer-profile.svg', pngSrc: '/brand-kit/buffer-profile.png', width: 1024, height: 1024, format: 'PNG + SVG' },
-  { name: 'Social header', label: 'Header · 1500 × 500', description: 'A wide Buffer lockup for X, LinkedIn, YouTube, and community profiles.', src: '/brand-kit/buffer-header.svg', pngSrc: '/brand-kit/buffer-header.png', width: 1500, height: 500, format: 'PNG + SVG' },
-  { name: 'Phone wallpaper', label: 'Wallpaper · 1290 × 2796', description: 'A quiet blue and ivory gradient sized for modern phone screens.', src: '/brand-kit/buffer-wallpaper-phone.svg', pngSrc: '/brand-kit/buffer-wallpaper-phone.png', width: 1290, height: 2796, format: 'PNG + SVG' },
-  { name: 'Desktop wallpaper', label: 'Wallpaper · 2880 × 1800', description: 'A wide desktop composition with room for your windows and widgets.', src: '/brand-kit/buffer-wallpaper-desktop.svg', pngSrc: '/brand-kit/buffer-wallpaper-desktop.png', width: 2880, height: 1800, format: 'PNG + SVG' },
-  { name: 'Square ad', label: 'Social post · 1080 × 1080', description: 'A ready-to-publish launch tile for feeds, stories, and community posts.', src: '/brand-kit/buffer-ad-square.svg', pngSrc: '/brand-kit/buffer-ad-square.png', width: 1080, height: 1080, format: 'PNG + SVG' },
-  { name: 'Landscape ad', label: 'Social card · 1200 × 628', description: 'A link-preview and campaign card with the Buffer promise up front.', src: '/brand-kit/buffer-ad-landscape.svg', pngSrc: '/brand-kit/buffer-ad-landscape.png', width: 1200, height: 628, format: 'PNG + SVG' },
-  { name: 'Soft background', label: 'Background · 1920 × 1080', description: 'An untextured brand field for decks, thumbnails, and custom announcements.', src: '/brand-kit/buffer-background.svg', pngSrc: '/brand-kit/buffer-background.png', width: 1920, height: 1080, format: 'PNG + SVG' },
-];
 
 const logos = [
-  { name: 'Blue mark', src: '/brand/mark.svg', format: 'SVG' },
-  { name: 'Blue wordmark', src: '/brand/wordmark.svg', format: 'SVG' },
-  { name: 'Mono mark', src: '/brand/mark-mono.svg', format: 'SVG' },
-  { name: 'Mono wordmark', src: '/brand/wordmark-mono.svg', format: 'SVG' },
+  { name: 'Blue mark', src: '/brand/mark.svg' },
+  { name: 'Blue wordmark', src: '/brand/wordmark.svg' },
+  { name: 'Mono mark', src: '/brand/mark-mono.svg' },
+  { name: 'Mono wordmark', src: '/brand/wordmark-mono.svg' },
 ];
 
-function LogoPreview({ src }: { src: string }) {
-  // SVG logos are intentionally rendered as native images so downloads preserve the source file exactly.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" />;
-}
+const colors = [
+  { name: 'Cobalt', value: '#315FE8', description: 'Our signature blue.' },
+  { name: 'Ink', value: '#14232D', description: 'A little depth.' },
+  { name: 'Ivory', value: '#F7F8F5', description: 'Room to breathe.' },
+  { name: 'Ice', value: '#EDF3F7', description: 'A softer surface.' },
+];
 
 export default function BrandKitPage() {
   return (
     <main className={styles.page}>
       <nav className={styles.nav} aria-label="Brand kit navigation">
         <Link href="/" aria-label="Buffer home"><Brand /></Link>
-        <div className={styles.navLinks}><Link href="/">Back to Buffer</Link><Link className="button primary" href="/app">Open the app <Icon name="arrow" size={15} /></Link></div>
+        <div className={styles.navLinks}>
+          <Link href="/" className={styles.backLink}>Back to Buffer</Link>
+          <Link className={styles.navApp} href="/app">Open the app <Icon name="arrow" size={16} /></Link>
+        </div>
       </nav>
 
       <header className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <span className="eyebrow">BUFFER / BRAND KIT</span>
-          <h1>A little more<br /><em>perspective.</em></h1>
-          <p>Everything you need to make Buffer feel at home in your social profiles, decks, launches, and conversations.</p>
-          <div className={styles.heroActions}><a className="button primary" href="#downloads">Browse downloads <Icon name="arrow" size={15} /></a><a className={styles.textLink} href="#guidelines">View the essentials <Icon name="arrow" size={15} /></a></div>
+        <div className={styles.heroTopline}><span className={styles.eyebrow}>THE BUFFER COLLECTION</span><span className={styles.edition}>01 / A little more perspective</span></div>
+        <div className={styles.heroIntro}>
+          <h1>Make room<br />for <em>perspective.</em></h1>
+          <div className={styles.heroCopy}>
+            <p>For your screen. For your people.<br />A collection of quiet statements, made in Buffer blue.</p>
+            <a className={styles.primaryAction} href={BRAND_KIT_ARCHIVE} download>Download the collection <Icon name="download" size={17} /></a>
+            <a className={styles.textLink} href="#downloads">Find your favorite <Icon name="arrow" size={16} /></a>
+          </div>
         </div>
-        <div className={styles.heroArt} aria-hidden="true"><div className={styles.artHalo} /><div className={styles.artCard}><Mark size={104} /><span>BUFFER, WITH YOU.</span></div><div className={styles.artLine} /></div>
+        <div className={styles.heroComposition}>
+          <div className={styles.heroImage}>
+            <Image src="/brand-kit/previews/buffer-wallpaper-desktop.webp" alt="Sculptural cobalt glass on a luminous ivory field, from the Buffer wallpaper collection" width={3840} height={2160} priority unoptimized />
+          </div>
+          <div className={styles.heroInset}>
+            <Image src="/brand-kit/previews/buffer-social-portrait.webp" alt="An editorial Buffer composition from the social collection" width={1080} height={1350} unoptimized />
+          </div>
+          <div className={styles.heroCaption}><span>Objects of clarity.</span><span>Daylight. After hours. Always Buffer.</span></div>
+        </div>
       </header>
 
-      <section id="guidelines" className={styles.guidelines} aria-labelledby="guidelines-title">
-        <div><span className="eyebrow">THE ESSENTIALS</span><h2 id="guidelines-title">Keep it clear.<br />Keep it cobalt.</h2></div>
-        <div className={styles.tokenGrid}>
-          <div><span className={styles.swatch} style={{ background: '#315FE8' }} /><strong>Cobalt</strong><code>#315FE8</code><p>Primary action, mark, and signal color.</p></div>
-          <div><span className={styles.swatch} style={{ background: '#192636' }} /><strong>Ink</strong><code>#192636</code><p>Headlines, navigation, and high contrast.</p></div>
-          <div><span className={styles.swatch} style={{ background: '#F8F8F3' }} /><strong>Ivory</strong><code>#F8F8F3</code><p>Warm space that lets the mark breathe.</p></div>
-          <div><span className={styles.swatch} style={{ background: '#DFE8D7' }} /><strong>Sage wash</strong><code>#DFE8D7</code><p>Secondary surface for calm, soft contrast.</p></div>
+      <section id="downloads" className={styles.downloadSection} aria-labelledby="downloads-title">
+        <div className={styles.sectionHeading}>
+          <div><span className={styles.eyebrow}>MADE TO GO WITH YOU</span><h2 id="downloads-title">Find your frame.</h2></div>
+          <p>Every composition, in its original proportions. Preview it, then save a full-resolution PNG. On a phone, open the image and press and hold to save.</p>
         </div>
-        <p className={styles.guidance}><Mark size={22} /> Leave the mark room to breathe. Use the blue mark on light fields, the mono mark on photography, and never stretch, tilt, or recolor the wordmark.</p>
+        <AssetGallery assets={BRAND_ASSETS} />
+        <div className={styles.collectionNote}><span>{BRAND_ASSETS.length} compositions. Yours to make use of.</span><a href={BRAND_KIT_ARCHIVE} download>Get the complete ZIP <Icon name="download" size={16} /></a></div>
       </section>
 
-      <section id="downloads" className={styles.downloadSection} aria-labelledby="downloads-title">
-        <div className={styles.sectionHeading}><div><span className="eyebrow">READY TO SAVE</span><h2 id="downloads-title">Download the kit.</h2></div><p>Tap a card to preview it. Use the download button to save the original asset directly to your phone or desktop.</p></div>
-        <div className={styles.assetGrid}>
-          {assets.map(asset => <article className={styles.assetCard} key={asset.src}>
-            <div className={`${styles.preview} ${asset.name === 'Profile picture' || asset.name === 'Profile mark' ? styles.squarePreview : ''}`}><Image src={asset.src} alt={`${asset.name} preview`} width={asset.width} height={asset.height} loading="eager" /></div>
-            <div className={styles.assetMeta}><div><span className="eyebrow">{asset.label}</span><h3>{asset.name}</h3></div><span className={styles.format}>{asset.format}</span></div>
-            <p>{asset.description}</p>
-            <div className={styles.assetActions}><a className={styles.download} href={asset.pngSrc ?? asset.src} download><Icon name="download" size={15} /> Save to device</a>{asset.pngSrc && <a className={`${styles.download} ${styles.vectorDownload}`} href={asset.src} download>SVG</a>}</div>
-          </article>)}
-        </div>
+      <section id="guidelines" className={styles.guidelines} aria-labelledby="guidelines-title">
+        <div className={styles.essentialsHeading}><span className={styles.eyebrow}>THE ESSENTIALS</span><h2 id="guidelines-title">A familiar blue.<br />A clearer point of view.</h2><p>One mark, a considered palette, and enough space to let both speak.</p></div>
+        <div className={styles.tokenGrid}>{colors.map(color => <div className={styles.token} key={color.name}>
+          <span className={styles.swatch} style={{ background: color.value }} />
+          <div><strong>{color.name}</strong><code>{color.value}</code></div>
+          <p>{color.description}</p>
+        </div>)}</div>
+        <p className={styles.guidance}><Mark size={25} /><span>Leave the mark room to breathe. Keep its proportions and original colors. Use the supplied monochrome versions when blue won’t give you enough contrast.</span></p>
       </section>
 
       <section className={styles.logos} aria-labelledby="logos-title">
-        <div><span className="eyebrow">LOGOS</span><h2 id="logos-title">The mark, in every useful weight.</h2><p>Use SVG when you can for the sharpest result. PNG profile images are included above for platforms that need a raster file.</p></div>
-        <div className={styles.logoList}>{logos.map(logo => <a className={styles.logoRow} href={logo.src} download key={logo.src}><span><LogoPreview src={logo.src} /></span><strong>{logo.name}</strong><small>{logo.format} <Icon name="download" size={13} /></small></a>)}</div>
+        <div><span className={styles.eyebrow}>ORIGINALS, ALWAYS</span><h2 id="logos-title">The signature.</h2><p>Our mark and wordmark, exactly as they should be. Scalable SVG originals for your next project.</p></div>
+        <div className={styles.logoList}>{logos.map(logo => <a className={styles.logoRow} href={logo.src} download key={logo.src} aria-label={`Download ${logo.name} SVG`}>
+          <span className={styles.logoPreview}><Image src={logo.src} alt="" width={180} height={46} unoptimized /></span>
+          <strong>{logo.name}</strong><small>SVG <Icon name="download" size={15} /></small>
+        </a>)}</div>
       </section>
 
-      <footer className={styles.footer}><Link href="/" aria-label="Buffer home"><Brand large /></Link><div><span>Buffer · public price exploration</span><Link href="/app">Open the app <Icon name="arrow" size={14} /></Link></div></footer>
+      <footer className={styles.footer}>
+        <div className={styles.footerTop}><Link href="/" aria-label="Buffer home"><Brand large /></Link><span>A LITTLE MORE<br />ROOM TO THINK.</span></div>
+        <div className={styles.footerBottom}><span>Buffer collection · {BRAND_KIT_REVISION}</span><Link href="/app">Explore Buffer <Icon name="arrow" size={16} /></Link></div>
+      </footer>
     </main>
   );
 }
