@@ -101,9 +101,10 @@
 .buffer-feature-list h3 { font-size: 17px; font-weight: 500; letter-spacing: -.45px; }
 .buffer-feature-list p { color: var(--quiet); font-size: 12px; line-height: 1.8; max-width: 355px; margin-top: 10px; }
 .buffer-feature-list svg { color: #748774; margin: 4px 0 0 6px; }
-.buffer-coverage-story { max-width: 1296px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; border-radius: 10px; overflow: hidden; background: #eff0e8; min-height: 447px; }
-.buffer-coverage-art { background: #dfe8d7; display: grid; align-content: center; justify-items: center; padding: 42px; position: relative; background-image: radial-gradient(#b9c7b0 1px, transparent 1px); background-size: 18px 18px; }
-.buffer-coverage-card { width: min(100%, 340px); background: #fbfcf8; border: 1px solid #d2decc; border-radius: 10px; padding: 26px; box-shadow: 0 18px 32px #475c3610; transform: rotate(-3deg); }
+.buffer-coverage-story { max-width: 1296px; margin: clamp(48px, 6vw, 88px) auto 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 10px; overflow: hidden; background: #eff0e8; min-height: 447px; }
+/* Reserve room for the tilted card, its entrance, and the bounded scroll depth. */
+.buffer-coverage-art { min-width: 0; background: #dfe8d7; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; justify-items: center; padding: 56px 42px; position: relative; background-image: radial-gradient(#b9c7b0 1px, transparent 1px); background-size: 18px 18px; }
+.buffer-coverage-card { width: 100%; max-width: 340px; min-width: 0; background: #fbfcf8; border: 1px solid #d2decc; border-radius: 10px; padding: 26px; box-shadow: 0 18px 32px #475c3610; transform: rotate(-3deg); }
 .buffer-coverage-card-title { display: flex; align-items: center; gap: 9px; font-size: 11px; }
 .buffer-coverage-card-title svg { color: #557446; }
 .buffer-coverage-big { font-size: 44px; letter-spacing: -2px; margin: 15px 0 10px; font-weight: 500; }
@@ -115,7 +116,7 @@
 .buffer-coverage-row > span:last-child { color: #517044; }
 .buffer-coverage-excluded > span:last-child { color: #8a651f; }
 .buffer-coverage-card > p { margin-top: 16px; font-size: 8px; color: #6c7765; }
-.buffer-coverage-copy { align-self: center; padding: 50px 57px; }
+.buffer-coverage-copy { min-width: 0; align-self: center; padding: 50px 57px; }
 .buffer-coverage-copy .buffer-kicker { font-size: 8px; }
 .buffer-coverage-copy h2 { margin-top: 24px; font-size: clamp(32px,3vw,45px); }
 .buffer-coverage-copy p { color: var(--quiet); font-size: 13px; line-height: 1.8; margin: 23px 0 25px; max-width: 330px; }
@@ -215,7 +216,7 @@
   .buffer-facts > div { gap: 22px; }
   .buffer-section { padding: 83px 0; }
   .buffer-coverage-copy { padding: 35px; }
-  .buffer-coverage-art { padding: 34px; }
+  .buffer-coverage-art { padding: 56px 34px; }
   .buffer-formula { gap: 25px; padding: 24px; }
   .buffer-formula p { font-size: 18px; }
   .buffer-formula b { padding: 0 7px; }
@@ -251,7 +252,7 @@
   .buffer-section-heading p { max-width: 365px; }
   .buffer-feature-list article { gap: 28px; }
   .buffer-feature-list p { max-width: 480px; }
-  .buffer-coverage-story { grid-template-columns: 1fr; }
+  .buffer-coverage-story { grid-template-columns: minmax(0, 1fr); }
   .buffer-coverage-art { min-height: 390px; }
   .buffer-coverage-copy { padding: 42px 35px; }
   .buffer-coverage-copy p { max-width: 430px; }
@@ -322,7 +323,7 @@
   .buffer-feature-list h3 { font-size: 16px; }
   .buffer-feature-list p { font-size: 11px; line-height: 1.85; }
   .buffer-feature-list svg { width: 20px; margin-left: 0; }
-  .buffer-coverage-art { min-height: 340px; padding: 28px; }
+  .buffer-coverage-art { min-height: 340px; padding: 52px 24px; }
   .buffer-coverage-card { padding: 21px; }
   .buffer-coverage-copy { padding: 35px 26px; }
   .buffer-coverage-copy h2 { font-size: 33px; }
@@ -564,7 +565,7 @@ html[data-buffer-scroll="smooth"] { scroll-behavior: smooth; }
 .buffer-site .buffer-steps > article:nth-child(2) { --scroll-delay: 70ms; }
 .buffer-site .buffer-steps > article:nth-child(3) { --scroll-delay: 140ms; }
 .buffer-site [data-scroll-reveal]:focus-within { animation: none !important; }
-.buffer-coverage-depth { width: min(100%, 340px); }
+.buffer-coverage-depth { width: 100%; max-width: 340px; min-width: 0; }
 .buffer-install-depth { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .buffer-site[data-scroll-motion="active"] [data-scroll-depth] { transform: translate3d(0, var(--scroll-depth-y, 0px), 0) rotate(var(--scroll-depth-rotate, 0deg)); }
 .buffer-site[data-scroll-motion="active"] .buffer-last-call h2[data-scroll-state="revealing"]::after { animation: buffer-meridial-wipe 700ms 180ms var(--scroll-ease) both; }
