@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
-  <defs>
-    <linearGradient id="bg" x1="70" y1="20" x2="930" y2="1000" gradientUnits="userSpaceOnUse"><stop stop-color="#EEF2FF"/><stop offset=".52" stop-color="#F8F8F3"/><stop offset="1" stop-color="#DFE8D7"/></linearGradient>
-    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(840 170) rotate(145) scale(480)"><stop stop-color="#B8C8FF" stop-opacity=".48"/><stop offset="1" stop-color="#B8C8FF" stop-opacity="0"/></radialGradient>
-  </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <rect width="1024" height="1024" fill="url(#glow)"/>
-  <path d="M-35 770C178 618 287 667 429 762c137 91 264 116 632-98" stroke="#315FE8" stroke-opacity=".12" stroke-width="2"/>
-  <rect x="246" y="246" width="532" height="532" rx="152" fill="#315FE8"/>
-  <path d="M348 294h184c93.6 0 147.3 61.9 147.3 147.5H590.8c0-38.4-22.1-59-61.7-59H348v-88.5Zm0 151.4h184c93.6 0 147.3 61.9 147.3 147.5H590.8c0-38.4-22.1-59-61.7-59H348v-88.5Zm0 151.5h242.2v88.5H348v-88.5Z" fill="#fff"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024"><title>The original, refined. — Buffer</title><rect x="0" y="0" width="1024" height="1024" rx="0" fill="#F7F8F5"/><g transform="translate(187 178) scale(20.3125)"><path d="M5 3H17.5C23.85 3 27.5 7.2 27.5 13H21.5C21.5 10.4 20 9 17.25 9H5V3ZM5 13.25H17.5C23.85 13.25 27.5 17.45 27.5 23.25H21.5C21.5 20.65 20 19.25 17.25 19.25H5V13.25ZM5 23.5H21.5V29.5H5V23.5Z" fill="#315FE8" fill-rule="evenodd"/></g></svg>
