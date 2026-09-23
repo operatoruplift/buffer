@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
+import { useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { DESIGN_MEDIA } from '@/lib/design-media';
 import { formatDecimal } from '@/lib/format';
 import { getSampleSnapshot } from '@/lib/samples';
@@ -24,38 +24,13 @@ const serverReady = () => false;
 
 /** B4 uses the supplied fluid media behind real, explicitly labeled reference data. */
 export function VideoFeatures({ paused }: { paused: boolean }) {
-  const section = useRef<HTMLElement>(null);
-  const seen = useRef(new WeakSet<HTMLElement>());
   const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
   const wide = useMediaQuery('(min-width: 768px)');
   const { paused: preferencePaused, reducedMotion } = useMotionPreference();
   const motionPaused = paused || preferencePaused || reducedMotion;
   const stage = wide ? DESIGN_MEDIA.stageWide : DESIGN_MEDIA.stageNarrow;
 
-  useEffect(() => {
-    const element = section.current;
-    if (!element) return;
-    const cards = Array.from(element.querySelectorAll<HTMLElement>('[data-feature-card]'));
-    // Content starts visible in HTML. Only a successful intersection triggers
-    // an entrance; missing observers or paused motion leave readable content.
-    if (motionPaused) {
-      for (const card of cards) if (seen.current.has(card)) card.dataset.reveal = 'shown';
-    }
-    if (typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        const card = entry.target as HTMLElement;
-        if (!entry.isIntersecting || seen.current.has(card)) continue;
-        seen.current.add(card);
-        card.dataset.reveal = motionPaused ? 'shown' : 'animate';
-        observer.unobserve(card);
-      }
-    }, { threshold: 0.12 });
-    cards.forEach(card => { if (!seen.current.has(card)) observer.observe(card); });
-    return () => observer.disconnect();
-  }, [motionPaused]);
-
-  return <section ref={section} id="features" className={styles.section} aria-labelledby="video-features-heading" data-motion-paused={motionPaused}>
+  return <section id="features" className={styles.section} aria-labelledby="video-features-heading" data-motion-paused={motionPaused}>
     <div className={styles.stage} aria-hidden="true">
       <picture>
         <source media="(min-width: 768px)" srcSet={DESIGN_MEDIA.stageWide.poster} />
@@ -65,8 +40,8 @@ export function VideoFeatures({ paused }: { paused: boolean }) {
     </div>
     <div className={styles.content}>
       <div className={styles.heading}>
-        <div><span className={styles.eyebrow}><span /> 01 / Keep the whole picture</span><h2 id="video-features-heading">Clarity, from<br />every angle.</h2></div>
-        <p>Your positions, the scope of the calculation, and the math behind each result. All in view.</p>
+        <div data-scroll-reveal="rise"><span className={styles.eyebrow}><span /> 01 / Keep the whole picture</span><h2 id="video-features-heading">Clarity, from<br />every angle.</h2></div>
+        <p data-scroll-reveal="rise">Your positions, the scope of the calculation, and the math behind each result. All in view.</p>
       </div>
       <div className={styles.cards}>
         <FeatureCard index={0} title="Positions" copy="See the size and direction of each position. Start with a preset, or read a public account." link="Explore positions" href="/app" media={DESIGN_MEDIA.positions} paused={motionPaused}>
@@ -88,7 +63,7 @@ function FeatureCard({ index, title, copy, link, href, media, paused, children }
   index: number; title: string; copy: string; link: string; href: string;
   media: { src: string; poster: string }; paused: boolean; children: ReactNode;
 }) {
-  return <article className={styles.card} data-feature-card style={{ '--entrance-delay': `${460 + index * 120}ms` } as CSSProperties}>
+  return <article className={styles.card} data-feature-card data-scroll-reveal="feature" style={{ '--entrance-delay': `${index * 80}ms` } as CSSProperties}>
     <DecorativeVideo {...media} paused={paused} className={styles.cardVideo} name={`feature-${index === 0 ? 'positions' : index === 1 ? 'coverage' : 'math'}`} />
     <div className={styles.cardWash} aria-hidden="true" />
     <div className={styles.dotMatrix} aria-hidden="true" />
