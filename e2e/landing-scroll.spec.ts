@@ -139,7 +139,7 @@ for (const fallback of ['reduced motion', 'missing IntersectionObserver'] as con
     await page.getByRole('navigation', { name: 'Footer product navigation', exact: true }).getByRole('link', { name: 'Method', exact: true }).click();
     await expect(page).toHaveURL(/\/#method$/);
     await expectAnchorAligned(page.locator('#method'));
-    await page.locator('#faq').getByText('What does Buffer calculate?', { exact: true }).click();
+    await page.locator('#faq summary').filter({ hasText: 'What does Buffer calculate?' }).click();
     await expect(page.locator('#faq details').first()).toHaveAttribute('open');
     await expect(page.locator('#faq details').first().locator('p')).toBeVisible();
   });
@@ -155,7 +155,7 @@ test.describe('server-rendered landing without JavaScript', () => {
     await page.getByRole('navigation', { name: 'Footer product navigation', exact: true }).getByRole('link', { name: 'Method', exact: true }).click();
     await expect(page).toHaveURL(/\/#method$/);
     await expectAnchorAligned(page.locator('#method'));
-    await page.locator('#faq').getByText('Do I need a wallet or an account?', { exact: true }).click();
+    await page.locator('#faq summary').filter({ hasText: 'Do I need a wallet or an account?' }).click();
     await expect(page.locator('#faq details').nth(1)).toHaveAttribute('open');
     await expect(page.locator('#faq details').nth(1).locator('p')).toBeVisible();
     await page.locator('.buffer-last-call').getByRole('link', { name: 'Explore Buffer', exact: true }).click();
