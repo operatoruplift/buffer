@@ -1,0 +1,14 @@
+.root { position: relative; display: inline-flex; flex-direction: column; }
+.menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 240px;
+  background: white; border: 1px solid var(--border); border-radius: 10px; padding: 6px;
+  box-shadow: 0 12px 32px rgba(16, 26, 58, 0.12);
+}
+.item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
+  padding: 8px 10px; border: none; border-radius: 8px; background: transparent; font-size: 13px; font-weight: 550; text-align: left;
+}
+.item:hover:not(:disabled), .item:focus-visible { background: #f3f5fa; }
+.item img { border-radius: 5px; }
+.note { margin: 6px 4px 2px; font-size: 11px; color: var(--muted); line-height: 1.4; }
+@media (max-width: 640px) { .root { width: 100%; } .root > button { width: 100%; } .menu { left: 0; right: 0; } }

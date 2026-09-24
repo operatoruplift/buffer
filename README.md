@@ -144,3 +144,7 @@ Buffer's ribbon B monogram, wordmark, favicon, transparent PNG, and monochrome v
 The [brand collection](https://bufferonsolana.vercel.app/brand-kit) includes 15 individually composed profile images, phone/4K desktop wallpapers, X/LinkedIn/YouTube headers, social posts, stories, and clean backgrounds. Daylight glass and midnight cobalt artwork share the exact existing ribbon mark. Full-image previews, category filters, mobile original-image links, and a complete ZIP make the assets usable directly from a phone. [Art direction, source prompts, and the local export pipeline](design/brand-kit/README.md) are included; the site needs no runtime image service.
 
 The [official event page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, lists September 18–25, 2026. Perps-only eligibility and pre-event development eligibility remain unverified. No event submission or acceptance is claimed.
+
+## Seeker, Android and PWA
+
+Buffer installs as a PWA and ships an Android WebView shell (`android/`) for the Solana Seeker and dApp Store, with Solana Mobile Wallet Adapter support where the app connects a wallet. Build, test and publishing steps: [docs/seeker-and-pwa.md](docs/seeker-and-pwa.md).

@@ -24,6 +24,7 @@ import { JupiterPositions } from './JupiterPositions';
 import Select from "./Select";
 import SampleBuilder from './SampleBuilder';
 import AccountPanel from './AccountPanel';
+import WalletAddressButton from './WalletAddressButton';
 import AlertsPanel from './AlertsPanel';
 import Link from 'next/link';
 
@@ -452,6 +453,15 @@ export default function Dashboard({
                 Read account
                 <Icon name="arrow" />
               </button>
+            </div>
+            <div className="address-wallet">
+              <WalletAddressButton
+                disabled={!!loading}
+                onAddress={(walletAddress) => {
+                  setPublicExample(false);
+                  void readAccount(undefined, { authority: walletAddress, protocol: protocolId });
+                }}
+              />
             </div>
           </form>
           <div className="address-bottom">
