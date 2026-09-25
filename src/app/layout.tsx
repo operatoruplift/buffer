@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from 'next/font/local';
 import PwaClient from '@/components/PwaClient';
+import MobileWallet from '@/components/MobileWallet';
 import "./globals.css";
 const inter = localFont({ src: './fonts/Inter-latin.woff2', variable: '--font-inter', weight: '300 900', display: 'swap', fallback: ['Arial', 'sans-serif'] });
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>{children}<PwaClient /></body>
+      <body>{children}<PwaClient /><MobileWallet /></body>
     </html>
   );
 }

@@ -302,6 +302,9 @@ svg {
   display: flex;
   gap: 10px;
 }
+.address-wallet {
+  margin-top: 10px;
+}
 .input-wrap {
   display: flex;
   align-items: center;

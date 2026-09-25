@@ -1,5 +1,7 @@
 # Buffer
 
+> **In 20 seconds.** Buffer shows what a market move would do to your perpetual positions: paste an address or connect a wallet, read Velocity and Pacifica accounts, and explore a shared −20% to +20% price move with the arithmetic in the open. Try it: [bufferonsolana.vercel.app/app](https://bufferonsolana.vercel.app/app). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Perps & Prediction Markets** sprint, September 2026. Real today: live account reads across 76 Pacifica and 4 Velocity markets, Jupiter Perps inventory, installable PWA, Seeker Android shell, one-tap address fill through Mobile Wallet Adapter. Not: trading, liquidation forecasts, or Drift (paused). Everything below is verification detail; nothing claims traction or audits that have not happened.
+
 **Understand what a market move would do to your perpetual positions.** Buffer reads Velocity and Pacifica accounts for precise price scenarios, adds Jupiter Perps position inventory with explicit modeling limits, and keeps legacy Drift clearly paused. Explore the responsive web app, inspect coverage, and keep dated reports without connecting a wallet.
 
 **Last updated:** September 16, 2026.
@@ -144,3 +146,7 @@ Buffer's ribbon B monogram, wordmark, favicon, transparent PNG, and monochrome v
 The [brand collection](https://bufferonsolana.vercel.app/brand-kit) includes 15 individually composed profile images, phone/4K desktop wallpapers, X/LinkedIn/YouTube headers, social posts, stories, and clean backgrounds. Daylight glass and midnight cobalt artwork share the exact existing ribbon mark. Full-image previews, category filters, mobile original-image links, and a complete ZIP make the assets usable directly from a phone. [Art direction, source prompts, and the local export pipeline](design/brand-kit/README.md) are included; the site needs no runtime image service.
 
 The [official event page](https://hackathons.solana.com/hackathons/perps-and-prediction-markets), checked September 11, lists September 18–25, 2026. Perps-only eligibility and pre-event development eligibility remain unverified. No event submission or acceptance is claimed.
+
+## Seeker, Android and PWA
+
+Buffer installs as a PWA and ships an Android WebView shell (`android/`) for the Solana Seeker and dApp Store, with Solana Mobile Wallet Adapter support where the app connects a wallet. Build, test and publishing steps: [docs/seeker-and-pwa.md](docs/seeker-and-pwa.md).

@@ -14,7 +14,9 @@ function contentSecurityPolicy(): string {
   } catch {
     supabaseOrigin = '';
   }
-  const connect = ["'self'", supabaseOrigin].filter(Boolean).join(' ');
+  // Mobile Wallet Adapter (Seeker, Android) associates with the wallet app over
+  // a WebSocket to localhost on an ephemeral port; nothing else leaves the origin.
+  const connect = ["'self'", supabaseOrigin, 'ws://localhost:*'].filter(Boolean).join(' ');
   return [
     "default-src 'self'",
     // Next.js ships an inline bootstrap script; styles are inlined by the build.

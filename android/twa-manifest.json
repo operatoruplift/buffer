@@ -1,0 +1,9 @@
+{
+  "packageId": "com.operatoruplift.buffer",
+  "host": "bufferonsolana.vercel.app",
+  "name": "Buffer",
+  "launcherName": "Buffer",
+  "startUrl": "/app",
+  "fallbackType": "webview",
+  "generatorApp": "webshell-cli"
+}

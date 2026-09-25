@@ -17,10 +17,13 @@
   },
   "dependencies": {
     "@drift-labs/sdk": "2.161.0-beta.5",
+    "@solana-mobile/wallet-standard-mobile": "^0.6.0",
     "@solana/spl-token": "0.4.13",
     "@solana/web3.js": "1.98.0",
     "@supabase/supabase-js": "2.116.0",
     "@velocity-exchange/sdk": "0.23.1",
+    "@wallet-standard/app": "^1.1.1",
+    "@wallet-standard/base": "^1.1.0",
     "decimal.js": "10.6.0",
     "next": "16.3.4",
     "react": "19.3.0",
