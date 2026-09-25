@@ -1,5 +1,7 @@
 # Buffer
 
+> **In 20 seconds.** Buffer shows what a market move would do to your perpetual positions: paste an address or connect a wallet, read Velocity and Pacifica accounts, and explore a shared −20% to +20% price move with the arithmetic in the open. Try it: [bufferonsolana.vercel.app/app](https://bufferonsolana.vercel.app/app). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Perps & Prediction Markets** sprint, September 2026. Real today: live account reads across 76 Pacifica and 4 Velocity markets, Jupiter Perps inventory, installable PWA, Seeker Android shell, one-tap address fill through Mobile Wallet Adapter. Not: trading, liquidation forecasts, or Drift (paused). Everything below is verification detail; nothing claims traction or audits that have not happened.
+
 **Understand what a market move would do to your perpetual positions.** Buffer reads Velocity and Pacifica accounts for precise price scenarios, adds Jupiter Perps position inventory with explicit modeling limits, and keeps legacy Drift clearly paused. Explore the responsive web app, inspect coverage, and keep dated reports without connecting a wallet.
 
 **Last updated:** September 16, 2026.
