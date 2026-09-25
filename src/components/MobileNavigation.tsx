@@ -10,6 +10,7 @@ import styles from './MobileNavigation.module.css';
 export function MobileNavigation() {
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
+  const anchorDestination = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
   const { paused } = useMotionPreference();
   useEffect(() => {
@@ -30,11 +31,33 @@ export function MobileNavigation() {
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
       }}
-      onClose={() => { setOpen(false); opener.current?.focus({ preventScroll: true }); }}
+      onClose={() => {
+        setOpen(false);
+        const destination = anchorDestination.current;
+        anchorDestination.current = null;
+        if (destination?.isConnected) {
+          if (!destination.hasAttribute('tabindex')) {
+            destination.setAttribute('tabindex', '-1');
+            destination.addEventListener('blur', () => destination.removeAttribute('tabindex'), { once: true });
+          }
+          destination.focus({ preventScroll: true });
+        } else {
+          opener.current?.focus({ preventScroll: true });
+        }
+      }}
       onCancel={event => { event.preventDefault(); close(); }}
       onClick={event => { if (event.target === event.currentTarget) close(); }}>
       <div className={styles.top}><Brand /><button autoFocus type="button" aria-label="Close navigation" onClick={close}><Icon name="close" size={22} /></button></div>
-      <nav aria-label="Mobile navigation" onClick={event => { if ((event.target as Element).closest('a')) close(); }}>
+      <nav aria-label="Mobile navigation" onClick={event => {
+        const link = (event.target as Element).closest('a');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        // A modified click opens a new tab or window, so the menu must not claim the destination.
+        const opensElsewhere = event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        // Narrowing stays inside this expression; a separate boolean would leave href nullable.
+        anchorDestination.current = href?.startsWith('#') && !opensElsewhere ? document.getElementById(href.slice(1)) : null;
+        close();
+      }}>
         <a href="#features">Features <Icon name="arrow" /></a>
         <a href="#method">How it works <Icon name="arrow" /></a>
         <Link href="/demo">Demo <Icon name="arrow" /></Link>
