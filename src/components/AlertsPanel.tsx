@@ -5,6 +5,7 @@ import type { Snapshot } from '@/lib/types';
 import { PROTOCOLS } from '@/lib/protocols';
 import { getSupabase } from '@/lib/supabase';
 import { persistedAuthSession } from '@/lib/auth-storage';
+import { formatUtc } from '@/lib/format';
 import {
   alertStorageKey, createAlertRule, parseAlertStore, deleteAlertRule,
   emptyAlertStore, encodeAlertStore, evaluateFixtureAlerts,
@@ -173,7 +174,7 @@ function RehearsalAlerts({ ownerId, sessionId }: Props & { ownerId: string; sess
       <button className="button primary" type="button" disabled={busy || !ready} onClick={saveRule}>{rule ? 'Update rule' : 'Configure rule'}</button>
     </div>
     {rule && <div className={styles.rule}><div><strong>Maintenance headroom {rule.direction} {rule.threshold} USD</strong><small>{rule.enabled ? 'Configured · manual checks' : 'Paused'} · {rule.cadenceMinutes} min · {rule.timezone}</small></div><div className={styles['rule-actions']}><button className="button small" type="button" disabled={busy || !rule.enabled} onClick={run}>Run example check</button><button className="button small" type="button" disabled={busy || !rule.enabled} onClick={() => void mutate(current => ({ next: pauseAlertRule(current, rule.id, ownerId), notice: 'Monitoring paused. Pending deliveries cancelled.' }))}>Pause</button><button className="button small" type="button" disabled={busy} onClick={() => void mutate(current => ({ next: deleteAlertRule(current, rule.id, ownerId), notice: 'Rule deleted. Delivery history retained; pending work cancelled.' }))}>Delete</button></div></div>}
-    <div className={styles.metrics}><div className={styles.metric}><span>Worker status</span><strong>{busy ? 'Checking now' : 'Idle · manual checks'}</strong></div><div className={styles.metric}><span>Last example check</span><strong>{monitor?.lastFreshCheck ? new Date(monitor.lastFreshCheck).toLocaleString() : '—'}</strong></div><div className={styles.metric}><span>Delivery state</span><strong>{deliveryLabel}</strong></div></div>
+    <div className={styles.metrics}><div className={styles.metric}><span>Worker status</span><strong>{busy ? 'Checking now' : 'Idle · manual checks'}</strong></div><div className={styles.metric}><span>Last example check</span><strong>{formatUtc(monitor?.lastFreshCheck)}</strong></div><div className={styles.metric}><span>Delivery state</span><strong>{deliveryLabel}</strong></div></div>
     {latestDelivery && <div className={styles.delivery}><strong>Mock delivery recorded.</strong> {latestDelivery.message}</div>}
     {legacyAvailable && <details className={styles.note}><summary>Earlier device history is preserved</summary><p>Earlier local records are kept in their original storage namespace. They are never imported into live monitoring.</p></details>}
     <button className="button small" type="button" disabled={!ready || busy} onClick={() => {

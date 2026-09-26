@@ -5,17 +5,17 @@ import { isDiscoveryResponse, isSnapshotResponse } from "@/lib/live-response";
 import { useEffect, useEffectEvent, useRef, useState, type FormEvent } from "react";
 import Decimal from "decimal.js";
 import { SAMPLE_ACCOUNTS, getSampleSnapshot } from "@/lib/samples";
-import { DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot } from "@/lib/sample-builder";
+import { CUSTOM_SAMPLE_ID, CUSTOM_SAMPLE_NAME, DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot } from "@/lib/sample-builder";
 import {
   ASSUMPTIONS,
   FRESHNESS_SECONDS,
   calculateScenario,
 } from "@/lib/scenario";
-import { formatDecimal } from "@/lib/format";
+import { formatDecimal, formatUtc } from "@/lib/format";
 import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
-import { CONFIGURED_PERP_MARKETS } from "@/lib/perp-markets";
+import { CONFIGURED_PERP_MARKETS, REFERENCE_PERP_CATALOG } from "@/lib/perp-markets";
 import { isPublicAddress, LIVE_RISK_EXAMPLE, PUBLIC_ACCOUNT_EXAMPLES, type LiveLink } from "@/lib/live-link";
 import { Icon, Mark } from "./Icons";
 import { Brand } from './Brand';
@@ -38,8 +38,8 @@ const tone = (value: string) =>
       : "negative";
 const short = (address: string) =>
   `${address.slice(0, 5)}…${address.slice(-5)}`;
-const time = (stamp: string) =>
-  new Date(stamp).toISOString().replace("T", " · ").slice(0, 21) + " UTC";
+// One timestamp format across the app, shared with saved reports and monitoring.
+const time = formatUtc;
 
 export default function Dashboard({
   liveConfigured,
@@ -89,6 +89,9 @@ export default function Dashboard({
     selectedId === '' || snapshot.subaccount.id !== Number(selectedId)
   );
   const canRefresh = mode === 'sample' || Boolean(discovery && selectedId !== '');
+  // Only a composition change makes the portfolio the reader's own; a denomination
+  // change keeps the preset's identity and its place in the preset list.
+  const customPortfolio = mode === "sample" && snapshot?.sampleName === CUSTOM_SAMPLE_NAME;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -113,6 +116,8 @@ export default function Dashboard({
     return request.current;
   }
   function sample(id: string) {
+    // The edited portfolio is the picker's current value, not a preset to load.
+    if (id === CUSTOM_SAMPLE_ID) return;
     cancel();
     setSampleId(id);
     setMode("sample");
@@ -477,10 +482,15 @@ export default function Dashboard({
               <Select
                 id="sample"
                 label="Try a preset"
-                value={mode === "sample" && snapshot?.sampleName !== 'Custom portfolio' ? sampleId : ""}
+                value={mode !== "sample" ? "" : customPortfolio ? CUSTOM_SAMPLE_ID : sampleId}
                 onChange={sample}
-                placeholder={snapshot?.sampleName === 'Custom portfolio' ? 'Custom portfolio' : 'Select preset'}
-                options={SAMPLE_ACCOUNTS.map((s) => ({ value: s.id, label: s.name, description: s.description }))}
+                placeholder="Select preset"
+                options={[
+                  // The edited portfolio is a real listed choice, so the control
+                  // always displays a value its own list contains.
+                  ...(customPortfolio ? [{ value: CUSTOM_SAMPLE_ID, label: CUSTOM_SAMPLE_NAME, description: 'Your edited portfolio. Choose a preset to start from one of the fixtures again.' }] : []),
+                  ...SAMPLE_ACCOUNTS.map((s) => ({ value: s.id, label: s.name, description: s.description })),
+                ]}
               />
             </div>
           </div>
@@ -494,7 +504,7 @@ export default function Dashboard({
                   {filteredMarkets.map(market => <span key={market.marketIndex}>{market.asset}</span>)}
                   {!filteredMarkets.length && <p>No matching markets.</p>}
                 </div>
-                <p>{protocolId === "jupiter" ? "SOL, ETH, and BTC positions are read as inventory. USD accounting, collateral, entry prices, and reserved tokens are shown separately; no Jupiter price effect is calculated." : "Each position needs current, usable price data. Market availability can change."}</p>
+                <p>This directory lists the markets a live read on {protocol.label} covers. The preset portfolio builder draws on the {REFERENCE_PERP_CATALOG.label} instead: the same {REFERENCE_PERP_CATALOG.markets} perpetual identities for every preset and every protocol selection. {protocolId === "jupiter" ? "SOL, ETH, and BTC positions are read as inventory. USD accounting, collateral, entry prices, and reserved tokens are shown separately; no Jupiter price effect is calculated." : "Each position needs current, usable price data. Market availability can change."}</p>
               </div>
             </details>
           )}
@@ -967,7 +977,7 @@ export default function Dashboard({
               </section>
               <div className="baseline-section">
                 <div className="section-kicker">
-                  {mode === 'sample' && snapshot.protocol?.id === 'pacifica' ? 'PORTFOLIO OVERVIEW' : 'ACCOUNT SNAPSHOT'}{" "}
+                  {mode === 'sample' && snapshot.catalog ? 'PORTFOLIO OVERVIEW' : 'ACCOUNT SNAPSHOT'}{" "}
                   <span>
                     {mode === "sample" ? "Reference baseline" : "Current baseline"} ·
                     independent of the scenario
@@ -1281,6 +1291,18 @@ export default function Dashboard({
                   )}
                   {snapshot.source === "live" && apiSnapshot && (
                     <div><dt>API source</dt><dd>https://api.pacifica.fi</dd></div>
+                  )}
+                  {snapshot.catalog && (
+                    <div>
+                      <dt>Market catalog</dt>
+                      <dd>
+                        {snapshot.catalog.label} · {snapshot.catalog.markets} perpetual
+                        identities captured from {snapshot.catalog.source} at{" "}
+                        {time(snapshot.catalog.capturedAt)}. The same list serves every preset
+                        and every protocol selection; it names identities, not an account or a
+                        venue read.
+                      </dd>
+                    </div>
                   )}
                   <div>
                     <dt>Network</dt>

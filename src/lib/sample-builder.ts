@@ -1,10 +1,13 @@
 import Decimal from 'decimal.js';
-import { CONFIGURED_PERP_MARKETS } from './perp-markets';
-import { isCanonicalProtocol, PROTOCOLS } from './protocols';
+import { REFERENCE_PERP_CATALOG, REFERENCE_PERP_MARKETS } from './perp-markets';
+import { isCanonicalProtocol } from './protocols';
 import fixtures from './sample-prices.json';
 import type { Position, Snapshot } from './types';
 
 export const DEFAULT_SAMPLE_ID = 'portfolio';
+/** A portfolio whose composition the reader changed is theirs, and the preset picker lists it under this identity. */
+export const CUSTOM_SAMPLE_ID = 'custom';
+export const CUSTOM_SAMPLE_NAME = 'Custom portfolio';
 export const SAMPLE_QUOTES = ['USDC', 'USDT', 'USD'] as const;
 export type SampleQuote = typeof SAMPLE_QUOTES[number];
 export type SampleSide = 'long' | 'short';
@@ -14,7 +17,7 @@ const D = Decimal.clone({ precision: 80, toExpNeg: -100, toExpPos: 100 });
 const prices: Readonly<Record<string, string>> = fixtures.prices;
 
 /** Historical, editable fixtures. These prices never serve as a live-read fallback. */
-export const SAMPLE_MARKET_CATALOG = CONFIGURED_PERP_MARKETS.pacifica.map(market => ({
+export const SAMPLE_MARKET_CATALOG = REFERENCE_PERP_MARKETS.map(market => ({
   ...market,
   price: prices[market.asset],
 }));
@@ -75,7 +78,7 @@ export function getPortfolioSampleSnapshot(): Snapshot {
     makePosition('XRP', { side: 'long', quantity: '2500', price: '2' }, 'USDC'),
   ];
   return {
-    protocol: { ...PROTOCOLS.pacifica }, source: 'sample', network: 'fixture', authority: null,
+    catalog: { ...REFERENCE_PERP_CATALOG }, source: 'sample', network: 'fixture', authority: null,
     sampleName: 'Four-market portfolio', subaccount: { id: 0, name: 'Four-market portfolio', address: null },
     retrievedAt: fixtures.capturedAt, expiresAt: null, accountSlot: null, observedSlot: null,
     positions,
@@ -83,22 +86,27 @@ export function getPortfolioSampleSnapshot(): Snapshot {
     warnings: ['Preset portfolio: all quantities and baseline prices are editable fixtures. No account, collateral balance, or trade is created.'],
     provenance: [
       'Buffer portfolio builder. No wallet address, live account, or RPC slot is associated with this fixture.',
-      'The catalog uses the 76 configured Pacifica perpetual identities. Its protocol metadata identifies the catalog, not a live Pacifica account.',
+      `The builder draws on the ${REFERENCE_PERP_CATALOG.label}: ${REFERENCE_PERP_CATALOG.markets} perpetual identities captured from ${REFERENCE_PERP_CATALOG.source} at ${REFERENCE_PERP_CATALOG.capturedAt}. The catalog identifies itself, not an account, a venue read, or a live market, and it is the same list for every preset and for every protocol selection.`,
       `Newly added market defaults are frozen from ${fixtures.source} at ${fixtures.capturedAt}; SOL, BTC, ETH, and XRP use round illustrative values. Existing presets retain their illustrative prices; edited prices are user-supplied fixtures.`,
       'USDC, USDT, and USD are illustrative denominations. Changing denomination preserves numeric inputs, performs no currency conversion, and does not assert venue settlement support.',
     ],
   };
 }
 
+/**
+ * A preset prepared for editing. The fixture identifies the catalog it draws
+ * on; it never claims a protocol, an account, or a venue read. Preset identity
+ * is preserved here — only a composition change makes the portfolio the
+ * reader's own, via customPortfolio.
+ */
 function editableSnapshot(snapshot: Snapshot): Snapshot {
   if (snapshot.source !== 'sample' || snapshot.network !== 'fixture' || snapshot.authority !== null ||
       (snapshot.protocol && !isCanonicalProtocol(snapshot.protocol))) {
     throw new Error('Only preset portfolios can be edited. Live account snapshots cannot be changed here.');
   }
   const next = structuredClone(snapshot);
-  next.protocol = { ...PROTOCOLS.pacifica };
-  next.sampleName = 'Custom portfolio';
-  next.subaccount = { id: 0, name: 'Custom portfolio', address: null };
+  delete next.protocol;
+  next.catalog = { ...REFERENCE_PERP_CATALOG };
   next.accountSlot = null;
   next.observedSlot = null;
   next.expiresAt = null;
@@ -115,11 +123,20 @@ function editableSnapshot(snapshot: Snapshot): Snapshot {
   return next;
 }
 
+/** A position, quantity, price, or direction change replaces the preset identity. */
+function customPortfolio(snapshot: Snapshot): Snapshot {
+  const next = editableSnapshot(snapshot);
+  next.sampleName = CUSTOM_SAMPLE_NAME;
+  next.subaccount = { id: 0, name: CUSTOM_SAMPLE_NAME, address: null };
+  return next;
+}
+
 export function getSampleQuote(snapshot: Snapshot): SampleQuote {
   const quote = snapshot.positions[0]?.quote ?? snapshot.metrics.find(metric => metric.label === 'Gross notional')?.unit ?? 'USDC';
   return SAMPLE_QUOTES.some(value => value === quote) ? quote as SampleQuote : 'USDC';
 }
 
+/** Denomination is a display choice: it keeps the preset's identity and every numeric input. */
 export function setSampleQuote(snapshot: Snapshot, value: string): Snapshot {
   const quote = sampleQuote(value);
   const next = editableSnapshot(snapshot);
@@ -131,7 +148,7 @@ export function setSampleQuote(snapshot: Snapshot, value: string): Snapshot {
 }
 
 export function addSamplePerp(snapshot: Snapshot, asset: string, value = getSampleQuote(snapshot)): Snapshot {
-  const next = editableSnapshot(snapshot);
+  const next = customPortfolio(snapshot);
   if (next.positions.some(position => position.asset === asset)) throw new Error('This perpetual is already in your portfolio. Edit its existing position.');
   const market = SAMPLE_MARKET_CATALOG.find(entry => entry.asset === asset);
   if (!market) throw new Error('Choose a perpetual from the market catalog.');
@@ -141,7 +158,7 @@ export function addSamplePerp(snapshot: Snapshot, asset: string, value = getSamp
 }
 
 export function updateSamplePerp(snapshot: Snapshot, id: string, input: SamplePerpInput): Snapshot {
-  const next = editableSnapshot(snapshot);
+  const next = customPortfolio(snapshot);
   const index = next.positions.findIndex(position => position.id === id);
   if (index < 0) throw new Error('This position is no longer in your portfolio.');
   const position = next.positions[index];
@@ -151,7 +168,7 @@ export function updateSamplePerp(snapshot: Snapshot, id: string, input: SamplePe
 }
 
 export function removeSamplePerp(snapshot: Snapshot, id: string): Snapshot {
-  const next = editableSnapshot(snapshot);
+  const next = customPortfolio(snapshot);
   if (!next.positions.some(position => position.id === id)) throw new Error('This position is no longer in your portfolio.');
   next.positions = next.positions.filter(position => position.id !== id);
   next.metrics = fixtureMetrics(next.positions, getSampleQuote(snapshot));

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { createReport } from '@/lib/report';
-import { formatDecimal } from '@/lib/format';
+import { formatDecimal, formatUtc } from '@/lib/format';
 import { DEVICE_REPORTS_KEY, deleteDeviceReport, listDeviceReports, saveDeviceReport, type DeviceReport } from '@/lib/device-reports';
 import styles from './AccountPanel.module.css';
 
@@ -51,12 +51,12 @@ export default function DeviceReportsPanel({ report }: { report: Report | null }
       {error && <p role="alert">{error} <button className="button subtle" onClick={load}>Retry</button></p>}
       {!error && reports.length === 0 && <p>No reports saved yet.</p>}
       <ul className={styles.list}>{reports.map(item => <li key={item.id}>
-        <strong>{item.title}</strong><small>{new Date(item.created_at).toLocaleString()} · {item.report.sourceMode === 'sample' ? 'Preset fixture' : 'Live snapshot'} · Historical</small>
+        <strong>{item.title}</strong><small>{formatUtc(item.created_at)} · {item.report.sourceMode === 'sample' ? 'Preset fixture' : 'Live snapshot'} · Historical</small>
         <details className={styles.summary}><summary>View saved explanation</summary>
           <p>Perp price P&amp;L change at {item.report.scenario.shockPercent}%</p>
           {item.report.scenario.totalsByQuoteCurrency.map(total => <p className={styles.total} key={total.quote}>{formatDecimal(total.delta, 2, true)} <span>{total.quote}</span></p>)}
           {item.report.scenario.includedPositions.map(position => <div className={styles.contribution} key={position.id}><span>{position.market}</span><strong>{formatDecimal(position.delta, 2, true)} {position.quote}</strong></div>)}
-          <p>{item.report.scenario.modeledPositions} of {item.report.scenario.totalPositions} positions modeled. Snapshot: {new Date(item.report.snapshotTime).toLocaleString()}.</p>
+          <p>{item.report.scenario.modeledPositions} of {item.report.scenario.totalPositions} positions modeled. Snapshot: {formatUtc(item.report.snapshotTime)}.</p>
           {item.report.scenario.excludedPositions.map(position => <p key={position.id}>{position.market}: {position.reason}</p>)}
           <p className={styles.note}>{item.report.assumptions.join(' ')}</p>
         </details>

@@ -6,8 +6,9 @@ import {
   addSamplePerp, getSampleQuote, removeSamplePerp, SAMPLE_MARKET_CATALOG, SAMPLE_QUOTES,
   setSampleQuote, updateSamplePerp, type SamplePerpInput,
 } from '@/lib/sample-builder';
+import { REFERENCE_PERP_CATALOG } from '@/lib/perp-markets';
 import type { Position, Snapshot } from '@/lib/types';
-import { formatDecimal } from '@/lib/format';
+import { formatDecimal, formatUtc } from '@/lib/format';
 import { Icon } from './Icons';
 import { TokenIcon } from './TokenIcon';
 import Select from './Select';
@@ -51,7 +52,7 @@ export default function SampleBuilder({ snapshot, onChange }: Props) {
           onChange={value => apply(() => setSampleQuote(snapshot, value), `Denomination changed to ${value}. Numeric inputs are unchanged.`)} />
       </div>
     </div>
-    <p className={styles.note}>Build a portfolio with any of {SAMPLE_MARKET_CATALOG.length} perps. Edit quantities and prices below. Denomination changes keep the same numbers; no currency conversion or trade occurs.</p>
+    <p className={styles.note}>Build a portfolio from the {REFERENCE_PERP_CATALOG.label}: {SAMPLE_MARKET_CATALOG.length} perpetual identities, the same list for every preset and for every protocol selection. Edit quantities and prices below. Denomination changes keep the same numbers; no currency conversion or trade occurs.</p>
     {error && <p className={styles.error} role="alert">{error}</p>}
     <div className={styles.rows}>
       {snapshot.positions.map(position => <PositionEditor
@@ -77,7 +78,7 @@ export default function SampleBuilder({ snapshot, onChange }: Props) {
         <button className="icon-button" type="button" aria-label="Close perpetual catalog" onClick={closeCatalog}><Icon name="close" size={22} /></button>
       </div>
       <div className={styles.catalogBody}>
-        <p className={styles.catalogDescription}>Choose from {SAMPLE_MARKET_CATALOG.length} markets. Each starts at one unit with a fixed reference price you can edit.</p>
+        <p className={styles.catalogDescription}>The {REFERENCE_PERP_CATALOG.label}: {SAMPLE_MARKET_CATALOG.length} perpetual identities captured from Pacifica&rsquo;s public market list at {formatUtc(REFERENCE_PERP_CATALOG.capturedAt)}. It names identities for these fixtures and serves every preset; the Protocol selector applies to live account reads. Each market starts at one unit with a fixed reference price you can edit.</p>
         <label className={styles.searchLabel} htmlFor="sample-market-search">Search perpetuals</label>
         <input autoFocus id="sample-market-search" type="search" placeholder="Search BTC, SOL, ETH, XRP…" value={search} onChange={event => setSearch(event.target.value)} />
         <div className={styles.catalogList}>

@@ -29,6 +29,7 @@ export function isDiscoveryResponse(value: unknown, authority: string, protocol:
 
 export function isSnapshotResponse(value: unknown, authority: string, protocol: ProtocolId, accountId: number, accountAddress: string | null): value is Snapshot {
   if (!object(value) || !identity(value, authority, protocol) || value.source !== 'live' || value.network !== 'mainnet-beta' ||
+    value.catalog !== undefined || // A fixture catalog never describes a live account read.
     value.sampleName !== null || !subaccount(value.subaccount) || !object(value.subaccount) || value.subaccount.id !== accountId ||
     value.subaccount.address !== accountAddress || !retrieved(value.retrievedAt) || !(value.expiresAt === null || time(value.expiresAt)) ||
     !slot(value.accountSlot) || !slot(value.observedSlot) || typeof value.inventoryAvailable !== 'boolean' ||

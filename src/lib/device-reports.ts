@@ -1,5 +1,6 @@
 import { isJupiterInventory } from './jupiter-inventory';
 import type { createReport } from './report';
+import { isReferencePerpCatalog } from './perp-markets';
 import { isCanonicalProtocol } from './protocols';
 
 export type Report = ReturnType<typeof createReport>;
@@ -41,6 +42,11 @@ function protocol(value: unknown) {
   return value === undefined || isCanonicalProtocol(value);
 }
 
+/** A stored fixture may name the reference catalog it was built from, and nothing else. */
+function catalog(value: unknown) {
+  return value === undefined || isReferencePerpCatalog(value);
+}
+
 /** Validate stored JSON before it can be rendered or downloaded as a report. */
 export function isReport(value: unknown): value is Report {
   if (!object(value) || value.report !== 'Buffer perpetual price scenario' || value.version !== 1 ||
@@ -48,7 +54,9 @@ export function isReport(value: unknown): value is Report {
       !['fixture', 'mainnet-beta'].includes(String(value.network)) ||
       (value.sourceMode === 'sample' ? value.network !== 'fixture' : value.network !== 'mainnet-beta') ||
       !nullableText(value.sampleName) || !nullableText(value.authority) || !isoTime(value.snapshotTime) ||
-      !nullableTime(value.snapshotExpiresAt) || !text(value.numericEncoding) || !count(value.appFreshnessSeconds) || !protocol(value.protocol)) return false;
+      !nullableTime(value.snapshotExpiresAt) || !text(value.numericEncoding) || !count(value.appFreshnessSeconds) ||
+      !protocol(value.protocol) || !catalog(value.referenceCatalog) ||
+      (value.referenceCatalog !== undefined && (value.sourceMode !== 'sample' || value.protocol !== undefined))) return false;
   const subaccount = value.selectedSubaccount;
   const slots = value.observedSlots;
   const scenario = value.scenario;

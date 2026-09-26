@@ -6,6 +6,7 @@ import { getSupabase } from '@/lib/supabase';
 import { runAuthOperation } from '@/lib/auth-flow';
 import { persistedAuthSession, sessionIdentity, sameAuthSession, withIdentityBoundSignOut, type AuthSessionIdentity } from '@/lib/auth-storage';
 import { decodeCloudReports, isCloudReportPayload, type SavedReport } from '@/lib/cloud-reports';
+import { formatUtc } from '@/lib/format';
 import type { createReport } from '@/lib/report';
 import styles from './AccountPanel.module.css';
 import DeviceReportsPanel from './DeviceReportsPanel';
@@ -240,7 +241,7 @@ export default function AccountPanel({ report }: { report: Report | null }) {
       <p role="status" aria-live="polite">{busy ? 'Working…' : message}</p>
       {!busy && loadState !== 'loaded' && <button className="button subtle" onClick={() => void load()}>{loadState === 'error' ? 'Reload reports' : 'Load reports'}</button>}
       {!busy && loadState === 'loaded' && reports.length === 0 && <p>No reports saved yet.</p>}
-      <ul className={styles.list}>{reports.map(item => <li key={item.id}><div><strong>{item.title}</strong><small>{new Date(item.created_at).toLocaleString()}</small></div><div className={styles.actions}><button className="button subtle" onClick={() => download(item)}>Download JSON</button><button className="button subtle" disabled={busy || writeUncertain} onClick={() => void remove(item.id)}>Delete</button></div></li>)}</ul>
+      <ul className={styles.list}>{reports.map(item => <li key={item.id}><div><strong>{item.title}</strong><small>{formatUtc(item.created_at)}</small></div><div className={styles.actions}><button className="button subtle" onClick={() => download(item)}>Download JSON</button><button className="button subtle" disabled={busy || writeUncertain} onClick={() => void remove(item.id)}>Delete</button></div></li>)}</ul>
       <p className={styles.note}>Your most recent 50 reports. Only your signed-in account can access them.</p>
       <button className="button subtle" disabled={busy} onClick={() => void signOut()}>Sign out</button>
     </dialog>
