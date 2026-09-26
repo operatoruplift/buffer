@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addSamplePerp, DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot, getSampleQuote,
+  addSamplePerp, CUSTOM_SAMPLE_NAME, DEFAULT_SAMPLE_ID, getPortfolioSampleSnapshot, getSampleQuote,
   removeSamplePerp, SAMPLE_MARKET_CATALOG, setSampleQuote, updateSamplePerp,
 } from '../src/lib/sample-builder';
+import { REFERENCE_PERP_CATALOG } from '../src/lib/perp-markets';
 import { getSampleSnapshot, SAMPLE_ACCOUNTS } from '../src/lib/samples';
 import { calculateScenario } from '../src/lib/scenario';
 import { createReport } from '../src/lib/report';
@@ -62,7 +63,73 @@ describe('editable sample portfolio', () => {
     expect(changed.spots).toEqual(original.spots);
     expect(calculateScenario(changed, -10).totals).toEqual([{ quote, delta: '3500' }]);
     expect(changed.positions[2].modeled).toBe(false);
-    expect(changed.protocol).toEqual(PROTOCOLS.pacifica);
+    expect(changed.catalog).toEqual(REFERENCE_PERP_CATALOG);
+    expect(changed.protocol).toBeUndefined();
+    expect([changed.sampleName, changed.subaccount.name]).toEqual([original.sampleName, original.subaccount.name]);
+  });
+
+  it('keeps the preset identity when only the denomination changes, and replaces it on a composition change', () => {
+    const preset = getSampleSnapshot(DEFAULT_SAMPLE_ID);
+    const inUsdt = setSampleQuote(preset, 'USDT');
+    expect(inUsdt.sampleName).toBe('Four-market portfolio');
+    expect(inUsdt.subaccount).toEqual(preset.subaccount);
+    expect(SAMPLE_ACCOUNTS.some(account => account.name === inUsdt.sampleName)).toBe(true);
+    expect(inUsdt.positions.map(position => [position.size, position.price, position.quote]))
+      .toEqual(preset.positions.map(position => [position.size, position.price, 'USDT']));
+    expect(inUsdt.metrics.map(metric => [metric.value, metric.unit]))
+      .toEqual([['90000', 'USDT'], ['40000', 'USDT'], ['50000', 'USDT']]);
+    // Only a position, quantity, price, or direction change makes the portfolio the reader's own,
+    // and a later denomination change never restores the preset name.
+    for (const custom of [
+      setSampleQuote(addSamplePerp(inUsdt, 'HYPE'), 'USD'),
+      updateSamplePerp(inUsdt, inUsdt.positions[0].id, { side: 'short', quantity: '1', price: '1' }),
+      removeSamplePerp(inUsdt, inUsdt.positions[0].id),
+    ]) {
+      expect([custom.sampleName, custom.subaccount.name]).toEqual([CUSTOM_SAMPLE_NAME, CUSTOM_SAMPLE_NAME]);
+    }
+    expect(SAMPLE_ACCOUNTS.some(account => account.name === CUSTOM_SAMPLE_NAME)).toBe(false);
+  });
+
+  it('names the reference catalog it was built from instead of borrowing a protocol identity', () => {
+    const snapshot = addSamplePerp(setSampleQuote(getSampleSnapshot(DEFAULT_SAMPLE_ID), 'USDT'), 'XAU');
+    expect(snapshot.catalog).toEqual({
+      id: 'reference-perps', label: 'Buffer reference perpetual catalog', markets: SAMPLE_MARKET_CATALOG.length,
+      capturedAt: REFERENCE_PERP_CATALOG.capturedAt, source: REFERENCE_PERP_CATALOG.source,
+      explanation: REFERENCE_PERP_CATALOG.explanation,
+    });
+    expect(snapshot.protocol).toBeUndefined();
+    const report = createReport(snapshot, calculateScenario(snapshot, -10));
+    expect(Object.keys(report)).not.toContain('protocol');
+    expect(report.referenceCatalog).toEqual(REFERENCE_PERP_CATALOG);
+    expect(report.referenceCatalog?.explanation).toContain('not an account, a venue read, or a live market');
+    // An edited preset that carried a protocol identity stops claiming one.
+    const wasPacifica = getSampleSnapshot('sol-long');
+    wasPacifica.protocol = { ...PROTOCOLS.pacifica };
+    expect(setSampleQuote(wasPacifica, 'USD').protocol).toBeUndefined();
+    expect(calculateScenario(setSampleQuote(wasPacifica, 'USD'), -10).eligible).toBe(1);
+  });
+
+  it('verifies edited positions against the reference catalog and rejects a tampered or misplaced catalog', () => {
+    const snapshot = addSamplePerp(getPortfolioSampleSnapshot(), 'XAU');
+    expect(calculateScenario(snapshot, -10).eligible).toBe(5);
+    for (const catalog of [
+      { ...REFERENCE_PERP_CATALOG, source: 'https://untrusted.example' },
+      { ...REFERENCE_PERP_CATALOG, markets: 4 },
+      { ...REFERENCE_PERP_CATALOG, capturedAt: '2026-01-01T00:00:00.000Z' },
+    ]) {
+      const result = calculateScenario({ ...snapshot, catalog }, -10);
+      expect(result.eligible).toBe(0);
+      expect(result.excluded[0].reason).toContain('market identity');
+    }
+    // A catalog never stands in for a protocol registry or describes a live read.
+    const withProtocol = calculateScenario({ ...snapshot, protocol: { ...PROTOCOLS.pacifica } }, -10);
+    expect(withProtocol.eligible).toBe(0);
+    expect(withProtocol.excluded[0].reason).toContain('market identity');
+    const live = { ...snapshot, source: 'live' as const, network: 'mainnet-beta' as const, authority: '11111111111111111111111111111111' };
+    // Freshness is satisfied here, so the exclusion is the identity check itself.
+    const fresh = calculateScenario(live, -10, Date.parse(live.retrievedAt) + 1_000);
+    expect(fresh.eligible).toBe(0);
+    expect(fresh.excluded.every(item => item.reason.includes('market identity'))).toBe(true);
   });
 
   it('retains denomination after removing every position, then supports adding a fresh market', () => {

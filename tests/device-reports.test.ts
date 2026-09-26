@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createReport } from '../src/lib/report';
 import { calculateScenario } from '../src/lib/scenario';
 import { getSampleSnapshot } from '../src/lib/samples';
+import { addSamplePerp, getPortfolioSampleSnapshot } from '../src/lib/sample-builder';
+import { REFERENCE_PERP_CATALOG } from '../src/lib/perp-markets';
 import { PROTOCOLS } from '../src/lib/protocols';
 import {
   DEVICE_REPORTS_KEY, MAX_DEVICE_REPORT_BYTES, DeviceReportsError, decodeDeviceReports,
@@ -73,6 +75,25 @@ describe('device report library', () => {
       item.report.protocol = { ...protocol, label: 'x'.repeat(1000) };
       expect(() => encodeDeviceReports([item])).toThrow(DeviceReportsError);
     }
+  });
+
+  it('round-trips a fixture catalog and rejects a tampered, live, or protocol-paired catalog', () => {
+    const snapshot = addSamplePerp(getPortfolioSampleSnapshot(), 'XAU');
+    const item = record();
+    item.report = createReport(snapshot, calculateScenario(snapshot, -10));
+    const saved = decodeDeviceReports(encodeDeviceReports([item]))[0].report;
+    expect(saved.referenceCatalog).toEqual(REFERENCE_PERP_CATALOG);
+    expect(saved.protocol).toBeUndefined();
+    for (const catalog of [
+      { ...REFERENCE_PERP_CATALOG, source: 'https://untrusted.example' },
+      { ...REFERENCE_PERP_CATALOG, markets: REFERENCE_PERP_CATALOG.markets + 1 },
+      { ...REFERENCE_PERP_CATALOG, label: 'Pacifica' },
+    ]) {
+      expect(() => encodeDeviceReports([{ ...item, report: { ...item.report, referenceCatalog: catalog } }])).toThrow(DeviceReportsError);
+    }
+    // A fixture catalog never accompanies a live read or a protocol identity.
+    expect(() => encodeDeviceReports([{ ...item, report: { ...item.report, protocol: { ...PROTOCOLS.pacifica } } }])).toThrow(DeviceReportsError);
+    expect(() => encodeDeviceReports([{ ...item, report: { ...item.report, sourceMode: 'live', network: 'mainnet-beta' } }])).toThrow(DeviceReportsError);
   });
 
   it('preserves API provenance and price timestamps without inventing chain slots', () => {
