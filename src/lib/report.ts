@@ -9,6 +9,9 @@ export function createReport(snapshot: Snapshot, scenario: Scenario) {
     sourceMode: snapshot.source,
     network: snapshot.network,
     ...(snapshot.protocol ? { protocol: { ...snapshot.protocol } } : {}),
+    // A preset portfolio names the identity catalog it was built from. It never
+    // borrows a protocol identity, because no protocol or API was read for it.
+    ...(snapshot.catalog ? { referenceCatalog: { ...snapshot.catalog } } : {}),
     sampleName: snapshot.sampleName,
     authority: snapshot.authority,
     selectedSubaccount: { ...snapshot.subaccount },

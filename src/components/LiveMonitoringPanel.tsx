@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Snapshot } from '@/lib/types';
 import { alertInputProblem } from '@/lib/alerts';
+import { formatUtc } from '@/lib/format';
 import type { MonitoringOverview, MonitoringRuleInput, MonitoringDeliveryState } from '@/lib/monitoring';
 import { requestMonitoring } from '@/lib/monitoring-client';
 import Select from './Select';
 import styles from './AlertsPanel.module.css';
 
 type Props = { snapshot: Snapshot | null; stale?: boolean; scopeChanged?: boolean; ownerId: string | null; sessionId: string };
-const time = (value: string | null) => value ? new Date(value).toLocaleString() : '—';
+// One timestamp format across the app: explicit UTC, never an unlabelled local zone.
+const time = formatUtc;
 const labels: Record<MonitoringDeliveryState, string> = {
   queued: 'Queued', sending: 'Sending', accepted_by_provider: 'Accepted by Discord', delivered: 'Receipt verified',
   failed: 'Failed', suppressed: 'Suppressed', unknown_outcome: 'Outcome unknown',

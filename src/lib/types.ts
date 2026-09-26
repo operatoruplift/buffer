@@ -1,4 +1,5 @@
 import type { JupiterInventory } from './jupiter-inventory';
+import type { PerpCatalogInfo } from './perp-markets';
 import type { ProtocolInfo } from './protocols';
 export type SourceMode = 'sample' | 'live';
 export interface Subaccount { id: number; name: string; address: string | null }
@@ -31,6 +32,8 @@ export interface SpotExposure { market: string; kind: 'Collateral' | 'Debt'; amo
 export interface OrderInventory { market: string; count: number }
 export interface Snapshot {
   protocol?: ProtocolInfo;
+  /** Set only on editable preset portfolios: the fixed identity catalog they draw from. Never a protocol or an account. */
+  catalog?: PerpCatalogInfo;
   source: SourceMode; network: 'mainnet-beta' | 'fixture'; authority: string | null;
   sampleName: string | null; subaccount: Subaccount;
   retrievedAt: string; expiresAt: string | null; accountSlot: number | null; observedSlot: number | null;

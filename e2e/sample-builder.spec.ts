@@ -73,3 +73,34 @@ test('build a multi-perp portfolio, edit exact inputs, switch denomination, refr
   expect(errors).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('denomination keeps the preset identity, and an edit names the portfolio inside the same list', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/app');
+  const preset = page.getByRole('combobox', { name: 'Try a preset', exact: true });
+  const list = page.getByRole('listbox', { name: 'Try a preset', exact: true });
+  await expect(preset).toHaveText('Four-market portfolio');
+
+  // A denomination change is a display choice: the preset keeps its name and stays selected.
+  await chooseOption(page, 'Denomination', 'USDT');
+  await expect(preset).toHaveText('Four-market portfolio');
+  await expect(page.getByRole('region', { name: 'Baseline account metrics' })).toContainText('USDT');
+  await preset.click();
+  await expect(list.getByRole('option', { name: 'Four-market portfolio', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Escape');
+  await expect(list).not.toBeVisible();
+
+  // A composition change makes the portfolio the reader's own, and the picker lists it as a real choice.
+  await page.getByRole('button', { name: 'Remove XRP-PERP', exact: true }).click();
+  await expect(preset).toHaveText('Custom portfolio');
+  await preset.click();
+  await expect(list.getByRole('option', { name: 'Custom portfolio', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Escape');
+
+  // Choosing a preset again loads that fixture under its own name.
+  await chooseOption(page, 'Try a preset', 'Four-market portfolio');
+  await expect(preset).toHaveText('Four-market portfolio');
+  await expect(page.getByRole('form', { name: 'Edit XRP-PERP', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
