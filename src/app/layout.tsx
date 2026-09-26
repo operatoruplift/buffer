@@ -3,8 +3,11 @@ import localFont from 'next/font/local';
 import PwaClient from '@/components/PwaClient';
 import MobileWallet from '@/components/MobileWallet';
 import "./globals.css";
+import { SITE_URL } from './site';
 const inter = localFont({ src: './fonts/Inter-latin.woff2', variable: '--font-inter', weight: '300 900', display: 'swap', fallback: ['Arial', 'sans-serif'] });
 export const metadata: Metadata = {
+  // Absolute URLs for social cards and canonical links.
+  metadataBase: new URL(SITE_URL),
   title: "Buffer — understand your perp exposure",
   description:
     "A clear snapshot of your Solana perpetual positions and the incremental effect of a shared market move.",
