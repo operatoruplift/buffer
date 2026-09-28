@@ -36,14 +36,14 @@ export interface Snapshot {
   protocol?: ProtocolInfo;
   /** Set only on editable preset portfolios: the fixed identity catalog they draw from. Never a protocol or an account. */
   catalog?: PerpCatalogInfo;
-  source: SourceMode; network: 'mainnet-beta' | 'fixture'; authority: string | null;
+  source: SourceMode; network: 'mainnet-beta' | 'devnet' | 'fixture'; authority: string | null;
   sampleName: string | null; subaccount: Subaccount;
   retrievedAt: string; expiresAt: string | null; accountSlot: number | null; observedSlot: number | null;
   metrics: Metric[]; positions: Position[]; spots: SpotExposure[]; orders: OrderInventory[];
   risk?: RiskContext;
   inventoryAvailable: boolean; warnings: string[]; provenance: string[];
 }
-export interface Discovery { authority: string; subaccounts: Subaccount[]; retrievedAt: string; protocol?: ProtocolInfo }
+export interface Discovery { authority: string; subaccounts: Subaccount[]; retrievedAt: string; protocol?: ProtocolInfo; /** Present for devnet reads; absent means mainnet. */ network?: 'devnet' }
 export interface ApiError { code: string; message: string; retryable: boolean }
 export interface Contribution { id: string; market: string; quote: string; size: string; baselinePrice: string; hypotheticalPrice: string; delta: string }
 export interface Scenario { shockPercent: number; included: Contribution[]; excluded: {id: string; market: string; reason: string}[]; totals: {quote: string; delta: string}[]; eligible: number; totalPositions: number; disabledReason: string | null }

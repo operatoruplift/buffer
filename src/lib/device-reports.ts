@@ -51,8 +51,8 @@ function catalog(value: unknown) {
 export function isReport(value: unknown): value is Report {
   if (!object(value) || value.report !== 'Buffer perpetual price scenario' || value.version !== 1 ||
       !['sample', 'live'].includes(String(value.sourceMode)) ||
-      !['fixture', 'mainnet-beta'].includes(String(value.network)) ||
-      (value.sourceMode === 'sample' ? value.network !== 'fixture' : value.network !== 'mainnet-beta') ||
+      !['fixture', 'mainnet-beta', 'devnet'].includes(String(value.network)) ||
+      (value.sourceMode === 'sample' ? value.network !== 'fixture' : value.network !== 'mainnet-beta' && value.network !== 'devnet') ||
       !nullableText(value.sampleName) || !nullableText(value.authority) || !isoTime(value.snapshotTime) ||
       !nullableTime(value.snapshotExpiresAt) || !text(value.numericEncoding) || !count(value.appFreshnessSeconds) ||
       !protocol(value.protocol) || !catalog(value.referenceCatalog) ||

@@ -9,6 +9,7 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 | Variable | Scope | Purpose |
 | --- | --- | --- |
 | `SOLANA_RPC_URL` | Server only | Solana mainnet RPC with `getGenesisHash`, `getProgramAccounts`, `getAccountInfo`, `getMultipleAccounts`, and `getSlot`. The provider checks the mainnet genesis hash. |
+| `SOLANA_DEVNET_RPC_URL` | Server only, optional | Devnet RPC for Velocity devnet reads, with the same methods. Defaults to Solana's public devnet endpoint; the provider checks the devnet genesis hash (`EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`). |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Dedicated Buffer project's API URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key; never a service-role or secret key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Public | Set `true` only after email signup, confirmation, recovery, redirects, and password policy are verified. It is currently `false`, so public signup and recovery remain visibly unavailable. |

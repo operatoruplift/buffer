@@ -18,6 +18,8 @@ No mock receipt, saved row, environment variable or HTTP 200 without validated d
 
 ## Current demonstration
 
+Velocity devnet reads (added 28 September 2026) use the same program, loader, identity and oracle checks against the SDK's pinned devnet market configuration and the devnet genesis hash, through `SOLANA_DEVNET_RPC_URL` or Solana's public devnet RPC. A live check read a public devnet subaccount with SOL, ETH and BTC perps, valid oracles, current risk context and liquidation estimates. Devnet observations never feed background monitoring.
+
 The landing and app expose **Explore live risk**, fetching a fresh public Velocity observation without authentication. Exactly one eligible discovered account selects automatically; multiple accounts require a deliberate choice. An explicit deep-linked subaccount must exist in discovery. Current headroom is adjacent to the independent price-effect result. Device report export remains account-free.
 
 The 90-second sequence is: light landing → deterministic scenario and contributions → Explore live risk → source/subaccount/time and current maintenance context → export dated report → separately labeled alert rehearsal. Show a hosted rule and matching real Discord receipt only after that gate is verified. The September 13 narrated films remain intact and are marked historical on `/demo`; the current-build link opens the actual updated explorer.

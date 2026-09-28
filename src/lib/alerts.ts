@@ -166,6 +166,7 @@ const at = (now: Date) => now.toISOString();
 
 /** A provider observation must itself be fresh; an absent expiry never grants unlimited freshness. */
 export function alertInputProblem(snapshot: Snapshot, now = new Date()): string | null {
+  if (snapshot.source === 'live' && snapshot.network === 'devnet') return 'Monitoring covers Velocity accounts on Solana mainnet. Devnet reads are for exploration only.';
   if (snapshot.source !== 'live' || snapshot.network !== 'mainnet-beta' || snapshot.protocol?.id !== 'velocity' || !isCanonicalProtocol(snapshot.protocol)) return 'A supported Velocity observation is required.';
   const observed = Date.parse(snapshot.retrievedAt);
   if (!Number.isFinite(observed) || observed > now.getTime() + 5_000 || now.getTime() - observed >= ALERT_MAX_INPUT_AGE_MS ||

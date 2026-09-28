@@ -2,12 +2,17 @@ import Decimal from 'decimal.js';
 import { dependencies } from '../../package.json';
 import {
   BASE_PRECISION, MARGIN_PRECISION, PRICE_PRECISION, QUOTE_PRECISION, QUOTE_SPOT_MARKET_INDEX, BN, calculateMarketMarginRatio,
-  MainnetPerpMarkets, MainnetSpotMarkets, PositionFlag, SpotBalanceType, decodeName, isVariant,
+  DevnetPerpMarkets, DevnetSpotMarkets, MainnetPerpMarkets, MainnetSpotMarkets, PositionFlag, SpotBalanceType, decodeName, isVariant,
   positionIsAvailable, isSpotPositionAvailable, getTokenAmount, isOracleValid, getSpotOracleValidity, isOracleValidForMarginCalc,
   type UserAccount, type PerpMarketAccount, type SpotMarketAccount,
   type OraclePriceData, type StateAccount, type User, type DataAndSlot,
 } from '@velocity-exchange/sdk';
 import type { Metric, OracleObservation, RiskContext, Snapshot, Subaccount } from '../lib/types';
+import type { LiveNetwork } from '../lib/networks';
+
+/** Market identities are pinned per network from the SDK's published configuration. */
+const PERP_CONFIGS = { 'mainnet-beta': MainnetPerpMarkets, devnet: DevnetPerpMarkets } as const;
+const SPOT_CONFIGS = { 'mainnet-beta': MainnetSpotMarkets, devnet: DevnetSpotMarkets } as const;
 
 const Money = Decimal.clone({ precision: 80 });
 export const APP_ORACLE_MAX_SLOT_LAG = 150;
@@ -28,6 +33,8 @@ export function requiredMarkets(account: UserAccount): { perp: number[]; spot: n
 }
 
 export interface ReadData {
+  /** Absent means mainnet-beta, the only network before devnet reads. */
+  network?: LiveNetwork;
   account: UserAccount;
   authority: string;
   address: string;
@@ -83,11 +90,12 @@ export function observeOracle(data: DataAndSlot<OraclePriceData> | undefined, ob
   return { ...observation, valid: true };
 }
 
-function quoteIdentity(market: SpotMarketAccount | undefined): string | null {
+function quoteIdentity(market: SpotMarketAccount | undefined, network: LiveNetwork = 'mainnet-beta'): string | null {
   if (!market) return null;
-  const config = MainnetSpotMarkets.find((c) => c.marketIndex === market.marketIndex && c.mint.equals(market.mint));
+  const configs = SPOT_CONFIGS[network];
+  const config = configs.find((c) => c.marketIndex === market.marketIndex && c.mint.equals(market.mint));
   if (!config || name(market.name, '') !== config.symbol) return null;
-  const ambiguous = MainnetSpotMarkets.some((c) => c.symbol === config.symbol && !c.mint.equals(config.mint));
+  const ambiguous = configs.some((c) => c.symbol === config.symbol && !c.mint.equals(config.mint));
   return ambiguous ? `${config.symbol} (${config.mint.toBase58()})` : config.symbol;
 }
 
@@ -102,7 +110,7 @@ export function baselineCoverageIssues(input: ReadData): string[] {
     if (!isVariant(market.contractType, 'perpetual')) issues.push(`Perp market ${index} has an unsupported contract type.`);
     if (!market.expiryTs?.isZero()) issues.push(`Perp market ${index} has a dated or unverified expiry.`);
     if (!isVariant(market.status, 'active')) issues.push(`Perp market ${index} is not active.`);
-    if (!quoteIdentity(input.spots.get(market.quoteSpotMarketIndex))) issues.push(`Quote identity for perp ${index} could not be verified.`);
+    if (!quoteIdentity(input.spots.get(market.quoteSpotMarketIndex), input.network)) issues.push(`Quote identity for perp ${index} could not be verified.`);
     if (!required.spot.includes(market.quoteSpotMarketIndex)) required.spot.push(market.quoteSpotMarketIndex);
     const oracle = observeOracle(input.perpOracles.get(index), input.observedSlot, input.state, market);
     if (!oracle.valid) issues.push(`Perp ${index}: ${oracle.reason}`);
@@ -126,12 +134,13 @@ export function baselineCoverageIssues(input: ReadData): string[] {
 
 export function normalizeSnapshot(input: ReadData): Snapshot {
   const { account, perps, spots } = input;
+  const network = input.network ?? 'mainnet-beta';
   const issues = baselineCoverageIssues(input);
   const positions = account.perpPositions.filter((p) => !positionIsAvailable(p) || !p.openBids.isZero() || !p.openAsks.isZero()).map((position) => {
     const market = perps.get(position.marketIndex);
-    const config = MainnetPerpMarkets.find((c) => c.marketIndex === position.marketIndex);
+    const config = PERP_CONFIGS[network].find((c) => c.marketIndex === position.marketIndex);
     const oracle = observeOracle(input.perpOracles.get(position.marketIndex), input.observedSlot, input.state, market);
-    const quote = market ? quoteIdentity(spots.get(market.quoteSpotMarketIndex)) : null;
+    const quote = market ? quoteIdentity(spots.get(market.quoteSpotMarketIndex), network) : null;
     const marketName = market ? name(market.name, `Perp ${position.marketIndex}`) : `Perp ${position.marketIndex}`;
     const identity = Boolean(market && config && market.marketIndex === position.marketIndex && config.symbol.endsWith('-PERP') && config.symbol === marketName && config.oracle.equals(market.oracle) && JSON.stringify(config.oracleSource) === JSON.stringify(market.oracleSource));
     let exclusionReason: string | null = null;
@@ -141,7 +150,7 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
     else if (position.positionFlag & ~(PositionFlag.IsolatedPosition | PositionFlag.BeingLiquidated | PositionFlag.Bankruptcy)) exclusionReason = 'Position flags could not be decoded reliably.';
     else if (position.baseAssetAmount.isZero()) exclusionReason = 'Zero base size; other position state remains in baseline coverage.';
     else if (!isVariant(market.status, 'active')) exclusionReason = 'Market is not active.';
-    else if (!identity) exclusionReason = 'Market identity does not match the pinned mainnet configuration.';
+    else if (!identity) exclusionReason = `Market identity does not match the pinned ${network === 'devnet' ? 'devnet' : 'mainnet'} configuration.`;
     else if (!quote) exclusionReason = 'Quote currency identity could not be verified.';
     else if (!oracle.valid) exclusionReason = oracle.reason;
     const rawOracle = input.perpOracles.get(position.marketIndex)?.data;
@@ -204,16 +213,17 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
   if (!inventoryAvailable) warnings.push('Some spot or open-order inventory data is unavailable.');
   if (risk?.status === 'liquidating') warnings.push('Velocity SDK currently marks the cross-margin account as being liquidated or bankrupt. This is a current provider flag, not a forecast or a new eligibility calculation.');
   else if (risk?.status === 'maintenance') warnings.push('Velocity SDK currently reports collateral below its maintenance requirement. This is a current provider status, not a forecast.');
-  return { source: 'live', network: 'mainnet-beta', authority: input.authority, sampleName: null,
+  return { source: 'live', network, authority: input.authority, sampleName: null,
     subaccount: subaccountInfo(account, input.address), retrievedAt: input.retrievedAt,
     expiresAt: new Date(Date.parse(input.retrievedAt) + LIVE_SNAPSHOT_TTL_MS).toISOString(),
     accountSlot: input.accountSlot, observedSlot: input.observedSlot, metrics, positions, spots: spotInventory,
     orders: [...orderCounts].map(([market, count]) => ({ market, count })), ...(risk ? { risk } : {}), inventoryAvailable, warnings,
-    provenance: [`Solana mainnet-beta · confirmed commitment · Velocity SDK ${dependencies['@velocity-exchange/sdk']}.`,
+    provenance: [`Solana ${network} · confirmed commitment · Velocity SDK ${dependencies['@velocity-exchange/sdk']}.`,
       'Separate account, market, and oracle reads are not an atomic same-slot snapshot.',
       'Perp oracle prices pass the SDK AMM validity helper and Buffer’s 150-slot lag limit; spot valuation adds a 1% confidence cap. These are conservative read rules, not liquidation rules.',
       'Snapshots expire after 120 seconds. The scenario uses the external oracle; SDK baseline valuation may use its validated MM oracle.',
-      'All modeled perpetual identities are checked against pinned mainnet configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.'] };
+      `All modeled perpetual identities are checked against the SDK's pinned ${network === 'devnet' ? 'devnet' : 'mainnet'} configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.`,
+      ...(network === 'devnet' ? ['Devnet balances and prices are test values with no economic meaning. Background monitoring covers mainnet accounts only.'] : [])] };
 }
 
 /** The SDK's size-aware maintenance ratio for this position, as a decimal fraction; null when it cannot be verified. */

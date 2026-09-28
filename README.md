@@ -42,6 +42,7 @@ Open `http://127.0.0.1:3001`; the explorer is at `/app`. Local Node is pinned to
 | Environment variable | Purpose |
 | --- | --- |
 | `SOLANA_RPC_URL` | Server-only Solana mainnet RPC for Velocity, Jupiter inventory, and legacy Drift. Samples and Pacifica work without it. |
+| `SOLANA_DEVNET_RPC_URL` | Optional server-only devnet RPC for Velocity devnet reads. Without it, devnet reads use Solana's public `https://api.devnet.solana.com`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional dedicated Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Optional public Supabase key; never a service-role key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Set `true` on a deployment whose email confirmation and recovery flows are configured and checked end to end. The `false` default keeps the app to sign-in plus the no-account paths. |
@@ -51,7 +52,7 @@ The RPC must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccoun
 
 ## Use Buffer
 
-1. Choose among **12 fixed scenarios** or the editable **Four-market portfolio**. For public reads, select **Velocity** (the default), **Pacifica**, or **Jupiter Perps**, use **Explore a live account** / enter a public wallet address, and select the discovered account. Jupiter is explicitly inventory-only; legacy Drift is labeled as the paused historical deployment it is. In samples, use **Add perps** to search all 76 configured sample identities and edit direction, quantity, and baseline price. Accounts are never combined.
+1. Choose among **12 fixed scenarios** or the editable **Four-market portfolio**. For public reads, select **Velocity** (the default), **Pacifica**, or **Jupiter Perps**, use **Explore a live account** / enter a public wallet address, and select the discovered account. Jupiter is explicitly inventory-only; legacy Drift is labeled as the paused historical deployment it is. With Velocity selected, the **Network** switch reads Velocity's devnet deployment instead (`&network=devnet` in links); **Explore a devnet account** opens a public devnet subaccount holding SOL, ETH and BTC perps. Devnet balances are test values, and background monitoring stays on mainnet. In samples, use **Add perps** to search all 76 configured sample identities and edit direction, quantity, and baseline price. Accounts are never combined.
 2. Inspect the frozen baseline, positions, and inventory. Any metric Buffer cannot source from the provider is labeled **Unavailable** with the reason in plain words, so a missing oracle price or an isolated position stays visible instead of being filled in with a guess.
 3. For modeled samples, Velocity, and Pacifica, move the slider, choose a preset, or use arrow keys in 1% steps. **Reset** returns to zero. A successful live **Refresh** reloads the snapshot and resets the shock; sample refresh preserves edited positions and resets only the shock. Jupiter inventory and legacy Drift stay inventory and history, so neither produces a modeled price effect.
 4. Open **Method** for assumptions, exclusions, addresses, source, and RPC slots or API price timestamps. **Download report** saves precise JSON locally, including edited sample positions and prices.

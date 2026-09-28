@@ -73,6 +73,8 @@ const ok = timingSafeEqual(Buffer.from(req.headers['x-buffer-signature']), Buffe
 
 Compare over the raw body bytes, reject old timestamps, and deduplicate on `X-Buffer-Event`: the worker never re-sends an event whose outcome is uncertain, but a receiver may still see a retried event after a `429` or `5xx`.
 
+Before configuring the first webhook destination on a deployment whose scheduler was installed before 28 September 2026, re-run the `private.invoke_buffer_monitor_worker()` block of `supabase/setup/monitoring-scheduler.sql` as the project owner (the SQL editor's role can set the helper's HTTP timeout; the migration role cannot). The updated helper accepts a worker result of `delivered`; the earlier one would report each webhook delivery minute as a failed invocation, although the delivery itself is recorded.
+
 ### Outcomes
 
 | Response | Recorded state | Notes |

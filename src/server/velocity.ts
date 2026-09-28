@@ -9,12 +9,13 @@ import {
 } from '@velocity-exchange/sdk';
 import { ProviderFailure, type LiveProvider } from './boundary';
 import { PROTOCOLS } from '../lib/protocols';
+import { GENESIS_HASHES, NETWORK_LABELS, type LiveNetwork } from '../lib/networks';
 import { normalizeSnapshot, requiredMarkets, subaccountInfo, type ReadData } from './velocity-normalize';
 
 const PROGRAM = new PublicKey(PROTOCOLS.velocity.programId);
 const REQUEST_TIMEOUT_MS = 18_000;
-// Solana's published mainnet-beta genesis hash (sdk/src/genesis_config.rs).
-const MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
+/** Solana's public devnet endpoint serves devnet reads when no dedicated one is configured. */
+export const PUBLIC_DEVNET_RPC = 'https://api.devnet.solana.com';
 
 /** Manual SDK-compatible loader using public RPC methods. The stock loader can
  * swallow RPC failures and log raw responses; this version propagates errors and
@@ -52,6 +53,7 @@ export class SnapshotAccountLoader extends BulkAccountLoader {
 }
 
 interface Scope {
+  network: LiveNetwork;
   connection: Connection;
   loader: SnapshotAccountLoader;
   clients: VelocityClient[];
@@ -74,7 +76,7 @@ function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as n
     async signTransaction() { throw new Error('Buffer does not sign transactions.'); },
     async signAllTransactions() { throw new Error('Buffer does not sign transactions.'); },
   };
-  const client = new VelocityClient({ connection: scope.connection, wallet, authority: scope.authority, env: 'mainnet-beta', programID: PROGRAM,
+  const client = new VelocityClient({ connection: scope.connection, wallet, authority: scope.authority, env: scope.network, programID: PROGRAM,
     skipLoadUsers: true, userStats: false, perpMarketIndexes: markets.perp, spotMarketIndexes: markets.spot, oracleInfos,
     accountSubscription: { type: 'polling', accountLoader: scope.loader }, delistedMarketSetting: DelistedMarketSetting.Subscribe });
   bindCanonicalVelocityProgram(client);
@@ -84,13 +86,19 @@ function clientFor(scope: Scope, markets = { perp: [] as number[], spot: [] as n
   return client;
 }
 
-async function withScope<T>(authority: string, run: (scope: Scope) => Promise<T>): Promise<T> {
-  const endpoint = process.env.SOLANA_RPC_URL?.trim();
+/** Mainnet needs a configured RPC; devnet uses SOLANA_DEVNET_RPC_URL or Solana's public devnet endpoint. */
+export function endpointFor(network: LiveNetwork): string | undefined {
+  if (network === 'devnet') return process.env.SOLANA_DEVNET_RPC_URL?.trim() || PUBLIC_DEVNET_RPC;
+  return process.env.SOLANA_RPC_URL?.trim() || undefined;
+}
+
+async function withScope<T>(authority: string, network: LiveNetwork, run: (scope: Scope) => Promise<T>): Promise<T> {
+  const endpoint = endpointFor(network);
   if (!endpoint) throw new ProviderFailure('NOT_CONFIGURED', 'Live reads require server-side SOLANA_RPC_URL configuration. Preset accounts are ready to use.', 503, false);
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
   const programAccounts = new Set<string>();
-  const scope: Partial<Scope> = { clients: [], users: [], programAccounts, authority: new PublicKey(authority) };
+  const scope: Partial<Scope> = { network, clients: [], users: [], programAccounts, authority: new PublicKey(authority) };
   try {
     const configured = new URL(endpoint);
     if (configured.protocol !== 'https:' && configured.protocol !== 'http:') throw new Error('Invalid configuration');
@@ -99,7 +107,7 @@ async function withScope<T>(authority: string, run: (scope: Scope) => Promise<T>
     });
     scope.connection = connection;
     scope.loader = new SnapshotAccountLoader(connection, programAccounts);
-    if (await connection.getGenesisHash() !== MAINNET_GENESIS_HASH) throw new ProviderFailure('WRONG_NETWORK', 'The configured RPC is not Solana mainnet-beta.', 503, false);
+    if (await connection.getGenesisHash() !== GENESIS_HASHES[network]) throw new ProviderFailure('WRONG_NETWORK', `The configured RPC is not ${NETWORK_LABELS[network]}.`, 503, false);
     return await run(scope as Scope);
   } catch (error) {
     if (error instanceof ProviderFailure) throw error;
@@ -135,14 +143,15 @@ export function requireSelectedAccount(account: UserAccount | null, authority: P
   if (!account.authority.equals(authority) || account.subAccountId !== subaccount) throw new ProviderFailure('SUBACCOUNT_MISMATCH', 'The selected subaccount does not belong to this authority.', 400, false);
 }
 
-export const velocityProvider: LiveProvider = {
-  discover: (authority) => withScope(authority, async (scope) => {
+/** One Velocity reader per network; the program, loader and validation are identical. */
+export function velocityProviderFor(network: LiveNetwork): LiveProvider { return {
+  discover: (authority) => withScope(authority, network, async (scope) => {
     const client = clientFor(scope);
     const accounts = await client.getUserAccountsForAuthority(scope.authority);
     if (accounts.some((account) => !account.authority.equals(scope.authority))) throw new ProviderFailure('INVALID_ACCOUNT', 'Returned account ownership could not be verified.', 502, false);
-    return { authority, protocol: PROTOCOLS.velocity, subaccounts: accounts.map((account) => subaccountInfo(account, getUserAccountPublicKeySync(PROGRAM, scope.authority, account.subAccountId).toBase58())).sort((a, b) => a.id - b.id), retrievedAt: new Date().toISOString() };
+    return { authority, protocol: PROTOCOLS.velocity, subaccounts: accounts.map((account) => subaccountInfo(account, getUserAccountPublicKeySync(PROGRAM, scope.authority, account.subAccountId).toBase58())).sort((a, b) => a.id - b.id), retrievedAt: new Date().toISOString(), ...(network === 'devnet' ? { network } : {}) };
   }),
-  snapshot: (authority, subaccount) => withScope(authority, async (scope) => {
+  snapshot: (authority, subaccount) => withScope(authority, network, async (scope) => {
     const decoder = clientFor(scope);
     const address = getUserAccountPublicKeySync(PROGRAM, scope.authority, subaccount);
     scope.programAccounts.add(address.toBase58());
@@ -199,8 +208,10 @@ export const velocityProvider: LiveProvider = {
         if (oracle) spotOracles.set(index, oracle);
       }
     }
-    const data: ReadData = { account: current.data, authority, address: address.toBase58(), accountSlot: current.slot, observedSlot,
+    const data: ReadData = { network, account: current.data, authority, address: address.toBase58(), accountSlot: current.slot, observedSlot,
       state: scope.loader.getBufferAndSlot(await client.getStatePublicKey())?.buffer ? client.getStateAccount() : undefined, perps, spots, perpOracles, spotOracles, valuationOracles, user, retrievedAt: new Date().toISOString() };
     return { ...normalizeSnapshot(data), protocol: PROTOCOLS.velocity };
   }),
-};
+}; }
+
+export const velocityProvider: LiveProvider = velocityProviderFor('mainnet-beta');
