@@ -42,6 +42,12 @@ describe('monitoring owner and payload boundary', () => {
     for (const invalid of [{ ...body, ownerId: owner }, { ...body, webhook: 'https://evil.test' }, { ...body, cadenceMinutes: 1.5 }, { ...body, threshold: 'NaN' }, { ...body, threshold: '1000000000000000000' }, { ...body, hysteresis: '-1' }, { ...body, destinationId: 'https://discord.com' }, { ...body, timezone: 'Invalid/Timezone' }, { ...body, enabled: 'true' }, { threshold: '1' }]) expect(() => validateRuleInput(invalid)).toThrow();
     expect(validateRuleInput({ enabled: false }, true)).toEqual({ enabled: false });
     expect(() => validateRuleInput({ authority: body.authority }, true)).toThrow();
+    // Metric and market are creation-time identity: optional on create, never patchable.
+    expect(validateRuleInput({ ...body, metric: 'liquidation_distance', market: 'SOL-PERP' })).toEqual({ ...body, metric: 'liquidation_distance', market: 'SOL-PERP' });
+    expect(validateRuleInput({ ...body, metric: 'maintenance_headroom' })).toEqual({ ...body, metric: 'maintenance_headroom' });
+    for (const invalid of [{ ...body, metric: 'liquidation_distance' }, { ...body, market: 'SOL-PERP' }, { ...body, metric: 'liquidation_distance', market: 'sol-perp' }, { ...body, metric: 'liquidation_distance', market: 'SOL-PERP/../x' }, { ...body, metric: 'price' }]) expect(() => validateRuleInput(invalid)).toThrow();
+    expect(() => validateRuleInput({ metric: 'liquidation_distance', market: 'SOL-PERP' }, true)).toThrow();
+    expect(() => validateRuleInput({ market: 'BTC-PERP' }, true)).toThrow();
   });
   it('bounds JSON input and rejects cross-origin browser mutations', async () => {
     await expect(readRuleBody(new Request('https://buffer.test/api/monitoring', { method: 'POST', headers: { 'content-type': 'application/json', origin: 'https://elsewhere.test' }, body: '{}' }))).rejects.toMatchObject({ code: 'ORIGIN_REJECTED' });

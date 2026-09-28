@@ -41,7 +41,7 @@ test('a live account with unavailable risk never becomes a fixture or configured
   await page.getByRole('textbox', { name: 'Solana wallet address', exact: true }).fill(AUTHORITY);
   await page.getByRole('button', { name: 'Read account', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Selected account' }).getByText('Risk unavailable · #0', { exact: true })).toBeVisible();
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await expect(panel.getByText(/Monitoring unavailable:/)).toBeVisible();
   await expect(panel.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Configure live rule' })).toHaveCount(0);
@@ -103,7 +103,7 @@ function monitoringFixture(): MonitoringOverview {
   return { capability: { configured: true, sendEnabled: true, destinationAvailable: true, message: 'Discord monitoring configured.' },
     heartbeat: { lastRunAt: at, lastCompletedAt: at, status: 'healthy', mode: 'send' },
     destinations: [{ id: DESTINATION_ID, label: 'Buffer testing', provider: 'discord', verifiedAt: at, enabled: true, maskedDestination: 'Discord channel …1234' }],
-    rules: [{ id: RULE_ID, version: 1, authority: AUTHORITY, subaccountId: 0, provider: 'velocity', network: 'mainnet-beta', metric: 'maintenance_headroom', unit: 'USD', direction: 'below', threshold: '300', cadenceMinutes: 15, timezone: 'UTC', cooldownMinutes: 15, hysteresis: '10', destinationId: DESTINATION_ID, enabled: true, monitoringState: 'fresh', lastAttemptAt: at, lastFreshCheck: at, inputExpiresAt: new Date(Date.now() + 120000).toISOString(), nextCheckAt: at, lastError: null, breached: true, createdAt: at, updatedAt: at }],
+    rules: [{ id: RULE_ID, version: 1, authority: AUTHORITY, subaccountId: 0, provider: 'velocity', network: 'mainnet-beta', metric: 'maintenance_headroom', unit: 'USD', market: null, direction: 'below', threshold: '300', cadenceMinutes: 15, timezone: 'UTC', cooldownMinutes: 15, hysteresis: '10', destinationId: DESTINATION_ID, enabled: true, monitoringState: 'fresh', lastAttemptAt: at, lastFreshCheck: at, inputExpiresAt: new Date(Date.now() + 120000).toISOString(), nextCheckAt: at, lastError: null, breached: true, createdAt: at, updatedAt: at }],
     events: [{ id: EVENT_ID, ruleId: RULE_ID, ruleVersion: 1, state: 'accepted_by_provider', observedAt: at, value: '250', threshold: '300', reason: 'Observed maintenance threshold crossed.', acceptedAt: at, deliveredAt: null, messageId: '123456789012345678', lastError: null, attempts: 1, preview: 'Buffer | TEST alert\nVelocity / Solana mainnet\nObserved: 250 USD' }],
   };
 }
@@ -118,7 +118,7 @@ async function openLiveMonitoring(page: Page) {
     risk: { scope: 'cross-margin', totalCollateral: '1200', maintenanceRequirement: '950', maintenanceHeadroom: '250', canBeLiquidated: false, status: 'clear', explanation: 'Verified fixture for intercepted browser transport.' },
   } }));
   await page.goto(`/app?protocol=velocity&authority=${AUTHORITY}&subaccount=0`);
-  await expect(page.getByRole('region', { name: 'Know when headroom changes.' }).getByText('LIVE MONITORING', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Know when margin risk changes.' }).getByText('LIVE MONITORING', { exact: true })).toBeVisible();
 }
 
 test('live monitoring uses fresh-check API, separates acceptance from receipt, and cannot import rehearsal', async ({ page }) => {
@@ -135,7 +135,7 @@ test('live monitoring uses fresh-check API, separates acceptance from receipt, a
   });
   await page.addInitScript(() => localStorage.setItem('buffer.alerts.rehearsal.v2:demo-local-owner', '{"broken":"must never be read by live mode"}'));
   await openLiveMonitoring(page);
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await expect(panel.getByText('Accepted by Discord', { exact: true }).first()).toBeVisible();
   await expect(panel.getByText('Receipt verified', { exact: true })).toHaveCount(0);
   await expect(panel).not.toContainText('mock sink');
@@ -153,7 +153,7 @@ test('uncertain sends remain visible and unavailable status cannot claim a runni
   let unavailable = false;
   await page.route('**/api/monitoring**', route => unavailable ? route.fulfill({ status: 503, json: { error: { code: 'UNAVAILABLE', message: 'Monitoring storage unavailable.', retryable: true } } }) : route.fulfill({ json: state }));
   await openLiveMonitoring(page);
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await expect(panel.getByText('Outcome unknown', { exact: true }).first()).toBeVisible();
   await panel.getByText('Delivery history (1)', { exact: true }).click();
   await expect(panel.getByText(/will not be posted again automatically/)).toBeVisible();
@@ -171,7 +171,7 @@ test('a recorded heartbeat expires on screen while the browser remains open', as
   const state = monitoringFixture();
   await page.route('**/api/monitoring**', route => route.fulfill({ json: state }));
   await openLiveMonitoring(page);
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await expect(panel.getByText('Running · sending enabled', { exact: true })).toBeVisible();
   await page.clock.fastForward(195000);
   await expect(panel.getByText('Running · sending enabled', { exact: true })).toHaveCount(0);
@@ -182,7 +182,7 @@ test('sign-out clears hosted rule and receipt data immediately', async ({ page }
   await installAuthMock(page, { session: authMockSession() });
   await page.route('**/api/monitoring**', route => route.fulfill({ json: monitoringFixture() }));
   await openLiveMonitoring(page);
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await expect(panel.getByRole('button', { name: 'Update live rule' })).toBeVisible();
   await page.evaluate(key => {
     localStorage.removeItem(key); const channel = new BroadcastChannel(key);
@@ -207,7 +207,7 @@ test('saved live rules remain manageable when provider discovery fails on a cold
   });
   await page.goto(`/app?protocol=velocity&authority=${AUTHORITY}`);
   await expect(page.getByRole('main').getByText('Public provider unavailable.', { exact: true })).toBeVisible();
-  const panel = page.getByRole('region', { name: 'Know when headroom changes.' });
+  const panel = page.getByRole('region', { name: 'Know when margin risk changes.' });
   await panel.getByRole('combobox', { name: 'Saved live rule' }).click();
   await page.getByRole('option', { name: /Enabled/ }).click();
   await expect(panel.getByRole('button', { name: 'Update live rule' })).toBeEnabled();

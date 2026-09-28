@@ -86,7 +86,7 @@ begin
     or coalesce(result->>'mode','') not in ('dry_run','send')
     or coalesce(jsonb_typeof(result->'available'),'') not in ('boolean','null')
     or (result->'delivery'<>'null'::jsonb and (jsonb_typeof(result->'delivery') is distinct from 'string'
-      or result->>'delivery' not in ('suppressed','failed','accepted_by_provider','unknown_outcome')))
+      or result->>'delivery' not in ('suppressed','failed','accepted_by_provider','delivered','unknown_outcome')))
     or (result->'receipt'<>'null'::jsonb and (jsonb_typeof(result->'receipt') is distinct from 'string'
       or result->>'receipt' not in ('destination_unavailable','delivered','pending','permanent'))) then
     raise exception 'Buffer scheduler acknowledgement is invalid';

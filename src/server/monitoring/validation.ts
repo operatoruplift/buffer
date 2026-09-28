@@ -2,7 +2,9 @@ import { MONITORING_UUID, type MonitoringRuleInput, type MonitoringRulePatch } f
 import { validateAuthority } from '@/server/boundary';
 import { MonitoringFailure } from './repository';
 
-const FIELDS = ['authority', 'subaccountId', 'direction', 'threshold', 'cadenceMinutes', 'timezone', 'cooldownMinutes', 'hysteresis', 'destinationId', 'enabled'];
+const REQUIRED = ['authority', 'subaccountId', 'direction', 'threshold', 'cadenceMinutes', 'timezone', 'cooldownMinutes', 'hysteresis', 'destinationId', 'enabled'];
+const FIELDS = [...REQUIRED, 'metric', 'market'];
+const MARKET = /^[A-Z0-9]{1,16}-PERP$/;
 const DECIMAL = /^-?(?:0|[1-9]\d{0,17})(?:\.\d{1,8})?$/;
 const POSITIVE = /^(?:0|[1-9]\d{0,17})(?:\.\d{1,8})?$/;
 const bad = () => new MonitoringFailure('INVALID_RULE', 'Use a complete Velocity rule, valid numeric bounds, timezone, and verified destination.', 400);
@@ -11,7 +13,9 @@ export function validateRuleInput(value: unknown, partial = false): MonitoringRu
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw bad();
   const input = value as Record<string, unknown>;
   const keys = Object.keys(input);
-  if (!keys.length || keys.some(key => !FIELDS.includes(key)) || (!partial && FIELDS.some(field => !(field in input))) || (partial && ('authority' in input || 'subaccountId' in input))) throw bad();
+  if (!keys.length || keys.some(key => !FIELDS.includes(key)) || (!partial && REQUIRED.some(field => !(field in input))) || (partial && ('authority' in input || 'subaccountId' in input || 'metric' in input || 'market' in input))) throw bad();
+  if ('metric' in input && input.metric !== 'maintenance_headroom' && input.metric !== 'liquidation_distance') throw bad();
+  if (input.metric === 'liquidation_distance' ? typeof input.market !== 'string' || !MARKET.test(input.market) : 'market' in input) throw bad();
   if ('authority' in input) { if (typeof input.authority !== 'string') throw bad(); try { if (validateAuthority(input.authority) !== input.authority) throw bad(); } catch { throw bad(); } }
   if ('subaccountId' in input && (!Number.isSafeInteger(input.subaccountId) || Number(input.subaccountId) < 0 || Number(input.subaccountId) > 65535)) throw bad();
   if ('direction' in input && input.direction !== 'above' && input.direction !== 'below') throw bad();

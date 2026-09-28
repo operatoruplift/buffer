@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { evaluateHostedRule, runMonitoringWorker } from '../src/server/monitoring/coordinator';
 import type { DbRule, DbWork, WorkerRepository } from '../src/server/monitoring/repository';
 import type { DiscordAdapter } from '../src/server/monitoring/discord';
+import type { NotificationAdapter } from '../src/server/monitoring/notification';
 import { getSampleSnapshot } from '../src/lib/samples';
 import { PROTOCOLS } from '../src/lib/protocols';
 
@@ -9,7 +10,7 @@ const at = new Date('2026-09-20T01:00:00.000Z');
 const owner = '00000000-0000-4000-8000-000000000001';
 const ruleId = '00000000-0000-4000-8000-000000000002';
 const destinationId = '00000000-0000-4000-8000-000000000003';
-const rule: DbRule = { id: ruleId, owner_id: owner, authority: '11111111111111111111111111111111', subaccount_id: 0, version: 1, threshold: '300', direction: 'below', cadence_minutes: 1, timezone: 'UTC', cooldown_minutes: 5, hysteresis: '10', destination_id: destinationId, enabled: true, last_attempt_at: at.toISOString(), last_fresh_check: null, input_expires_at: null, next_check: null, monitoring_state: 'configured', last_error: null, created_at: at.toISOString(), updated_at: at.toISOString(), check_token: destinationId, runtime_state: null };
+const rule: DbRule = { id: ruleId, owner_id: owner, authority: '11111111111111111111111111111111', subaccount_id: 0, version: 1, metric: 'maintenance_headroom', unit: 'USD', market: null, threshold: '300', direction: 'below', cadence_minutes: 1, timezone: 'UTC', cooldown_minutes: 5, hysteresis: '10', destination_id: destinationId, enabled: true, last_attempt_at: at.toISOString(), last_fresh_check: null, input_expires_at: null, next_check: null, monitoring_state: 'configured', last_error: null, created_at: at.toISOString(), updated_at: at.toISOString(), check_token: destinationId, runtime_state: null };
 function snapshot() { return { ...getSampleSnapshot('long-short'), protocol: PROTOCOLS.velocity, source: 'live' as const, network: 'mainnet-beta' as const, authority: rule.authority, subaccount: { id: 0, name: 'Primary', address: rule.authority }, retrievedAt: at.toISOString(), expiresAt: new Date(at.getTime() + 120000).toISOString(), risk: { scope: 'cross-margin' as const, totalCollateral: '1200', maintenanceRequirement: '950', maintenanceHeadroom: '250', canBeLiquidated: false, status: 'clear' as const, explanation: 'Current SDK observation.' } }; }
 const work: DbWork = { outbox: { id: '00000000-0000-4000-8000-000000000004', owner_id: owner, lease_token: destinationId, attempts: 0 }, destination: { id: destinationId, owner_id: owner, config_ref: destinationId, provider: 'discord', fingerprint: 'a'.repeat(64), label: 'Test destination', masked_destination: 'Discord …0123', enabled: true, verified_at: at.toISOString() },
   event: { id: '00000000-0000-4000-8000-000000000005', rule_id: ruleId, rule_version: 1, owner_id: owner, state: 'queued', observed_at: at.toISOString(), value: '250', threshold: '300', reason: 'Threshold crossed.', accepted_at: null, delivered_at: null, provider_message_id: null, provider_channel_id: null, content_hash: null, destination_fingerprint: 'a'.repeat(64), preview: null,
@@ -17,7 +18,7 @@ const work: DbWork = { outbox: { id: '00000000-0000-4000-8000-000000000004', own
 function setup(responses: Record<string, unknown> = {}) {
   const calls: Array<{ action: string; data?: Record<string, unknown> }> = [];
   const repository: WorkerRepository = { async command<T>(action: string, data?: Record<string, unknown>) { calls.push({ action, data }); if (action === 'next_work') return (responses.next_work ?? (data?.sendEnabled ? responses.claim_receipt ? { kind: 'receipt', work: responses.claim_receipt } : { kind: 'delivery', work } : { kind: 'check', work: rule })) as T; return ({ start: { duplicate: false }, claim_check: rule, complete_check: { available: true }, claim_delivery: work, claim_receipt: null, begin_send: { send: true }, ...responses }[action]) as T; } };
-  const adapter: DiscordAdapter = { listDestinations: vi.fn<DiscordAdapter['listDestinations']>(() => [{ id: destinationId, provider: 'discord', label: 'Test destination', maskedDestination: 'Discord …0123', fingerprint: 'a'.repeat(64) }]), preview: vi.fn<DiscordAdapter['preview']>(() => ({ destination: { id: destinationId, provider: 'discord', label: 'Test destination', maskedDestination: 'Discord …0123', fingerprint: 'a'.repeat(64) }, content: 'Verified event preview', contentHash: 'a'.repeat(64) })), verifyDestination: vi.fn(), send: vi.fn<DiscordAdapter['send']>(async (_owner, _destination, _event, beforePost) => { if (beforePost && !await beforePost()) return { kind: 'permanent', errorCode: 'DELIVERY_CANCELLED' }; return { kind: 'accepted', messageId: '123456789012345678', channelId: '234567890123456789', contentHash: 'a'.repeat(64), acceptedAt: at.toISOString() }; }), receipt: vi.fn<DiscordAdapter['receipt']>(async () => ({ kind: 'delivered', messageId: '123456789012345678', channelId: '234567890123456789', contentHash: 'a'.repeat(64), receivedAt: at.toISOString() })) };
+  const adapter: NotificationAdapter = { listDestinations: vi.fn<NotificationAdapter['listDestinations']>(() => [{ id: destinationId, provider: 'discord', label: 'Test destination', maskedDestination: 'Discord …0123', fingerprint: 'a'.repeat(64) }]), preview: vi.fn<NotificationAdapter['preview']>(() => ({ destination: { id: destinationId, provider: 'discord', label: 'Test destination', maskedDestination: 'Discord …0123', fingerprint: 'a'.repeat(64) }, content: 'Verified event preview', contentHash: 'a'.repeat(64) })), verifyDestination: vi.fn(), send: vi.fn<DiscordAdapter['send']>(async (_owner, _destination, _event, beforePost) => { if (beforePost && !await beforePost()) return { kind: 'permanent', errorCode: 'DELIVERY_CANCELLED' }; return { kind: 'accepted', messageId: '123456789012345678', channelId: '234567890123456789', contentHash: 'a'.repeat(64), acceptedAt: at.toISOString() }; }), receipt: vi.fn<DiscordAdapter['receipt']>(async () => ({ kind: 'delivered', messageId: '123456789012345678', channelId: '234567890123456789', contentHash: 'a'.repeat(64), receivedAt: at.toISOString() })) };
   return { calls, repository, adapter, snapshot: vi.fn(async () => snapshot()), sendEnabled: false, now: () => at };
 }
 describe('hosted monitoring coordinator', () => {
@@ -112,5 +113,36 @@ describe('hosted monitoring coordinator', () => {
     expect(deps.calls.find(call => call.action === 'next_work')?.data).toMatchObject({ ownerId: owner, ruleId, sendEnabled: false });
     expect(result.available).toBe(false);
     expect(deps.calls.find(call => call.action === 'complete_check')?.data).not.toHaveProperty('monitor');
+  });
+});
+
+describe('hosted liquidation-distance rules', () => {
+  const distance: DbRule = { ...rule, id: destinationId, metric: 'liquidation_distance', unit: '%', market: 'SOL-PERP', threshold: '20', hysteresis: '1' };
+  const modeled = () => { const input = snapshot(); return { ...input, positions: input.positions.map(position => ({ ...position, maintenanceMarginRatio: '0.05' })) }; };
+  it('binds the observation to the rule metric, unit and market and reports the unsigned distance', () => {
+    const evaluated = evaluateHostedRule(distance, modeled(), at);
+    if (!('event' in evaluated) || !evaluated.event) throw new Error('Expected an event');
+    expect(evaluated.observation).toMatchObject({ metric: 'liquidation_distance', unit: '%', market: 'SOL-PERP', direction: 'below' });
+    expect(Number(evaluated.event.value)).toBeGreaterThan(0);
+    expect(Number(evaluated.event.value)).toBeLessThanOrEqual(20);
+    const headroom = evaluateHostedRule(rule, modeled(), at);
+    expect(headroom).toHaveProperty('observation.metric', 'maintenance_headroom');
+    expect(headroom).not.toHaveProperty('observation.market');
+  });
+  it('reports a fresh observation without the named market as unavailable instead of a rejected monitor state', () => {
+    const closed = evaluateHostedRule({ ...distance, market: 'ETH-PERP' }, modeled(), at);
+    expect(closed).toEqual({ ruleId: destinationId, token: distance.check_token, version: 1, problem: 'No open ETH-PERP position was observed for this account.' });
+    const unverified = evaluateHostedRule(distance, snapshot(), at);
+    expect(unverified).toHaveProperty('problem');
+    expect(unverified).not.toHaveProperty('monitor');
+  });
+  it('records a signed webhook acknowledgement as delivered without a receipt pass', async () => {
+    const deps = setup(); deps.sendEnabled = true;
+    vi.mocked(deps.adapter.listDestinations).mockReturnValue([{ id: destinationId, provider: 'webhook', label: 'Risk desk', maskedDestination: 'Webhook alerts.example.com', fingerprint: 'a'.repeat(64) }]);
+    vi.mocked(deps.adapter.send).mockImplementation(async (_owner, _destination, _event, beforePost) => { await beforePost?.(); return { kind: 'accepted', messageId: 'ack-7', channelId: 'webhook', contentHash: 'a'.repeat(64), acceptedAt: at.toISOString() }; });
+    const result = await runMonitoringWorker(deps, { runKey: 'cron:1' });
+    expect(result.delivery).toBe('delivered');
+    expect(deps.calls.find(call => call.action === 'finish_send')?.data).toMatchObject({ state: 'delivered', messageId: 'ack-7', channelId: 'webhook' });
+    expect(deps.adapter.receipt).not.toHaveBeenCalled();
   });
 });

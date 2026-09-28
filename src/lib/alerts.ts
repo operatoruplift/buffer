@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import type { Snapshot } from './types';
 import { isCanonicalProtocol } from './protocols.ts';
+import { estimateLiquidationPrices } from './risk/liquidation.ts';
 
 // Two 128-character decimal inputs may require 256 significant digits when
 // their integer and fractional scales differ. Never round a recovery boundary.
@@ -12,7 +13,15 @@ export const ALERT_LEASE_MS = 30_000;
 export const ALERT_MAX_INPUT_AGE_MS = 120_000;
 export const ALERT_MAX_ATTEMPTS = 3;
 
-export type AlertMetric = 'maintenance_headroom';
+export type AlertMetric = 'maintenance_headroom' | 'liquidation_distance';
+export type AlertUnit = 'USD' | '%';
+/** Each metric has one unit and a default recovery distance in that unit. */
+export const ALERT_METRICS: Record<AlertMetric, { unit: AlertUnit; label: string; defaultHysteresis: string }> = {
+  maintenance_headroom: { unit: 'USD', label: 'Maintenance headroom', defaultHysteresis: '10' },
+  liquidation_distance: { unit: '%', label: 'Liquidation distance', defaultHysteresis: '1' },
+};
+export const ALERT_MARKET = /^[A-Z0-9]{1,16}-PERP$/;
+export const isAlertMetric = (value: unknown): value is AlertMetric => typeof value === 'string' && Object.hasOwn(ALERT_METRICS, value);
 export type AlertDirection = 'below' | 'above';
 export type AlertEventState = 'queued' | 'claimed' | 'delivered' | 'failed' | 'suppressed';
 
@@ -21,6 +30,8 @@ export interface AlertRule {
   metric: AlertMetric; direction: AlertDirection; threshold: string; cadenceMinutes: number;
   timezone: string; destination: 'mock'; enabled: boolean; createdAt: string; updatedAt: string;
   cooldownMinutes?: number; hysteresis?: string;
+  /** Perpetual market symbol; present only for liquidation_distance rules. */
+  market?: string | null;
 }
 export interface AlertEvent {
   id: string; key: string; ruleId: string; ruleVersion: number; ownerId: string; state: AlertEventState;
@@ -56,11 +67,32 @@ const uuid = (value: unknown): value is string => text(value, 80) && /^[a-z0-9-]
 const nullableIso = (value: unknown) => value === null || iso(value);
 const minutes = (value: unknown): value is number => integer(value) && value >= 1 && value <= 1440;
 const timezone = (value: unknown) => { try { return text(value, 80) && !!new Intl.DateTimeFormat('en-US', { timeZone: value }); } catch { return false; } };
+/** A headroom rule names no market; a liquidation-distance rule names exactly one perpetual. */
+export function metricScopeValid(rule: { metric?: unknown; market?: unknown }): boolean {
+  if (!isAlertMetric(rule.metric)) return false;
+  if (rule.metric === 'liquidation_distance') return text(rule.market, 24) && ALERT_MARKET.test(rule.market);
+  return rule.market === undefined || rule.market === null;
+}
+/** The observed metric for one rule, or why it is unavailable in this observation. */
+export function alertMetricValue(rule: Pick<AlertRule, 'metric' | 'market'>, snapshot: Snapshot, now = new Date()): { value: string } | { problem: string } {
+  if (rule.metric === 'maintenance_headroom') return { value: snapshot.risk!.maintenanceHeadroom! };
+  const report = estimateLiquidationPrices(snapshot, now.getTime());
+  if (report.disabledReason) return { problem: report.disabledReason };
+  const estimate = report.estimates.find(item => item.market === rule.market);
+  if (!estimate) {
+    const excluded = report.excluded.find(item => item.market === rule.market);
+    return { problem: excluded ? `${rule.market}: ${excluded.reason}` : `No open ${rule.market} position was observed for this account.` };
+  }
+  if (estimate.distancePercent === null) return { problem: `${rule.market}: ${estimate.reason ?? 'no positive liquidation boundary.'}` };
+  // Unsigned distance: how far the oracle must move, in percent of the current price, to reach the estimated boundary.
+  return { value: new Exact(estimate.distancePercent).abs().toFixed() };
+}
+export const alertMetricLabel = (rule: Pick<AlertRule, 'metric' | 'market'>) => `${ALERT_METRICS[rule.metric].label}${rule.market ? ` ${rule.market}` : ''}`;
 function validRule(value: unknown): value is AlertRule {
   if (!value || typeof value !== 'object') return false;
   const rule = value as Record<string, unknown>;
   return uuid(rule.id) && integer(rule.version) && rule.version > 0 && text(rule.ownerId, 160) && text(rule.authority, 64) &&
-    integer(rule.subaccountId) && rule.subaccountId >= 0 && rule.subaccountId <= 65535 && rule.metric === 'maintenance_headroom' &&
+    integer(rule.subaccountId) && rule.subaccountId >= 0 && rule.subaccountId <= 65535 && metricScopeValid(rule) &&
     (rule.direction === 'below' || rule.direction === 'above') && decimal(rule.threshold) && minutes(rule.cadenceMinutes) &&
     timezone(rule.timezone) && rule.destination === 'mock' && typeof rule.enabled === 'boolean' && iso(rule.createdAt) && iso(rule.updatedAt) &&
     (rule.cooldownMinutes === undefined || minutes(rule.cooldownMinutes)) &&
@@ -168,7 +200,9 @@ export function evaluateAlerts(input: AlertStore, snapshot: Snapshot, ownerId: s
     monitor.status = monitor.breached ? 'breached' : 'ready'; monitor.reason = null;
     if (monitor.nextCheckAt && Date.parse(monitor.nextCheckAt) > now.getTime()) continue;
     monitor.nextCheckAt = new Date(now.getTime() + rule.cadenceMinutes * 60_000).toISOString();
-    const value = new Exact(snapshot.risk!.maintenanceHeadroom!);
+    const observed = alertMetricValue(rule, snapshot, now);
+    if ('problem' in observed) { monitor.status = 'unavailable'; monitor.reason = observed.problem; continue; }
+    const value = new Exact(observed.value);
     const threshold = new Exact(rule.threshold);
     const crossed = rule.direction === 'below' ? value.lte(threshold) : value.gte(threshold);
     const gap = new Exact(rule.hysteresis ?? '10');
@@ -181,7 +215,7 @@ export function evaluateAlerts(input: AlertStore, snapshot: Snapshot, ownerId: s
     const key = `${rule.id}:${rule.version}:episode-${monitor.episode}:${rule.metric}:${rule.direction}`;
     if (store.events.some(event => event.key === key)) { monitor.triggeredEpisode = monitor.episode; continue; }
     const eventId = id('event');
-    store.events.push({ id: eventId, key, ruleId: rule.id, ruleVersion: rule.version, ownerId, state: 'queued', observedAt: snapshot.retrievedAt, value: value.toFixed(), threshold: threshold.toFixed(), reason: `${rule.metric} is ${rule.direction} the configured threshold.` });
+    store.events.push({ id: eventId, key, ruleId: rule.id, ruleVersion: rule.version, ownerId, state: 'queued', observedAt: snapshot.retrievedAt, value: value.toFixed(), threshold: threshold.toFixed(), reason: `${alertMetricLabel(rule)} is ${rule.direction} the configured threshold.` });
     store.outbox.push({ id: id('outbox'), eventId, ownerId, state: 'pending', attempts: 0 });
     monitor.triggeredEpisode = monitor.episode; monitor.lastTriggeredAt = at(now);
   }
@@ -272,9 +306,11 @@ export function deleteAlertRule(input: AlertStore, ruleId: string, ownerId: stri
   invalidateQueued(store, ownerId);
   return store;
 }
-type RuleInput = Pick<AlertRule, 'ownerId' | 'authority' | 'subaccountId' | 'direction' | 'threshold' | 'cadenceMinutes' | 'timezone'> & Partial<Pick<AlertRule, 'cooldownMinutes' | 'hysteresis'>>;
+type RuleInput = Pick<AlertRule, 'ownerId' | 'authority' | 'subaccountId' | 'direction' | 'threshold' | 'cadenceMinutes' | 'timezone'> & Partial<Pick<AlertRule, 'cooldownMinutes' | 'hysteresis' | 'metric' | 'market'>>;
 export function createAlertRule(input: RuleInput, now = new Date()): AlertRule {
-  const rule: AlertRule = { ...input, id: id('rule'), version: 1, metric: 'maintenance_headroom', destination: 'mock', enabled: true, createdAt: at(now), updatedAt: at(now), cooldownMinutes: input.cooldownMinutes ?? input.cadenceMinutes, hysteresis: input.hysteresis ?? '10' };
+  const metric: AlertMetric = input.metric ?? 'maintenance_headroom';
+  const { market, ...rest } = input;
+  const rule: AlertRule = { ...rest, id: id('rule'), version: 1, metric, destination: 'mock', enabled: true, createdAt: at(now), updatedAt: at(now), cooldownMinutes: input.cooldownMinutes ?? input.cadenceMinutes, hysteresis: input.hysteresis ?? ALERT_METRICS[metric].defaultHysteresis, ...(market !== undefined ? { market } : {}) };
   if (!validRule(rule)) throw new Error('Invalid alert rule or timezone.');
   rule.threshold = new Exact(rule.threshold).toFixed();
   return rule;
@@ -284,7 +320,7 @@ export function updateAlertRule(input: AlertStore, ruleId: string, ownerId: stri
   const index = store.rules.findIndex(rule => rule.id === ruleId && rule.ownerId === ownerId);
   if (index < 0) return store;
   const previous = store.rules[index];
-  const next = { ...previous, ...patch, id: previous.id, ownerId, metric: previous.metric, destination: previous.destination, version: previous.version + 1, updatedAt: at(now) };
+  const next = { ...previous, ...patch, id: previous.id, ownerId, metric: previous.metric, market: previous.market, destination: previous.destination, version: previous.version + 1, updatedAt: at(now) };
   if (!validRule(next)) throw new Error('Invalid alert rule or timezone.');
   store.rules[index] = next;
   store.monitors = store.monitors.filter(monitor => monitor.ruleId !== ruleId || monitor.ownerId !== ownerId);

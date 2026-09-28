@@ -3,7 +3,8 @@ import type { Position, Scenario, Snapshot } from './types';
 import { hasConfiguredPerpIdentity } from './perp-markets';
 
 /** Additional app freshness limit, not a protocol oracle or liquidation rule. */
-export const FRESHNESS_SECONDS = 120;
+import { FRESHNESS_SECONDS } from './freshness.ts';
+export { FRESHNESS_SECONDS };
 
 export const ASSUMPTIONS = [
   'Position sizes are fixed; the selected percentage move applies together to all eligible, verified linear perpetual oracle prices.',

@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 import type { Position, RiskContext, Snapshot } from '../types';
-import { FRESHNESS_SECONDS } from '../scenario';
+import { FRESHNESS_SECONDS } from '../freshness.ts';
 
 /**
  * A narrow, separately versioned liquidation estimate for one cross-margin

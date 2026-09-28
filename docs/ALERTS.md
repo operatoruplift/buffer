@@ -2,7 +2,7 @@
 
 Updated September 20, 2026. This runbook separates local rehearsal, hosted dry runs, and configured Discord sending. The current evidence and outstanding gates are in [the integration matrix](BUFFER-INTEGRATION-STATUS.md).
 
-Buffer checks **observed Velocity cross-margin maintenance headroom in USD**. It does not alert on the price slider or an estimated liquidation price. A rule binds an authenticated cloud owner, Solana authority/subaccount, provider/network, exact threshold and direction, cadence, timezone, cooldown, hysteresis, destination reference, enabled state, and version. Watching a public address does not prove ownership or require signing.
+Buffer checks **observed Velocity cross-margin maintenance headroom in USD**, or, since 28 September 2026, the **unsigned distance in percent from the current oracle to one position's estimated liquidation price** (model `cross-margin-hold-others-v1`, see [WEBHOOK-ALERTS.md](WEBHOOK-ALERTS.md)). It never alerts on the price slider. A rule binds an authenticated cloud owner, Solana authority/subaccount, provider/network, metric (and market for liquidation distance), exact threshold and direction, cadence, timezone, cooldown, hysteresis, destination reference (Discord or signed webhook), enabled state, and version. Watching a public address does not prove ownership or require signing.
 
 ## Two disjoint experiences
 

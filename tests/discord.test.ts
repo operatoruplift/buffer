@@ -110,6 +110,11 @@ describe('Discord notification and receipt provenance', () => {
     expect(preview.content).toContain('Velocity / Solana mainnet | Maintenance headroom');
     expect(preview.content).toContain('Account: 8vXZ…b9aw');
     expect(preview.content.split('\n').find(line => line.startsWith('Account:'))).not.toContain(event.authority);
+    const distance = adapter.preview(owner, destination, { ...event, metric: 'liquidation_distance', unit: '%', market: 'SOL-PERP', value: '4.25', threshold: '5' });
+    expect(distance.content).toContain('Velocity / Solana mainnet | Liquidation distance SOL-PERP');
+    expect(distance.content).toContain('Observed: 4.25 %');
+    expect(distance.content).toContain('Threshold: at or below 5 %');
+    for (const invalid of [{ ...event, metric: 'liquidation_distance' as const, unit: '%' as const }, { ...event, market: 'SOL-PERP' }, { ...event, metric: 'liquidation_distance' as const, unit: 'USD' as const, market: 'SOL-PERP' }]) expect(() => adapter.preview(owner, destination, invalid)).toThrow();
     expect(preview.content).not.toMatch(/@|<@|\*\*|\u202e|https:\/\/evil/);
     expect(preview.content).toContain(`https://bufferonsolana.vercel.app/app?protocol=velocity&authority=${event.authority}&subaccount=0&alert=${event.eventId}#monitoring`);
     expect(preview.content).toContain(`Event: ${event.eventId}`);

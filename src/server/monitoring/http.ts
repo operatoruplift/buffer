@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { MonitoringDeliveryState, MonitoringOverview } from '@/lib/monitoring';
 import { resolveProvider } from '@/server/providers';
 import { consumeSharedLimit } from '@/server/rate-limit';
-import { createDiscordAdapter } from './discord';
+import { createNotificationAdapter } from './notification';
 import { notificationEvent, runMonitoringWorker } from './coordinator';
 import { authenticateMonitoring, monitoringConfigured, MonitoringFailure, ownerRpc, sendsEnabled, workerRepository, type DbOverview } from './repository';
 import { readRuleBody, validateRuleId, validateRuleInput } from './validation';
@@ -25,24 +25,28 @@ async function ingress(request: Request) {
   if (limit && !limit.allowed) throw new MonitoringFailure('RATE_LIMITED', 'Too many monitoring requests. Wait a minute and retry.', 429, true);
 }
 async function overview(ownerId: string, client: SupabaseClient, verify = false): Promise<MonitoringOverview> {
-  const adapter = createDiscordAdapter();
+  const adapter = createNotificationAdapter();
   const configured = monitoringConfigured();
   let raw = await ownerRpc<DbOverview>(client, 'buffer_monitor_status');
   const configuredDestinations = adapter.listDestinations(ownerId);
   if (verify && configured) {
-    // One platform-admin destination per owner, with provider ownership verified
-    // by a metadata GET. No POST notification is sent by configuration/status.
-    const descriptor = configuredDestinations[0];
-    const existing = raw.destinations.find(item => item.config_ref === descriptor?.id);
-    if (descriptor && (!existing || existing.fingerprint !== descriptor.fingerprint || !existing.enabled || !existing.verified_at || Date.now() - Date.parse(existing.verified_at) > 3_600_000)) {
+    // One platform-admin destination per owner and provider. Discord ownership is verified
+    // by a metadata GET; a webhook is verified by configuration policy. No POST notification
+    // is sent by configuration/status.
+    let changed = false;
+    for (const provider of ['discord', 'webhook'] as const) {
+      const descriptor = configuredDestinations.find(item => item.provider === provider);
+      const existing = raw.destinations.find(item => item.config_ref === descriptor?.id);
+      if (!descriptor || existing && existing.fingerprint === descriptor.fingerprint && existing.enabled && existing.verified_at && Date.now() - Date.parse(existing.verified_at) <= 3_600_000) continue;
       const verification = await adapter.verifyDestination(ownerId, descriptor.id);
       if (verification.kind === 'verified') {
-        await workerRepository().command('destination', { ownerId, configRef: descriptor.id, fingerprint: verification.fingerprint, label: descriptor.label, maskedDestination: descriptor.maskedDestination });
-      } else if (existing && verification.kind === 'permanent') await workerRepository().command('destination_unavailable', { ownerId });
-      raw = await ownerRpc<DbOverview>(client, 'buffer_monitor_status');
+        await workerRepository().command('destination', { ownerId, provider, configRef: descriptor.id, fingerprint: verification.fingerprint, label: descriptor.label, maskedDestination: descriptor.maskedDestination });
+        changed = true;
+      } else if (existing && verification.kind === 'permanent') { await workerRepository().command('destination_unavailable', { ownerId, provider }); changed = true; }
     }
+    if (changed) raw = await ownerRpc<DbOverview>(client, 'buffer_monitor_status');
   }
-  const destinations = raw.destinations.map(item => ({ id: item.id, provider: 'discord' as const, label: item.label, maskedDestination: item.masked_destination,
+  const destinations = raw.destinations.map(item => ({ id: item.id, provider: item.provider, label: item.label, maskedDestination: item.masked_destination,
     verifiedAt: item.verified_at, enabled: item.enabled && configuredDestinations.some(descriptor => descriptor.id === item.config_ref && descriptor.fingerprint === item.fingerprint) }));
   const available = destinations.some(item => item.enabled && item.verifiedAt !== null);
   const heartbeat = raw.heartbeat;
@@ -57,11 +61,11 @@ async function overview(ownerId: string, client: SupabaseClient, verify = false)
   const state = (value: string): MonitoringDeliveryState => value === 'claimed' ? 'queued' : value as MonitoringDeliveryState;
   return {
     capability: { configured, sendEnabled: sendsEnabled(), destinationAvailable: available,
-      message: !configured ? 'Background monitoring is awaiting server configuration.' : !available ? 'An administrator must connect a verified Discord destination for this account.' : !sendsEnabled() ? 'Rules and fresh checks are available. Outbound delivery is awaiting activation.' : 'Discord monitoring is configured. Check the worker heartbeat and message receipt below.' },
+      message: !configured ? 'Background monitoring is awaiting server configuration.' : !available ? 'An administrator must connect a verified Discord or signed webhook destination for this account.' : !sendsEnabled() ? 'Rules and fresh checks are available. Outbound delivery is awaiting activation.' : 'Notification delivery is configured. Check the worker heartbeat and delivery receipts below.' },
     heartbeat: { lastRunAt: heartbeat?.started_at ?? null, lastCompletedAt: heartbeat?.completed_at ?? null, status: !heartbeat ? 'awaiting_activation' : healthy ? 'healthy' : 'unavailable', mode: heartbeat?.mode ?? 'dry_run' },
     destinations,
     rules: raw.rules.map(rule => ({ id: rule.id, version: rule.version, authority: rule.authority, subaccountId: rule.subaccount_id,
-      provider: 'velocity', network: 'mainnet-beta', metric: 'maintenance_headroom', unit: 'USD', direction: rule.direction, threshold: String(rule.threshold),
+      provider: 'velocity', network: 'mainnet-beta', metric: rule.metric, unit: rule.unit, market: rule.market ?? null, direction: rule.direction, threshold: String(rule.threshold),
       cadenceMinutes: rule.cadence_minutes, timezone: rule.timezone, cooldownMinutes: rule.cooldown_minutes, hysteresis: String(rule.hysteresis),
       destinationId: rule.destination_id, enabled: rule.enabled, monitoringState: rule.monitoring_state, lastAttemptAt: rule.last_attempt_at,
       lastFreshCheck: rule.last_fresh_check, inputExpiresAt: rule.input_expires_at, nextCheckAt: rule.next_check, lastError: rule.last_error,
@@ -89,7 +93,7 @@ export async function freshMonitoringCheck(request: Request, id: string) { retur
   const session = await authenticateMonitoring(request); const ruleId = validateRuleId(id);
   const raw = await ownerRpc<DbOverview>(session.client, 'buffer_monitor_status');
   if (!raw.rules.some(rule => rule.id === ruleId && rule.enabled)) throw new MonitoringFailure('RULE_NOT_FOUND', 'An enabled rule for this account is required.', 404);
-  const result = await runMonitoringWorker({ repository: workerRepository(), adapter: createDiscordAdapter(), sendEnabled: false, notificationMode: process.env.BUFFER_ALERT_NOTIFICATION_MODE === 'production' ? 'production' : 'test',
+  const result = await runMonitoringWorker({ repository: workerRepository(), adapter: createNotificationAdapter(), sendEnabled: false, notificationMode: process.env.BUFFER_ALERT_NOTIFICATION_MODE === 'production' ? 'production' : 'test',
     snapshot: async (authority, subaccount) => (await resolveProvider('velocity')).snapshot(authority, subaccount) }, { runKey: `manual:${randomUUID()}`, ownerId: session.ownerId, ruleId });
   if (!result.checked) throw new MonitoringFailure('CHECK_NOT_DUE', 'A check is already running or this rule was checked within the last minute.', 429, true);
   return response(await overview(session.ownerId, session.client));
@@ -105,7 +109,7 @@ export function validCronAuthorization(request: Request): boolean {
 export async function scheduledMonitoring(request: Request) { return safe(async () => {
   if (!validCronAuthorization(request)) throw new MonitoringFailure('WORKER_AUTH_REQUIRED', 'A valid scheduler credential is required.', 401);
   // The database admits one scheduled invocation per minute across all instances.
-  const result = await runMonitoringWorker({ repository: workerRepository(), adapter: createDiscordAdapter(), sendEnabled: sendsEnabled(), notificationMode: process.env.BUFFER_ALERT_NOTIFICATION_MODE === 'production' ? 'production' : 'test',
+  const result = await runMonitoringWorker({ repository: workerRepository(), adapter: createNotificationAdapter(), sendEnabled: sendsEnabled(), notificationMode: process.env.BUFFER_ALERT_NOTIFICATION_MODE === 'production' ? 'production' : 'test',
     snapshot: async (authority, subaccount) => (await resolveProvider('velocity')).snapshot(authority, subaccount) }, { runKey: `cron:${Math.floor(Date.now() / 60_000)}` });
   return response(result);
 }); }
@@ -119,7 +123,7 @@ function monitoringResultHeader(value: unknown): string | null {
       typeof result.duplicate !== 'boolean' || typeof result.checked !== 'boolean' ||
       (result.available !== null && typeof result.available !== 'boolean') ||
       (result.mode !== 'dry_run' && result.mode !== 'send') ||
-      ![null, 'suppressed', 'failed', 'accepted_by_provider', 'unknown_outcome'].includes(result.delivery as string | null) ||
+      ![null, 'suppressed', 'failed', 'accepted_by_provider', 'delivered', 'unknown_outcome'].includes(result.delivery as string | null) ||
       ![null, 'destination_unavailable', 'delivered', 'pending', 'permanent'].includes(result.receipt as string | null)) return null;
   const encoded = JSON.stringify({ duplicate: result.duplicate, mode: result.mode, checked: result.checked,
     available: result.available, delivery: result.delivery, receipt: result.receipt });

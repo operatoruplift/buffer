@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import Decimal from 'decimal.js';
 const Exact = Decimal.clone({ precision: 260 });
-import { alertInputProblem, claimAlertWork, createAlertRule, decodeAlertStore, deleteAlertRule, emptyAlertStore, encodeAlertStore, evaluateAlerts, evaluateFixtureAlerts, finishAlertWork, parseAlertStore, pauseAlertRule, runAlertWorker, updateAlertRule } from '../src/lib/alerts';
+import { alertInputProblem, alertMetricValue, claimAlertWork, createAlertRule, decodeAlertStore, deleteAlertRule, emptyAlertStore, encodeAlertStore, evaluateAlerts, evaluateFixtureAlerts, finishAlertWork, parseAlertStore, pauseAlertRule, runAlertWorker, updateAlertRule } from '../src/lib/alerts';
+import { estimateLiquidationPrices } from '../src/lib/risk/liquidation';
 import { getSampleSnapshot } from '../src/lib/samples';
 import { PROTOCOLS } from '../src/lib/protocols';
 
@@ -159,5 +160,45 @@ describe('local threshold alert pipeline', () => {
     expect(() => initial({ timezone: 'Invalid/Zone' })).toThrow();
     const full = queued(); full.events.push(full.events[0]);
     expect(() => encodeAlertStore(full)).toThrow('Duplicate');
+  });
+});
+
+describe('liquidation-distance rules', () => {
+  // Live reads carry a verified maintenance ratio per position; the fixture adds one so the model can solve.
+  const modeled = (now = at) => { const snapshot = live('250', now); return { ...snapshot, positions: snapshot.positions.map(position => ({ ...position, maintenanceMarginRatio: '0.05' })) }; };
+  const distanceRule = (market = 'SOL-PERP', threshold = '20') => createAlertRule({ ownerId: owner, authority: '11111111111111111111111111111111', subaccountId: 0, metric: 'liquidation_distance', market, direction: 'below', threshold, cadenceMinutes: 1, cooldownMinutes: 5, timezone: 'UTC' }, at);
+  it('creates a liquidation rule only with one perpetual market and keeps headroom rules market-free', () => {
+    const rule = distanceRule();
+    expect(rule).toMatchObject({ metric: 'liquidation_distance', market: 'SOL-PERP', hysteresis: '1' });
+    expect(createAlertRule({ ownerId: owner, authority: rule.authority, subaccountId: 0, direction: 'below', threshold: '300', cadenceMinutes: 1, timezone: 'UTC' }, at)).not.toHaveProperty('market');
+    expect(() => distanceRule('sol-perp')).toThrow();
+    expect(() => createAlertRule({ ownerId: owner, authority: rule.authority, subaccountId: 0, metric: 'maintenance_headroom', market: 'SOL-PERP', direction: 'below', threshold: '300', cadenceMinutes: 1, timezone: 'UTC' }, at)).toThrow();
+    expect(() => parseAlertStore(JSON.stringify({ ...emptyAlertStore(), rules: [{ ...rule, market: undefined }] }))).toThrow();
+    expect(() => parseAlertStore(JSON.stringify({ ...emptyAlertStore(), rules: [{ ...rule, metric: 'maintenance_headroom' }] }))).toThrow();
+  });
+  it('observes the unsigned distance to the estimated boundary for the named market and queues one episode', () => {
+    const snapshot = modeled();
+    const estimate = estimateLiquidationPrices(snapshot, at.getTime()).estimates.find(item => item.market === 'SOL-PERP')!;
+    const expected = new Exact(estimate.distancePercent!).abs().toFixed();
+    expect(alertMetricValue({ metric: 'liquidation_distance', market: 'SOL-PERP' }, snapshot, at)).toEqual({ value: expected });
+    const store = evaluateAlerts({ ...emptyAlertStore(), rules: [distanceRule('SOL-PERP', '20'), distanceRule('BTC-PERP', '0.001')] }, snapshot, owner, at);
+    expect(new Exact(expected).lte(20)).toBe(true);
+    expect(store.events).toHaveLength(1);
+    expect(store.events[0]).toMatchObject({ value: expected, threshold: '20', reason: 'Liquidation distance SOL-PERP is below the configured threshold.' });
+    expect(store.monitors.find(item => item.ruleId === store.rules[1].id)).toMatchObject({ status: 'ready', breached: false });
+    // A second fresh observation inside the cadence and cooldown does not repeat the episode.
+    const again = evaluateAlerts(store, modeled(time(30)), owner, time(30));
+    expect(again.events).toHaveLength(1);
+  });
+  it('marks the monitor unavailable with the reason when the market has no current estimate, without an event', () => {
+    const snapshot = modeled();
+    const missing = evaluateAlerts({ ...emptyAlertStore(), rules: [distanceRule('ETH-PERP')] }, snapshot, owner, at);
+    expect(missing.events).toHaveLength(0);
+    expect(missing.monitors[0]).toMatchObject({ status: 'unavailable', reason: 'No open ETH-PERP position was observed for this account.', lastFreshCheck: at.toISOString() });
+    const unverified = evaluateAlerts({ ...emptyAlertStore(), rules: [distanceRule('SOL-PERP')] }, { ...snapshot, positions: snapshot.positions.map(position => ({ ...position, maintenanceMarginRatio: null })) }, owner, at);
+    expect(unverified.events).toHaveLength(0);
+    expect(unverified.monitors[0].reason).toContain('SOL-PERP: ');
+    const isolated = evaluateAlerts({ ...emptyAlertStore(), rules: [distanceRule('SOL-PERP')] }, { ...snapshot, positions: snapshot.positions.map(position => ({ ...position, isolated: true })) }, owner, at);
+    expect(isolated.monitors[0]).toMatchObject({ status: 'unavailable', lastFreshCheck: null });
   });
 });
