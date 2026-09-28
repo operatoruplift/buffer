@@ -32,11 +32,23 @@ The snapshot is bounded to 120 seconds, with earlier provider expiry respected b
 
 These limits are verified against installed source and deterministic characterization, not an assertion that the SDK matches every deployed program condition.
 
-## Why liquidation estimates stay unavailable
+## Liquidation estimate, model `cross-margin-hold-others-v1`
+
+Added 28 September 2026 in `src/lib/risk/liquidation.ts`, shown under the risk card for live Velocity reads only. For one position at a time it starts from the SDK's current maintenance collateral `C` and maintenance requirement `M`, holds every other oracle price, spot balance, open order, funding and fee where the provider observed them, and solves for the single oracle price `P` at which that position alone brings collateral down to the requirement:
+
+```text
+Collateral(P)  = C + s·(P − P0)
+Requirement(P) = M − |s|·r·P0 + |s|·r·P
+P_liq = (M − C + s·P0 − |s|·r·P0) / (s − |s|·r)
+```
+
+`s` is the signed base size, `P0` the valid baseline oracle price and `r` the market's maintenance margin ratio for that size, taken from the SDK's `calculateMarketMarginRatio(market, |s|, 'Maintenance')` and stored on the normalized position as a decimal fraction. The card shows the price, its distance from the baseline, and a reason whenever the boundary lies on the recovering side (collateral already below the requirement) or no positive price reaches it. Estimates are withheld for presets, expired snapshots, accounts with isolated positions, and any position whose oracle, size or ratio was not verified; `boundaryResidual` is the characterization used by the tests to show that collateral equals the requirement at the returned price. It inherits the SDK's weights, buffers and open-order handling through `C` and `M`; it is not the protocol's liquidation sequencing, and it is not a forecast.
+
+## Why the SDK's own liquidation extrapolation is still not used
 
 The installed SDK's `liquidationPrice` is explicitly a **linear extrapolation** from current free collateral and price sensitivity. It optionally includes shared spot-oracle sensitivity, defaults `includeOpenOrders` to false, and has a separate isolated path. It returns `BN(-1)` for no isolated calculation, zero sensitivity, or a negative computed price; that sentinel is not a price. Its free-collateral clamp, order handling, settlement state, confidence rules and collateral/oracle coupling require a narrow, separately versioned model before any estimate can be exposed.
 
-Buffer does not call this function or show a derived liquidation price/distance. Funding already accrued may enter SDK baseline P&L; future funding needs explicit time/rate assumptions and remains excluded. Jupiter remains inventory-only because current collateral-dependent capped payoff, oracle observations and fee/funding effects are not verified. Neither a spot quote nor a generic signed-size formula fills that gap.
+Buffer does not call this function. The estimate above is a separate model with its own version and stated assumptions. Funding already accrued may enter SDK baseline P&L; future funding needs explicit time/rate assumptions and remains excluded. Jupiter remains inventory-only because current collateral-dependent capped payoff, oracle observations and fee/funding effects are not verified. Neither a spot quote nor a generic signed-size formula fills that gap.
 
 ## Source capability matrix
 

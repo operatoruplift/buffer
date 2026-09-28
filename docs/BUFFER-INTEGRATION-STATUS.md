@@ -14,7 +14,7 @@ Updated September 20, 2026. This matrix belongs to the current integration pass.
 | Discord | One fixed-origin adapter, admin allowlist, metadata verification, preview | 77 contract tests passed; zero outbound requests | Rehearsal and receipt-state UI verified | **Not configured** | **Not run** | **Not run** | Worker verified separately above | Adapter deployed; sends disabled | 2026-09-19 19:10 | Exact channel, server-side webhook credential/owner mapping and authorized test send |
 
 
-No mock receipt, saved row, environment variable or HTTP 200 without validated data is counted as a live delivery. Discord “delivered” means a matching message was retrieved from the configured channel, not that a human read it. Signup/recovery SMTP is separately gated and remains disabled. Conditional liquidation estimates remain unimplemented because the SDK linear extrapolation is not a verified full stress model; observed maintenance context and scenario exclusions are retained.
+No mock receipt, saved row, environment variable or HTTP 200 without validated data is counted as a live delivery. Discord “delivered” means a matching message was retrieved from the configured channel, not that a human read it. Signup/recovery SMTP is separately gated and remains disabled. Liquidation estimates ship as model `cross-margin-hold-others-v1` (added 28 September 2026): one position at a time from the SDK’s current maintenance collateral and requirement, with every other price held. The SDK’s linear extrapolation is still not used; observed maintenance context and scenario exclusions are retained.
 
 ## Current demonstration
 

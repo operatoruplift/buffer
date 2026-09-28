@@ -70,6 +70,17 @@ function makeClient() {
   }) };
 }
 
+describe('maintenance margin ratio per position', () => {
+  it('normalizes the SDK size-aware maintenance ratio as a decimal fraction and withholds it when unavailable', () => {
+    const data = marketFixture(0);
+    const market = data.perps.get(0)! as PerpMarketAccount & { marginRatioMaintenance: number; marginRatioInitial: number; imfFactor: number; highLeverageMarginRatioMaintenance: number; highLeverageMarginRatioInitial: number };
+    market.marginRatioMaintenance = 500; market.marginRatioInitial = 1000; market.imfFactor = 0; market.highLeverageMarginRatioMaintenance = 0; market.highLeverageMarginRatioInitial = 0;
+    expect(normalizeSnapshot(data).positions[0].maintenanceMarginRatio).toBe('0.05');
+    market.marginRatioMaintenance = 0;
+    expect(normalizeSnapshot(data).positions[0].maintenanceMarginRatio).toBeNull();
+  });
+});
+
 describe('Velocity mainnet compatibility fixtures', () => {
   it('keeps the browser identity registry synchronized with all pinned Velocity markets', () => {
     expect(CONFIGURED_PERP_MARKETS.velocity).toEqual(MainnetPerpMarkets.filter((market) => market.symbol.endsWith('-PERP'))
