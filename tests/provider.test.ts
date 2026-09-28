@@ -84,7 +84,7 @@ describe('read API boundaries', () => {
     const resolver = vi.fn(async (protocol: ProtocolId) => protocol === 'velocity' ? velocity : drift);
     const response = await serveRead(new Request(`http://localhost/api/accounts?authority=${authority}&protocol=drift`), 'discovery', resolver);
     expect(response.status).toBe(200);
-    expect(resolver).toHaveBeenCalledWith('drift');
+    expect(resolver).toHaveBeenCalledWith('drift', 'mainnet-beta');
     expect(drift.discover).toHaveBeenCalledWith(authority);
     expect(velocity.discover).not.toHaveBeenCalled();
   });
@@ -93,7 +93,7 @@ describe('read API boundaries', () => {
     const resolver = vi.fn(async () => provider);
     const response = await serveRead(new Request(`http://localhost/api/accounts?authority=${authority}&protocol=pacifica`), 'discovery', resolver);
     expect(response.status).toBe(200);
-    expect(resolver).toHaveBeenCalledWith('pacifica');
+    expect(resolver).toHaveBeenCalledWith('pacifica', 'mainnet-beta');
     expect(provider.discover).toHaveBeenCalledWith(authority);
   });
   it('accepts canonical addresses and rejects malformed addresses', () => {

@@ -2,6 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import { consumeSharedLimit } from '@/server/rate-limit';
 import type { ApiError, Discovery, Snapshot } from '../lib/types';
 import type { ProtocolId } from '../lib/protocols';
+import type { LiveNetwork } from '../lib/networks';
 
 export class ProviderFailure extends Error {
   constructor(public readonly code: string, message: string, public readonly status = 502, public readonly retryable = true) {
@@ -54,15 +55,23 @@ export function validateProtocol(value: string | null): ProtocolId {
   throw new ProviderFailure('INVALID_PROTOCOL', 'Choose Velocity, Pacifica, Jupiter Perps, or legacy Drift.', 400, false);
 }
 
-export async function serveRead(request: Request, kind: 'discovery' | 'snapshot', provider: LiveProvider | ((protocol: ProtocolId) => Promise<LiveProvider>)): Promise<Response> {
+/** Devnet is offered for Velocity only; every other protocol reads mainnet or its public API. */
+export function validateNetwork(value: string | null, protocol: ProtocolId): LiveNetwork {
+  if (value === null || value === 'mainnet-beta') return 'mainnet-beta';
+  if (value === 'devnet' && protocol === 'velocity') return 'devnet';
+  throw new ProviderFailure('INVALID_NETWORK', value === 'devnet' ? 'Devnet reads are available for Velocity only.' : 'Choose Solana mainnet or, for Velocity, devnet.', 400, false);
+}
+
+export async function serveRead(request: Request, kind: 'discovery' | 'snapshot', provider: LiveProvider | ((protocol: ProtocolId, network: LiveNetwork) => Promise<LiveProvider>)): Promise<Response> {
   try {
     const params = new URL(request.url).searchParams;
-    const allowed = kind === 'snapshot' ? ['authority', 'subaccount', 'protocol'] : ['authority', 'protocol'];
+    const allowed = kind === 'snapshot' ? ['authority', 'subaccount', 'protocol', 'network'] : ['authority', 'protocol', 'network'];
     if ([...params.keys()].some((key) => !allowed.includes(key)) || allowed.some((key) => params.getAll(key).length > 1)) {
-      throw new ProviderFailure('INVALID_QUERY', 'Only a supported protocol, authority, and selected subaccount are accepted.', 400, false);
+      throw new ProviderFailure('INVALID_QUERY', 'Only a supported protocol, network, authority, and selected subaccount are accepted.', 400, false);
     }
     const authority = validateAuthority(params.get('authority'));
     const protocol = validateProtocol(params.get('protocol'));
+    const network = validateNetwork(params.get('network'), protocol);
     const subaccount = kind === 'snapshot' ? validateSubaccount(params.get('subaccount')) : null;
     // Per-client, across every instance, when the shared store is configured.
     const shared = await consumeSharedLimit(request, 'live-read', 30);
@@ -77,7 +86,7 @@ export async function serveRead(request: Request, kind: 'discovery' | 'snapshot'
     readsInWindow += 1;
     concurrentReads += 1;
     try {
-      const selected = typeof provider === 'function' ? await provider(protocol) : provider;
+      const selected = typeof provider === 'function' ? await provider(protocol, network) : provider;
       const result = subaccount === null ? await selected.discover(authority) : await selected.snapshot(authority, subaccount);
       return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
     } finally { concurrentReads -= 1; }

@@ -1,4 +1,5 @@
 import { PROTOCOLS, type ProtocolId } from './protocols';
+import type { LiveNetwork } from './networks';
 
 export const PUBLIC_ACCOUNT_EXAMPLES: Partial<Record<ProtocolId, string>> = {
   velocity: 'DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2',
@@ -6,7 +7,10 @@ export const PUBLIC_ACCOUNT_EXAMPLES: Partial<Record<ProtocolId, string>> = {
   pacifica: 'Ep1d8JdFw4FnB85XDgXGVabYutro4JzK285HQqW6TZE2',
 };
 export const LIVE_RISK_EXAMPLE = { protocol: 'velocity' as const, authority: PUBLIC_ACCOUNT_EXAMPLES.velocity! };
-export type LiveSelection = { protocol: ProtocolId; authority: string; subaccount?: number };
+/** A public Velocity devnet authority whose subaccount 1 held SOL, ETH and BTC perps on 28 September 2026. Test balances; they can change or close. */
+export const DEVNET_ACCOUNT_EXAMPLE = 'bbuUv99ePgHogpjjNemdmoRH7YRquFzyxegKaLsL3ez';
+export const DEVNET_EXAMPLE_SUBACCOUNT = 1;
+export type LiveSelection = { protocol: ProtocolId; authority: string; subaccount?: number; /** Only Velocity reads devnet; absent means mainnet. */ network?: Extract<LiveNetwork, 'devnet'> };
 export type LiveLink = { state: 'none' } | { state: 'invalid'; message: string } | { state: 'ready'; selection: LiveSelection };
 
 /** Validate the canonical 32-byte base58 public address without adding a browser SDK. */
@@ -21,7 +25,7 @@ export function isPublicAddress(value: string): boolean {
 }
 
 export function parseLiveLink(params: URLSearchParams): LiveLink {
-  const keys = ['protocol', 'authority', 'subaccount'];
+  const keys = ['protocol', 'authority', 'subaccount', 'network'];
   if (!keys.some(key => params.has(key))) return { state: 'none' };
   const invalid = (message: string): LiveLink => ({ state: 'invalid', message });
   if (keys.some(key => params.getAll(key).length > 1)) return invalid('The account link contains duplicate selections. Enter the public address below to start a new read.');
@@ -31,12 +35,15 @@ export function parseLiveLink(params: URLSearchParams): LiveLink {
   if (!isPublicAddress(authority)) return invalid('The account link needs a valid Solana public address. Enter the address below to continue.');
   const id = params.get('subaccount');
   if (id !== null && (!/^(0|[1-9]\d{0,4})$/.test(id) || Number(id) > 65535)) return invalid('The linked subaccount must be a whole-number ID from 0 to 65535.');
-  return { state: 'ready', selection: { protocol: protocol as ProtocolId, authority, ...(id === null ? {} : { subaccount: Number(id) }) } };
+  const network = params.get('network');
+  if (network !== null && network !== 'mainnet-beta' && !(network === 'devnet' && protocol === 'velocity')) return invalid(network === 'devnet' ? 'Devnet links are available for Velocity only. Choose a network below.' : 'The account link names an unsupported network.');
+  return { state: 'ready', selection: { protocol: protocol as ProtocolId, authority, ...(id === null ? {} : { subaccount: Number(id) }), ...(network === 'devnet' ? { network: 'devnet' as const } : {}) } };
 }
 
 export function buildLiveLink(selection: LiveSelection): string {
   const params = new URLSearchParams({ protocol: selection.protocol, authority: selection.authority });
   if (selection.subaccount !== undefined) params.set('subaccount', String(selection.subaccount));
+  if (selection.network === 'devnet') params.set('network', 'devnet');
   if (parseLiveLink(params).state !== 'ready') throw new Error('Invalid live account selection');
   return `/app?${params}`;
 }

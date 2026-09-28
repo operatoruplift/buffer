@@ -1,6 +1,7 @@
 import { isJupiterInventory } from './jupiter-inventory';
 import { isCanonicalProtocol, type ProtocolId } from './protocols';
 import type { Discovery, Snapshot } from './types';
+import type { LiveNetwork } from './networks';
 
 type RecordValue = Record<string, unknown>;
 const object = (value: unknown): value is RecordValue => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -22,13 +23,14 @@ const identity = (value: RecordValue, authority: string, protocol: ProtocolId) =
 const unique = (items: unknown[], key: string) => new Set(items.map(item => (item as RecordValue)[key])).size === items.length;
 
 /** Reject wrong-account or malformed successful responses before committing UI state. */
-export function isDiscoveryResponse(value: unknown, authority: string, protocol: ProtocolId): value is Discovery {
-  return object(value) && identity(value, authority, protocol) && retrieved(value.retrievedAt) &&
+export function isDiscoveryResponse(value: unknown, authority: string, protocol: ProtocolId, network: LiveNetwork = 'mainnet-beta'): value is Discovery {
+  // A devnet read says so; a mainnet read carries no network field.
+  return object(value) && identity(value, authority, protocol) && retrieved(value.retrievedAt) && (network === 'devnet' ? value.network === 'devnet' : value.network === undefined) &&
     list(value.subaccounts, subaccount) && unique(value.subaccounts, 'id');
 }
 
-export function isSnapshotResponse(value: unknown, authority: string, protocol: ProtocolId, accountId: number, accountAddress: string | null): value is Snapshot {
-  if (!object(value) || !identity(value, authority, protocol) || value.source !== 'live' || value.network !== 'mainnet-beta' ||
+export function isSnapshotResponse(value: unknown, authority: string, protocol: ProtocolId, accountId: number, accountAddress: string | null, network: LiveNetwork = 'mainnet-beta'): value is Snapshot {
+  if (!object(value) || !identity(value, authority, protocol) || value.source !== 'live' || value.network !== network || (network === 'devnet' && protocol !== 'velocity') ||
     value.catalog !== undefined || // A fixture catalog never describes a live account read.
     value.sampleName !== null || !subaccount(value.subaccount) || !object(value.subaccount) || value.subaccount.id !== accountId ||
     value.subaccount.address !== accountAddress || !retrieved(value.retrievedAt) || !(value.expiresAt === null || time(value.expiresAt)) ||

@@ -17,7 +17,8 @@ import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
 import { CONFIGURED_PERP_MARKETS, REFERENCE_PERP_CATALOG } from "@/lib/perp-markets";
-import { isPublicAddress, LIVE_RISK_EXAMPLE, PUBLIC_ACCOUNT_EXAMPLES, type LiveLink } from "@/lib/live-link";
+import { DEVNET_ACCOUNT_EXAMPLE, DEVNET_EXAMPLE_SUBACCOUNT, isPublicAddress, LIVE_RISK_EXAMPLE, PUBLIC_ACCOUNT_EXAMPLES, type LiveLink } from "@/lib/live-link";
+import { NETWORK_LABELS, type LiveNetwork } from "@/lib/networks";
 import { Icon, Mark } from "./Icons";
 import { Brand } from './Brand';
 import { TokenIcon } from './TokenIcon';
@@ -94,6 +95,8 @@ export default function Dashboard({
   );
   const [mode, setMode] = useState<"sample" | "live">(initialLiveLink.state === "ready" ? "live" : "sample");
   const [protocolId, setProtocolId] = useState<ProtocolId>(initialLiveLink.state === "ready" ? initialLiveLink.selection.protocol : "velocity");
+  // Only Velocity reads devnet; every other protocol stays on mainnet.
+  const [network, setNetwork] = useState<LiveNetwork>(initialLiveLink.state === "ready" && initialLiveLink.selection.network === "devnet" ? "devnet" : "mainnet-beta");
   const [publicExample, setPublicExample] = useState(initialLiveLink.state === "ready" && PUBLIC_ACCOUNT_EXAMPLES[initialLiveLink.selection.protocol] === initialLiveLink.selection.authority);
   const [marketSearch, setMarketSearch] = useState("");
   const [address, setAddress] = useState(initialLiveLink.state === "ready" ? initialLiveLink.selection.authority : "");
@@ -121,7 +124,8 @@ export default function Dashboard({
   const apiSnapshot = snapshot?.source === "live" && snapshotProtocol.id === "pacifica";
   const availableMarkets = CONFIGURED_PERP_MARKETS[protocolId];
   const filteredMarkets = availableMarkets.filter(market => market.market.toLowerCase().includes(marketSearch.trim().toLowerCase()));
-  const exampleAuthority = PUBLIC_ACCOUNT_EXAMPLES[protocolId];
+  const devnet = protocolId === "velocity" && network === "devnet";
+  const exampleAuthority = devnet ? DEVNET_ACCOUNT_EXAMPLE : PUBLIC_ACCOUNT_EXAMPLES[protocolId];
   const accountLabel = mode === "live" && (protocolId === "pacifica" || protocolId === "jupiter") ? "Account" : "Subaccount";
   const selectedAuthority = discovery?.authority ?? address.trim();
   const previousScope = snapshot?.source === 'live' && mode === 'live' && (
@@ -178,9 +182,15 @@ export default function Dashboard({
     setSnapshot(previous => previous?.source === 'live' ? previous : null);
     setStale(snapshot?.source === 'live');
   }
+  function changeNetwork(next: LiveNetwork) {
+    if (next === network) return;
+    changeProtocol(protocolId);
+    setNetwork(next);
+  }
   function changeProtocol(id: ProtocolId) {
     cancel();
     setProtocolId(id);
+    if (id !== "velocity") setNetwork("mainnet-beta");
     setMarketSearch("");
     setDiscovery(null);
     setSelectedId("");
@@ -242,11 +252,12 @@ export default function Dashboard({
   }
   async function readAccount(
     event?: FormEvent,
-    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean; subaccount?: number },
+    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean; subaccount?: number; network?: LiveNetwork },
   ) {
     event?.preventDefault();
     const authority = (options?.authority ?? address).trim();
     const requestedProtocol = options?.protocol ?? protocolId;
+    const requestedNetwork: LiveNetwork = requestedProtocol === "velocity" ? options?.network ?? network : "mainnet-beta";
     if (!isPublicAddress(authority)) {
       setError({
         code: "INVALID_ADDRESS",
@@ -259,6 +270,7 @@ export default function Dashboard({
     const ticket = cancel();
     setAddress(authority);
     setProtocolId(requestedProtocol);
+    setNetwork(requestedNetwork);
     setPublicExample(Boolean(options?.publicExample));
     setMode("live");
     retainLiveSnapshot();
@@ -267,16 +279,16 @@ export default function Dashboard({
     setChoosingAccount(false);
     setShock(0);
     setError(null);
-    setLoading(`Finding ${PROTOCOLS[requestedProtocol].label} accounts…`);
+    setLoading(`Finding ${PROTOCOLS[requestedProtocol].label}${requestedNetwork === "devnet" ? " devnet" : ""} accounts…`);
     retry.current = () => {
-      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample, subaccount: options?.subaccount });
+      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample, subaccount: options?.subaccount, network: requestedNetwork });
     };
     try {
       const result = await fetchJson<unknown>(
-        `/api/accounts?authority=${encodeURIComponent(authority)}&protocol=${requestedProtocol}`,
+        `/api/accounts?authority=${encodeURIComponent(authority)}&protocol=${requestedProtocol}${requestedNetwork === "devnet" ? "&network=devnet" : ""}`,
       );
       if (ticket !== request.current) return;
-      if (!isDiscoveryResponse(result, authority, requestedProtocol)) throw new Error('Invalid discovery response');
+      if (!isDiscoveryResponse(result, authority, requestedProtocol, requestedNetwork)) throw new Error('Invalid discovery response');
       setDiscovery(result);
       const selected = options?.subaccount === undefined
         ? result.subaccounts.length === 1 ? result.subaccounts[0] : undefined
@@ -306,6 +318,7 @@ export default function Dashboard({
     }
     const ticket = cancel();
     const requestedProtocol = selectedDiscovery.protocol?.id ?? protocolId;
+    const requestedNetwork: LiveNetwork = selectedDiscovery.network === "devnet" ? "devnet" : "mainnet-beta";
     setSelectedId(id);
     setChoosingAccount(false);
     setLoading(
@@ -321,11 +334,11 @@ export default function Dashboard({
     };
     try {
       const result = await fetchJson<unknown>(
-        `/api/snapshot?authority=${encodeURIComponent(selectedDiscovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}`,
+        `/api/snapshot?authority=${encodeURIComponent(selectedDiscovery.authority)}&subaccount=${id}&protocol=${requestedProtocol}${requestedNetwork === "devnet" ? "&network=devnet" : ""}`,
       );
       if (ticket !== request.current) return;
       const account = selectedDiscovery.subaccounts.find(account => account.id === Number(id));
-      if (!account || !isSnapshotResponse(result, selectedDiscovery.authority, requestedProtocol, Number(id), account.address)) throw new Error('Invalid snapshot response');
+      if (!account || !isSnapshotResponse(result, selectedDiscovery.authority, requestedProtocol, Number(id), account.address, requestedNetwork)) throw new Error('Invalid snapshot response');
       setSnapshot(result);
       setNow(Date.now());
       setShock(0);
@@ -343,7 +356,7 @@ export default function Dashboard({
   const syncLiveLink = useEffectEvent((link: LiveLink) => {
     if (link.state === 'ready') {
       const selection = link.selection;
-      void readAccount(undefined, { ...selection, publicExample: PUBLIC_ACCOUNT_EXAMPLES[selection.protocol] === selection.authority });
+      void readAccount(undefined, { ...selection, publicExample: selection.network === "devnet" ? selection.authority === DEVNET_ACCOUNT_EXAMPLE : PUBLIC_ACCOUNT_EXAMPLES[selection.protocol] === selection.authority });
     } else if (link.state === 'invalid') {
       sample(DEFAULT_SAMPLE_ID);
       setError({ code: 'INVALID_LINK', message: link.message, retryable: false });
@@ -457,13 +470,20 @@ export default function Dashboard({
                 value={protocolId}
                 onChange={(value) => changeProtocol(value as ProtocolId)}
                 options={[
-                  { value: "velocity", label: "Velocity", description: "Current protocol · Solana mainnet" },
+                  { value: "velocity", label: "Velocity", description: "Current protocol · mainnet or devnet" },
                   { value: "pacifica", label: "Pacifica", description: `${CONFIGURED_PERP_MARKETS.pacifica.length} perpetual markets · Public API` },
                   { value: "jupiter", label: "Jupiter Perps", description: "3 perpetual markets · Inventory only · Solana mainnet" },
                   { value: "drift", label: "Drift · legacy", description: "Paused protocol · balances did not migrate" },
                 ]}
               />
             </div>
+            {protocolId === "velocity" && (
+              <div className="network-picker" role="group" aria-label="Network">
+                <span>Network</span>
+                <button type="button" aria-pressed={network === "mainnet-beta"} disabled={!!loading} onClick={() => changeNetwork("mainnet-beta")}>Mainnet</button>
+                <button type="button" aria-pressed={network === "devnet"} disabled={!!loading} onClick={() => changeNetwork("devnet")}>Devnet</button>
+              </div>
+            )}
             {protocol.legacy && (
               <p className="protocol-notice">
                 Legacy Drift is paused. Balances did not migrate to Velocity.{" "}
@@ -504,14 +524,14 @@ export default function Dashboard({
                 disabled={!!loading}
                 onAddress={(walletAddress) => {
                   setPublicExample(false);
-                  void readAccount(undefined, { authority: walletAddress, protocol: protocolId });
+                  void readAccount(undefined, { authority: walletAddress, protocol: protocolId, network });
                 }}
               />
             </div>
           </form>
           <div className="address-bottom">
             <p id="address-help">
-              {protocolId === "jupiter" ? "Read Jupiter positions by public wallet. Inventory only; price scenarios are unavailable." : protocolId === "pacifica"
+              {devnet ? "Reads Velocity’s devnet deployment through Solana’s public devnet RPC. Devnet balances are test values; background monitoring covers mainnet only." : protocolId === "jupiter" ? "Read Jupiter positions by public wallet. Inventory only; price scenarios are unavailable." : protocolId === "pacifica"
                 ? "Read your Pacifica wallet account. No wallet connection needed."
                 : liveConfigured
                 ? `Read positions from one ${protocol.label} subaccount. No wallet connection needed.`
@@ -551,12 +571,12 @@ export default function Dashboard({
           {exampleAuthority && <div className="live-example">
             <button
               type="button"
-              onClick={() => void readAccount(undefined, { authority: exampleAuthority, protocol: protocolId, publicExample: true })}
+              onClick={() => void readAccount(undefined, { authority: exampleAuthority, protocol: protocolId, publicExample: true, network, ...(devnet ? { subaccount: DEVNET_EXAMPLE_SUBACCOUNT } : {}) })}
               disabled={!!loading}
             >
               Explore a live account <Icon name="arrow" size={14} />
             </button>
-            <span>{protocol.label} public example · balances can change</span>
+            <span>{devnet ? `${protocol.label} devnet example · test balances` : `${protocol.label} public example · balances can change`}</span>
           </div>}
         </section>
   );
@@ -1225,7 +1245,7 @@ export default function Dashboard({
           </span>
           <span>
             Solana · {mode === "sample" ? "Examples" : protocol.label} <span className="footer-dot">/</span>{" "}
-            {mode === "sample" ? "Reference data" : "Mainnet public account data"}
+            {mode === "sample" ? "Reference data" : snapshot?.network === "devnet" ? `${NETWORK_LABELS.devnet} public account data` : "Mainnet public account data"}
           </span>
         </footer>
       </main>
