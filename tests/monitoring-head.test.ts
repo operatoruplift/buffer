@@ -40,7 +40,7 @@ describe('authenticated scheduler HEAD envelope', () => {
     expect(result.status).toBe(503); expect(result.headers.has('X-Buffer-Monitoring-Result')).toBe(false); expect(await result.text()).toBe('');
   });
   it.each([
-    { ...outcome, available: 'true' }, { ...outcome, mode: ['send'] }, { ...outcome, mode: 'fixture' }, { ...outcome, delivery: 'delivered' },
+    { ...outcome, available: 'true' }, { ...outcome, mode: ['send'] }, { ...outcome, mode: 'fixture' }, { ...outcome, delivery: 'accepted' },
     { ...outcome, receipt: 'unverified' }, { ...outcome, secret: 'must-not-leak' },
     { ...outcome, delivery: 'x'.repeat(1000) },
   ])('rejects an invalid result rather than reflecting it into headers', async invalid => {

@@ -16,7 +16,7 @@ function overview(): MonitoringOverview {
   return { capability: { configured: true, sendEnabled: false, destinationAvailable: true, message: 'Sending disabled.' },
     heartbeat: { lastRunAt: at, lastCompletedAt: at, status: 'healthy', mode: 'dry_run' },
     destinations: [{ id, label: 'Alerts', provider: 'discord', verifiedAt: at, enabled: true, maskedDestination: 'Channel …1234' }],
-    rules: [{ id, version: 1, authority: '11111111111111111111111111111111', subaccountId: 0, provider: 'velocity', network: 'mainnet-beta', metric: 'maintenance_headroom', unit: 'USD', direction: 'below', threshold: '300', cadenceMinutes: 15, timezone: 'UTC', cooldownMinutes: 15, hysteresis: '10', destinationId: id, enabled: true, monitoringState: 'fresh', lastAttemptAt: at, lastFreshCheck: at, inputExpiresAt: at, nextCheckAt: at, lastError: null, breached: false, createdAt: at, updatedAt: at }],
+    rules: [{ id, version: 1, authority: '11111111111111111111111111111111', subaccountId: 0, provider: 'velocity', network: 'mainnet-beta', metric: 'maintenance_headroom', unit: 'USD', market: null, direction: 'below', threshold: '300', cadenceMinutes: 15, timezone: 'UTC', cooldownMinutes: 15, hysteresis: '10', destinationId: id, enabled: true, monitoringState: 'fresh', lastAttemptAt: at, lastFreshCheck: at, inputExpiresAt: at, nextCheckAt: at, lastError: null, breached: false, createdAt: at, updatedAt: at }],
     events: [{ id, ruleId: id, ruleVersion: 1, state: 'accepted_by_provider', observedAt: at, value: '250', threshold: '300', reason: 'Threshold crossed.', acceptedAt: at, deliveredAt: null, messageId: '123456789012345678', lastError: null, attempts: 1, preview: 'Buffer TEST alert' }],
   };
 }
@@ -25,6 +25,13 @@ describe('monitoring response boundary', () => {
   it('keeps acceptance separate from a verified receipt and accepts exact fractional decimals', () => {
     const value = overview(); value.rules[0].hysteresis = '.5';
     expect(parseMonitoringOverview(value).events[0].state).toBe('accepted_by_provider');
+  });
+  it('accepts liquidation-distance rules, webhook destinations and webhook acknowledgement receipts', () => {
+    const value = overview();
+    value.destinations.push({ ...value.destinations[0], id: '00000000-0000-4000-8000-000000000003', provider: 'webhook', maskedDestination: 'Webhook alerts.example.com' });
+    value.rules.push({ ...value.rules[0], id: '00000000-0000-4000-8000-000000000004', metric: 'liquidation_distance', unit: '%', market: 'SOL-PERP', threshold: '5', hysteresis: '1', destinationId: '00000000-0000-4000-8000-000000000003' });
+    value.events.push({ ...value.events[0], id: '00000000-0000-4000-8000-000000000005', ruleId: '00000000-0000-4000-8000-000000000004', state: 'delivered', deliveredAt: value.events[0].acceptedAt, messageId: 'http-202' });
+    expect(parseMonitoringOverview(value).rules[1].market).toBe('SOL-PERP');
   });
   it.each([
     (v: MonitoringOverview) => { v.events[0].state = 'delivered'; },
@@ -41,6 +48,12 @@ describe('monitoring response boundary', () => {
     (v: MonitoringOverview) => { v.events[0].ruleVersion = 0; },
     (v: MonitoringOverview) => { v.heartbeat.lastRunAt = 'yesterday'; },
     (v: MonitoringOverview) => { v.destinations[0].id = 'https://evil.test'; },
+    (v: MonitoringOverview) => { v.destinations[0].provider = 'email' as 'discord'; },
+    (v: MonitoringOverview) => { v.rules[0].market = 'SOL-PERP'; },
+    (v: MonitoringOverview) => { v.rules[0].metric = 'liquidation_distance'; },
+    (v: MonitoringOverview) => { v.rules[0].metric = 'liquidation_distance'; v.rules[0].unit = '%'; v.rules[0].market = 'sol-perp'; },
+    (v: MonitoringOverview) => { v.rules[0].metric = 'liquidation_distance'; v.rules[0].market = 'SOL-PERP'; },
+    (v: MonitoringOverview) => { v.events[0].messageId = 'a'.repeat(121); },
   ])('rejects invalid state rather than replacing visible provenance', mutate => {
     const value = overview(); mutate(value); expect(() => parseMonitoringOverview(value)).toThrow();
   });

@@ -1,6 +1,6 @@
 import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { AlertMonitor } from '@/lib/alerts';
+import type { AlertMetric, AlertMonitor, AlertUnit } from '@/lib/alerts';
 import type { DiscordEvent } from './discord';
 
 export class MonitoringFailure extends Error {
@@ -8,6 +8,7 @@ export class MonitoringFailure extends Error {
 }
 export interface DbRule {
   id: string; owner_id: string; version: number; authority: string; subaccount_id: number;
+  metric: AlertMetric; unit: AlertUnit; market: string | null;
   direction: 'below' | 'above'; threshold: string | number; cadence_minutes: number; timezone: string;
   cooldown_minutes: number; hysteresis: string | number; destination_id: string; enabled: boolean;
   last_attempt_at: string | null; last_fresh_check: string | null; input_expires_at: string | null;
@@ -15,7 +16,7 @@ export interface DbRule {
   last_error: string | null; created_at: string; updated_at: string;
   check_token?: string; runtime_state: AlertMonitor | null;
 }
-export interface DbDestination { id: string; owner_id: string; config_ref: string; provider: 'discord'; fingerprint: string; label: string; masked_destination: string; enabled: boolean; verified_at: string | null }
+export interface DbDestination { id: string; owner_id: string; config_ref: string; provider: 'discord' | 'webhook'; fingerprint: string; label: string; masked_destination: string; enabled: boolean; verified_at: string | null }
 export interface DbEvent {
   id: string; rule_id: string | null; rule_version: number; owner_id: string; state: string;
   observed_at: string; value: string | number; threshold: string | number; reason: string;

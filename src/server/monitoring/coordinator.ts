@@ -1,10 +1,11 @@
 import { alertInputProblem, emptyAlertStore, evaluateAlerts, parseAlertStore, type AlertRule } from '@/lib/alerts';
 import type { Snapshot } from '@/lib/types';
-import type { DiscordAdapter, DiscordEvent } from './discord';
+import type { DiscordEvent } from './discord';
+import type { NotificationAdapter } from './notification';
 import type { DbEvent, DbRule, DbWork, WorkerRepository } from './repository';
 
 export interface WorkerDependencies {
-  repository: WorkerRepository; adapter: DiscordAdapter;
+  repository: WorkerRepository; adapter: NotificationAdapter;
   snapshot(authority: string, subaccount: number): Promise<Snapshot>;
   sendEnabled: boolean; notificationMode?: 'test' | 'production'; now?: () => Date;
 }
@@ -15,9 +16,9 @@ export function notificationEvent(event: DbEvent): DiscordEvent {
 }
 function localRule(rule: DbRule): AlertRule {
   return { id: rule.id, version: rule.version, ownerId: rule.owner_id, authority: rule.authority, subaccountId: rule.subaccount_id,
-    metric: 'maintenance_headroom', direction: rule.direction, threshold: String(rule.threshold), cadenceMinutes: rule.cadence_minutes,
+    metric: rule.metric, direction: rule.direction, threshold: String(rule.threshold), cadenceMinutes: rule.cadence_minutes,
     timezone: rule.timezone, destination: 'mock', enabled: rule.enabled, createdAt: rule.created_at, updatedAt: rule.updated_at,
-    cooldownMinutes: rule.cooldown_minutes, hysteresis: String(rule.hysteresis) };
+    cooldownMinutes: rule.cooldown_minutes, hysteresis: String(rule.hysteresis), ...(rule.market ? { market: rule.market } : {}) };
 }
 /** Shared pure evaluator; the provider observation is never restamped or changed into fixture data. */
 export function evaluateHostedRule(rule: DbRule, snapshot: Snapshot, now: Date, mode: 'test' | 'production' = 'production') {
@@ -28,10 +29,12 @@ export function evaluateHostedRule(rule: DbRule, snapshot: Snapshot, now: Date, 
   try { parseAlertStore(JSON.stringify(input)); }
   catch { return { ruleId: rule.id, token: rule.check_token, version: rule.version, problem: 'Saved monitoring state failed validation. Existing events are preserved; an administrator must repair this rule.' }; }
   const evaluated = evaluateAlerts(input, snapshot, rule.owner_id, now);
+  // A fresh observation without this rule's metric (for example a closed position) is reported as unavailable, never as a monitor state the database would reject.
+  if (evaluated.monitors[0]?.status === 'unavailable') return { ruleId: rule.id, token: rule.check_token, version: rule.version, problem: evaluated.monitors[0].reason ?? 'The observed metric is unavailable.' };
   const observation: Omit<DiscordEvent, 'eventId' | 'value' | 'threshold' | 'observedAt'> = {
     mode, ruleId: rule.id, ruleVersion: rule.version, provider: 'velocity', network: 'mainnet-beta', authority: rule.authority,
-    subaccountId: rule.subaccount_id, subaccountName: snapshot.subaccount.name.slice(0, 160), metric: 'maintenance_headroom', unit: 'USD',
-    direction: rule.direction, sourceSlot: snapshot.accountSlot,
+    subaccountId: rule.subaccount_id, subaccountName: snapshot.subaccount.name.slice(0, 160), metric: rule.metric, unit: rule.unit,
+    ...(rule.market ? { market: rule.market } : {}), direction: rule.direction, sourceSlot: snapshot.accountSlot,
   };
   return { ruleId: rule.id, token: rule.check_token, version: rule.version, monitor: evaluated.monitors[0], event: evaluated.events[0] ?? null, observation };
 }
@@ -104,7 +107,8 @@ export async function runMonitoringWorker(dependencies: WorkerDependencies, inpu
           await repository.command('fail_delivery', { outboxId: work.outbox.id, token: work.outbox.lease_token, retryable: sent.kind === 'retry', retryAfterMs: sent.kind === 'retry' ? sent.retryAfterMs : null, errorCode: 'errorCode' in sent ? sent.errorCode : 'TRANSMISSION_INTENT_MISSING' });
           result.delivery = 'failed';
         } else {
-          const state = sent.kind === 'accepted' ? 'accepted_by_provider' : sent.kind === 'unknown' ? 'unknown_outcome' : 'failed';
+          // A signed webhook 2xx is that destination's receipt; Discord acceptance still awaits a matching message read.
+          const state = sent.kind === 'accepted' ? (descriptor.provider === 'webhook' ? 'delivered' : 'accepted_by_provider') : sent.kind === 'unknown' ? 'unknown_outcome' : 'failed';
           await recordSend(repository, { outboxId: work.outbox.id, token: work.outbox.lease_token, state,
             ...(sent.kind === 'accepted' ? { messageId: sent.messageId, channelId: sent.channelId, contentHash: sent.contentHash } : { retryable: sent.kind === 'retry', retryAfterMs: sent.kind === 'retry' ? sent.retryAfterMs : null, errorCode: sent.errorCode }) });
           result.delivery = state;

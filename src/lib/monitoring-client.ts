@@ -24,12 +24,13 @@ export function parseMonitoringOverview(value: unknown): MonitoringOverview {
       !date(heartbeat.lastRunAt) || !date(heartbeat.lastCompletedAt) || !member(heartbeat.status, ['awaiting_activation', 'healthy', 'unavailable']) ||
       !member(heartbeat.mode, ['dry_run', 'send'])) throw new Error('Monitoring readiness could not be verified.');
   if (!Array.isArray(value.destinations) || value.destinations.length > 20 || !value.destinations.every(item => object(item) && uuid(item.id) &&
-      item.provider === 'discord' && text(item.label, 100) && text(item.maskedDestination, 100) && date(item.verifiedAt) && typeof item.enabled === 'boolean')) {
+      member(item.provider, ['discord', 'webhook']) && text(item.label, 100) && text(item.maskedDestination, 100) && date(item.verifiedAt) && typeof item.enabled === 'boolean')) {
     throw new Error('Monitoring destinations could not be verified.');
   }
   if (!Array.isArray(value.rules) || value.rules.length > 20 || !value.rules.every(item => object(item) && uuid(item.id) && uuid(item.destinationId) &&
       integer(item.version, Number.MAX_SAFE_INTEGER) && Number(item.version) > 0 && text(item.authority, 44) && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(item.authority) &&
-      integer(item.subaccountId, 65535) && item.provider === 'velocity' && item.network === 'mainnet-beta' && item.metric === 'maintenance_headroom' && item.unit === 'USD' &&
+      integer(item.subaccountId, 65535) && item.provider === 'velocity' && item.network === 'mainnet-beta' &&
+      (item.metric === 'maintenance_headroom' && item.unit === 'USD' && item.market === null || item.metric === 'liquidation_distance' && item.unit === '%' && text(item.market, 24) && /^[A-Z0-9]{1,16}-PERP$/.test(item.market)) &&
       member(item.direction, ['below', 'above']) && decimal(item.threshold) && decimal(item.hysteresis) && new Decimal(item.hysteresis as string).gte(0) &&
       integer(item.cadenceMinutes, 1440) && Number(item.cadenceMinutes) > 0 && integer(item.cooldownMinutes, 1440) && Number(item.cooldownMinutes) > 0 && text(item.timezone, 80) &&
       typeof item.enabled === 'boolean' && typeof item.breached === 'boolean' && member(item.monitoringState, ['configured', 'fresh', 'unavailable', 'paused']) &&
@@ -39,7 +40,7 @@ export function parseMonitoringOverview(value: unknown): MonitoringOverview {
   if (!Array.isArray(value.events) || value.events.length > 100 || !value.events.every(item => object(item) && uuid(item.id) && (item.ruleId === null || uuid(item.ruleId)) &&
       integer(item.ruleVersion, Number.MAX_SAFE_INTEGER) && Number(item.ruleVersion) > 0 && member(item.state, ['queued', 'sending', 'accepted_by_provider', 'delivered', 'failed', 'suppressed', 'unknown_outcome']) &&
       date(item.observedAt) && item.observedAt !== null && decimal(item.value) && decimal(item.threshold) && text(item.reason) && date(item.acceptedAt) && date(item.deliveredAt) &&
-      (item.messageId === null || text(item.messageId, 22) && /^\d{17,22}$/.test(item.messageId)) && integer(item.attempts, 20) &&
+      (item.messageId === null || text(item.messageId, 120) && /^[A-Za-z0-9._:-]{1,120}$/.test(item.messageId)) && integer(item.attempts, 20) &&
       (item.lastError === null || text(item.lastError)) && (item.preview === null || text(item.preview, 2000)) &&
       (!member(item.state, ['accepted_by_provider', 'delivered']) || item.messageId !== null && item.acceptedAt !== null) &&
       (item.state !== 'delivered' || item.deliveredAt !== null))) {

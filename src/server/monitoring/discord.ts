@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { PublicKey } from '@solana/web3.js';
+import { ALERT_MARKET, ALERT_METRICS, isAlertMetric, type AlertMetric, type AlertUnit } from '@/lib/alerts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DECIMAL = /^-?(?:0|[1-9]\d{0,59})(?:\.\d{1,18})?$/;
@@ -18,8 +19,10 @@ export interface DiscordEvent {
   authority: string;
   subaccountId: number;
   subaccountName: string;
-  metric: 'maintenance_headroom';
-  unit: 'USD';
+  metric: AlertMetric;
+  unit: AlertUnit;
+  /** Perpetual market symbol for liquidation-distance events only. */
+  market?: string | null;
   direction: 'below' | 'above';
   value: string;
   threshold: string;
@@ -108,10 +111,18 @@ function isoDate(value: unknown): value is string {
   const calendar = new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
   return Number.isFinite(calendar.getTime()) && calendar.toISOString().slice(0, 10) === value.slice(0, 10);
 }
-function render(event: DiscordEvent): string {
+export interface NotificationFields {
+  mode: 'test' | 'production'; eventId: string; ruleId: string; ruleVersion: number; provider: 'velocity'; network: 'mainnet-beta';
+  authority: string; subaccountId: number; subaccountName: string; metric: AlertMetric; label: string; unit: AlertUnit; market: string | null;
+  direction: 'below' | 'above'; value: string; threshold: string; observedAt: string; sourceSlot: number | null; link: string;
+}
+/** Validates every field of the immutable notification DTO and derives the shared display fields; throws on any deviation. */
+export function renderNotificationFields(event: DiscordEvent): NotificationFields {
   if (!record(event) || !['test', 'production'].includes(event.mode) || !UUID.test(event.eventId) || !UUID.test(event.ruleId) ||
     !Number.isSafeInteger(event.ruleVersion) || event.ruleVersion < 1 || event.provider !== 'velocity' || event.network !== 'mainnet-beta' ||
-    event.metric !== 'maintenance_headroom' || event.unit !== 'USD' || !['below', 'above'].includes(event.direction) ||
+    !isAlertMetric(event.metric) || event.unit !== ALERT_METRICS[event.metric].unit ||
+    (event.metric === 'liquidation_distance' ? typeof event.market !== 'string' || !ALERT_MARKET.test(event.market) : event.market !== undefined && event.market !== null) ||
+    !['below', 'above'].includes(event.direction) ||
     typeof event.value !== 'string' || !DECIMAL.test(event.value) || typeof event.threshold !== 'string' || !DECIMAL.test(event.threshold) ||
     !isoDate(event.observedAt) || !Number.isSafeInteger(event.subaccountId) || event.subaccountId < 0 || event.subaccountId > 65535 ||
     typeof event.subaccountName !== 'string' || event.subaccountName.length > 160 || typeof event.authority !== 'string' ||
@@ -124,13 +135,20 @@ function render(event: DiscordEvent): string {
   link.searchParams.set('subaccount', String(event.subaccountId));
   link.searchParams.set('alert', event.eventId.toLowerCase());
   link.hash = 'monitoring';
-  return [`Buffer | ${event.mode === 'test' ? 'TEST' : 'PRODUCTION'} alert`,
-    'Velocity / Solana mainnet | Maintenance headroom',
-    `Account: ${event.authority.slice(0, 4)}…${event.authority.slice(-4)} | ${name} (#${event.subaccountId})`,
-    `Observed: ${event.value} USD`, `Threshold: at or ${event.direction} ${event.threshold} USD`,
-    `Observed at: ${new Date(event.observedAt).toISOString()}`, `Source slot: ${event.sourceSlot ?? 'Unavailable'}`,
-    `Event: ${event.eventId.toLowerCase()}`, `Rule: ${event.ruleId.toLowerCase()} | Version: ${event.ruleVersion}`,
-    `Open Buffer: ${link.href}`].join('\n');
+  return { mode: event.mode, eventId: event.eventId.toLowerCase(), ruleId: event.ruleId.toLowerCase(), ruleVersion: event.ruleVersion, provider: 'velocity', network: 'mainnet-beta',
+    authority: event.authority, subaccountId: event.subaccountId, subaccountName: name, metric: event.metric, label: ALERT_METRICS[event.metric].label, unit: event.unit,
+    market: event.metric === 'liquidation_distance' ? event.market! : null, direction: event.direction, value: event.value, threshold: event.threshold,
+    observedAt: new Date(event.observedAt).toISOString(), sourceSlot: event.sourceSlot, link: link.href };
+}
+function render(event: DiscordEvent): string {
+  const fields = renderNotificationFields(event);
+  return [`Buffer | ${fields.mode === 'test' ? 'TEST' : 'PRODUCTION'} alert`,
+    `Velocity / Solana mainnet | ${fields.label}${fields.market ? ` ${fields.market}` : ''}`,
+    `Account: ${fields.authority.slice(0, 4)}…${fields.authority.slice(-4)} | ${fields.subaccountName} (#${fields.subaccountId})`,
+    `Observed: ${fields.value} ${fields.unit}`, `Threshold: at or ${fields.direction} ${fields.threshold} ${fields.unit}`,
+    `Observed at: ${fields.observedAt}`, `Source slot: ${fields.sourceSlot ?? 'Unavailable'}`,
+    `Event: ${fields.eventId}`, `Rule: ${fields.ruleId} | Version: ${fields.ruleVersion}`,
+    `Open Buffer: ${fields.link}`].join('\n');
 }
 
 /** No caller-supplied URL, authorization header, automatic retry or remote error text. */

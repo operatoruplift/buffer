@@ -51,6 +51,7 @@ async function rejects(body,status=200,headers=1){await fixture(body,status,head
 await succeeds(valid);
 await succeeds({...valid,duplicate:true});
 await succeeds({...valid,mode:'send',delivery:'accepted_by_provider'});
+await succeeds({...valid,mode:'send',delivery:'delivered'});
 await succeeds({...valid,mode:'send',receipt:'delivered'});
 await succeeds({...valid,checked:true,available:false});
 for(const [body,status,headers] of [
