@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import { dependencies } from '../../package.json';
 import {
-  BASE_PRECISION, PRICE_PRECISION, QUOTE_PRECISION, QUOTE_SPOT_MARKET_INDEX, BN,
+  BASE_PRECISION, MARGIN_PRECISION, PRICE_PRECISION, QUOTE_PRECISION, QUOTE_SPOT_MARKET_INDEX, BN, calculateMarketMarginRatio,
   MainnetPerpMarkets, MainnetSpotMarkets, PositionFlag, SpotBalanceType, decodeName, isVariant,
   positionIsAvailable, isSpotPositionAvailable, getTokenAmount, isOracleValid, getSpotOracleValidity, isOracleValidForMarginCalc,
   type UserAccount, type PerpMarketAccount, type SpotMarketAccount,
@@ -150,7 +150,8 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
     return { id: `perp-${position.marketIndex}`, marketIndex: position.marketIndex, market: marketName,
       asset: identity && config ? config.baseAssetSymbol : marketName, size, price, quote: quote ?? 'Unverified quote',
       notional: price ? new Money(size).mul(price).abs().toFixed() : null, modeled: exclusionReason === null,
-      exclusionReason, isolated: Boolean(position.positionFlag & PositionFlag.IsolatedPosition), oracle };
+      exclusionReason, isolated: Boolean(position.positionFlag & PositionFlag.IsolatedPosition), oracle,
+      maintenanceMarginRatio: exclusionReason === null && market ? maintenanceRatio(market, position.baseAssetAmount) : null };
   });
   let inventoryAvailable = true;
   const spotInventory = account.spotPositions.filter((p) => !p.scaledBalance.isZero()).map((position) => {
@@ -213,6 +214,17 @@ export function normalizeSnapshot(input: ReadData): Snapshot {
       'Perp oracle prices pass the SDK AMM validity helper and Buffer’s 150-slot lag limit; spot valuation adds a 1% confidence cap. These are conservative read rules, not liquidation rules.',
       'Snapshots expire after 120 seconds. The scenario uses the external oracle; SDK baseline valuation may use its validated MM oracle.',
       'All modeled perpetual identities are checked against pinned mainnet configuration, decoded metadata, oracle address/source, and the fixed Velocity program. Quote currencies are checked by quote-market index, name, and mint.'] };
+}
+
+/** The SDK's size-aware maintenance ratio for this position, as a decimal fraction; null when it cannot be verified. */
+function maintenanceRatio(market: PerpMarketAccount, size: BN): string | null {
+  try {
+    const ratio = calculateMarketMarginRatio(market, size.abs(), 'Maintenance');
+    if (!Number.isInteger(ratio) || ratio <= 0 || ratio >= Number(MARGIN_PRECISION.toString())) return null;
+    return new Money(ratio).div(MARGIN_PRECISION.toString()).toFixed();
+  } catch {
+    return null;
+  }
 }
 
 function currentRiskContext(input: ReadData, issues: string[], positions: Snapshot['positions']): RiskContext | undefined {

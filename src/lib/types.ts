@@ -25,6 +25,8 @@ export interface Position {
   size: string; price: string | null; quote: string; notional: string | null;
   modeled: boolean; exclusionReason: string | null; isolated: boolean;
   oracle: OracleObservation;
+  /** The market's maintenance margin ratio for this position size, as a decimal fraction; live Velocity reads only. */
+  maintenanceMarginRatio?: string | null;
   /** Explicit inventory only; size is a zero placeholder and must not be displayed as base quantity. */
   inventory?: JupiterInventory;
 }

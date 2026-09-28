@@ -12,6 +12,7 @@ import {
   calculateScenario,
 } from "@/lib/scenario";
 import { formatDecimal, formatUtc } from "@/lib/format";
+import { estimateLiquidationPrices } from "@/lib/risk/liquidation";
 import { createReport } from "@/lib/report";
 import type { ApiError, Discovery, Position, Snapshot } from "@/lib/types";
 import { PROTOCOLS, type ProtocolId } from "@/lib/protocols";
@@ -40,6 +41,45 @@ const short = (address: string) =>
   `${address.slice(0, 5)}…${address.slice(-5)}`;
 // One timestamp format across the app, shared with saved reports and monitoring.
 const time = formatUtc;
+
+
+/**
+ * The versioned liquidation estimate beside the provider's maintenance context.
+ * It recomputes on every snapshot and says exactly why a position is excluded.
+ */
+function LiquidationEstimates({ snapshot, unavailable }: { snapshot: Snapshot; unavailable: boolean }) {
+  const report = estimateLiquidationPrices(snapshot);
+  const active = report.estimates.length > 0 && !unavailable && !report.disabledReason;
+  return (
+    <div className="liquidation-estimate" data-testid="liquidation-estimate" data-liquidation-model={report.modelVersion} data-liquidation-state={unavailable ? 'unavailable' : report.disabledReason ? 'withheld' : 'estimated'}>
+      <div className="liquidation-estimate-heading"><h3>Liquidation estimate</h3><span>model {report.modelVersion}</span></div>
+      {unavailable || report.disabledReason ? (
+        <p className="risk-context-note">{unavailable ? 'Refresh the selected account for a current estimate.' : report.disabledReason}</p>
+      ) : (
+        <ul className="liquidation-list">
+          {report.estimates.map((estimate) => (
+            <li key={estimate.id} data-liquidation-position={estimate.id}>
+              <div><strong>{estimate.market}</strong><span>{estimate.side} · {formatDecimal(estimate.size, 4, true)} · maintenance ratio {formatDecimal(new Decimal(estimate.maintenanceMarginRatio).times(100).toFixed(), 2)}%</span></div>
+              <div>
+                {estimate.liquidationPrice ? (
+                  <>
+                    <strong data-testid="liquidation-price">{formatDecimal(estimate.liquidationPrice, 2)} USD</strong>
+                    <span>{formatDecimal(estimate.distancePercent, 2, true)}% from {formatDecimal(estimate.baselinePrice, 2)} USD</span>
+                  </>
+                ) : <strong>No positive boundary</strong>}
+                {estimate.reason && <p className="risk-context-note">{estimate.reason}</p>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {report.excluded.length > 0 && active && (
+        <p className="risk-context-note">Excluded: {report.excluded.map((item) => `${item.market} (${item.reason})`).join(' · ')}</p>
+      )}
+      <details className="liquidation-assumptions"><summary>What this estimate holds fixed</summary><ul>{report.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}</ul><p>Buffer does not call the SDK’s linear liquidation extrapolation; see docs/RISK-CONTEXT.md.</p></details>
+    </div>
+  );
+}
 
 export default function Dashboard({
   liveConfigured,
@@ -791,6 +831,7 @@ export default function Dashboard({
                 </div>}
                 <p className="risk-context-note">{snapshot.risk?.explanation ?? 'This provider does not supply a verified maintenance-risk reading. Position inventory and supported price scenarios remain separate.'}</p>
                 <p className="risk-context-note risk-freshness">Observed {time(snapshot.retrievedAt)}. {stale || expired || loading ? 'Refresh the selected account for current risk.' : 'Current account observation; not changed by the price slider.'}</p>
+                <LiquidationEstimates snapshot={snapshot} unavailable={Boolean(stale || expired || loading)} />
               </section>}
 
               <section
@@ -1247,7 +1288,10 @@ export default function Dashboard({
             <p>
               The result is an incremental perp price effect. Baseline account
               metrics come from the selected provider; no hypothetical account
-              equity, liquidation threshold, or future health is calculated.
+              equity or future health is calculated. The liquidation estimate under
+              the risk card is a separate, versioned model that solves one position
+              at a time with everything else held; it is not the protocol’s
+              liquidation engine.
             </p>
           </section>
           {snapshot && (
