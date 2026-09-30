@@ -28,6 +28,8 @@ import SampleBuilder from './SampleBuilder';
 import AccountPanel from './AccountPanel';
 import WalletAddressButton from './WalletAddressButton';
 import AlertsPanel from './AlertsPanel';
+import AppNavigation from './AppNavigation';
+import './AppWorkspace.css';
 import Link from 'next/link';
 
 const PRESETS = [-20, -10, -5, 0, 5, 10, 20];
@@ -106,6 +108,8 @@ export default function Dashboard({
   const [shock, setShock] = useState(0);
   const [loading, setLoading] = useState<string | null>(initialLiveLink.state === "ready" ? `Finding ${PROTOCOLS[initialLiveLink.selection.protocol].label} accounts…` : null);
   const [error, setError] = useState<ApiError | null>(null);
+  const [feedbackTarget, setFeedbackTarget] = useState<"account" | "workspace">("workspace");
+  const [accountOpened, setAccountOpened] = useState(0);
   const [stale, setStale] = useState(false);
   const [notice, setNotice] = useState("");
   const [now, setNow] = useState(0);
@@ -147,8 +151,18 @@ export default function Dashboard({
     };
   }, []);
   useEffect(() => {
-    if (choosingAccount) document.getElementById('subaccount')?.focus();
+    if (choosingAccount) {
+      const selector = document.getElementById('subaccount');
+      selector?.focus({ preventScroll: true });
+      selector?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    }
   }, [choosingAccount]);
+  useEffect(() => {
+    if (!accountOpened) return;
+    const heading = document.querySelector<HTMLElement>("#app-overview h1");
+    heading?.focus({ preventScroll: true });
+    document.getElementById("app-overview")?.scrollIntoView({ block: "start", behavior: "auto" });
+  }, [accountOpened]);
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(""), 4500);
@@ -254,9 +268,11 @@ export default function Dashboard({
   }
   async function readAccount(
     event?: FormEvent,
-    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean; subaccount?: number; network?: LiveNetwork },
+    options?: { authority: string; protocol: ProtocolId; publicExample?: boolean; subaccount?: number; network?: LiveNetwork; feedbackTarget?: "account" | "workspace" },
   ) {
     event?.preventDefault();
+    const feedback = event ? "account" : options?.feedbackTarget ?? "workspace";
+    setFeedbackTarget(feedback);
     const authority = (options?.authority ?? address).trim();
     const requestedProtocol = options?.protocol ?? protocolId;
     const requestedNetwork: LiveNetwork = requestedProtocol === "velocity" ? options?.network ?? network : "mainnet-beta";
@@ -283,7 +299,7 @@ export default function Dashboard({
     setError(null);
     setLoading(`Finding ${PROTOCOLS[requestedProtocol].label}${requestedNetwork === "devnet" ? " devnet" : ""} accounts…`);
     retry.current = () => {
-      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample, subaccount: options?.subaccount, network: requestedNetwork });
+      void readAccount(undefined, { authority, protocol: requestedProtocol, publicExample: options?.publicExample, subaccount: options?.subaccount, network: requestedNetwork, feedbackTarget: feedback });
     };
     try {
       const result = await fetchJson<unknown>(
@@ -296,12 +312,15 @@ export default function Dashboard({
         ? result.subaccounts.length === 1 ? result.subaccounts[0] : undefined
         : result.subaccounts.find(account => account.id === options.subaccount);
       if (options?.subaccount !== undefined && !selected) {
+        setFeedbackTarget("workspace");
         setError({ code: 'ACCOUNT_NOT_FOUND', message: 'The linked subaccount was not returned for this authority. Choose a discovered account or explore a preset.', retryable: false });
         setChoosingAccount(true);
+        if (!result.subaccounts.length && feedback === "account") setAccountOpened(value => value + 1);
       } else if (selected) {
-        await readSnapshot(String(selected.id), false, result);
+        await readSnapshot(String(selected.id), false, result, feedback);
       } else {
         setChoosingAccount(true);
+        if (!result.subaccounts.length && feedback === "account") setAccountOpened(value => value + 1);
       }
     } catch (e) {
       if (ticket === request.current) setError(safeError(e));
@@ -309,7 +328,8 @@ export default function Dashboard({
       if (ticket === request.current) setLoading(null);
     }
   }
-  async function readSnapshot(id: string, refreshing = false, selectedDiscovery = discovery) {
+  async function readSnapshot(id: string, refreshing = false, selectedDiscovery = discovery, feedback: "account" | "workspace" = "workspace") {
+    setFeedbackTarget(feedback);
     if (!selectedDiscovery || !id) {
       cancel();
       setSelectedId("");
@@ -332,7 +352,7 @@ export default function Dashboard({
       setShock(0);
     }
     retry.current = () => {
-      void readSnapshot(id, refreshing, selectedDiscovery);
+      void readSnapshot(id, refreshing, selectedDiscovery, feedback);
     };
     try {
       const result = await fetchJson<unknown>(
@@ -346,6 +366,7 @@ export default function Dashboard({
       setShock(0);
       setStale(false);
       setNotice("Snapshot updated. Price move reset to 0%.");
+      if (feedback === "account") setAccountOpened(value => value + 1);
     } catch (e) {
       if (ticket === request.current) {
         setError(safeError(e));
@@ -458,8 +479,36 @@ export default function Dashboard({
     setNotice("Scenario report downloaded.");
   }
 
+  const readError = error && (
+          <div className="alert error" role="alert" id="account-read-error">
+            <Icon name="info" />
+            <div>
+              <strong>
+                {error.code === "INVALID_ADDRESS"
+                  ? "Check the address"
+                  : "Account read unsuccessful"}
+              </strong>
+              <p>{error.message}</p>
+            </div>
+            {mode === 'live' && <button className="button small" onClick={() => {
+              sample(DEFAULT_SAMPLE_ID);
+              if (feedbackTarget === "account") setAccountOpened(value => value + 1);
+            }}>Explore a preset</button>}
+            {error.retryable && (
+              <button
+                className="button small"
+                disabled={!!loading}
+                onClick={() => retry.current()}
+              >
+                Retry
+              </button>
+            )}
+          </div>
+  );
+
   const addressPanel = (
         <section
+          id="app-account"
           className="surface address-panel"
           aria-labelledby="address-label"
         >
@@ -510,7 +559,8 @@ export default function Dashboard({
                   autoCapitalize="none"
                   spellCheck={false}
                   placeholder="Paste a public wallet address"
-                  aria-describedby="address-help"
+                  aria-invalid={error?.code === "INVALID_ADDRESS" || undefined}
+                  aria-describedby={feedbackTarget === "account" && error ? "address-help account-read-error" : "address-help"}
                 />
               </div>
               <button
@@ -527,11 +577,13 @@ export default function Dashboard({
                 disabled={!!loading}
                 onAddress={(walletAddress) => {
                   setPublicExample(false);
-                  void readAccount(undefined, { authority: walletAddress, protocol: protocolId, network });
+                  void readAccount(undefined, { authority: walletAddress, protocol: protocolId, network, feedbackTarget: "account" });
                 }}
               />
             </div>
           </form>
+          {feedbackTarget === "account" && readError}
+          {feedbackTarget === "account" && loading && <div className="loading-status" role="status"><span className="loading-dot" />{loading}</div>}
           <div className="address-bottom">
             <p id="address-help">
               {devnet ? "Reads Velocity’s devnet deployment through Solana’s public devnet RPC. Devnet balances are test values; background monitoring covers mainnet only." : protocolId === "jupiter" ? "Read Jupiter positions by public wallet. Inventory only; price scenarios are unavailable." : protocolId === "pacifica"
@@ -546,7 +598,10 @@ export default function Dashboard({
                 id="sample"
                 label="Try a preset"
                 value={mode !== "sample" ? "" : customPortfolio ? CUSTOM_SAMPLE_ID : sampleId}
-                onChange={sample}
+                onChange={(id) => {
+                  sample(id);
+                  if (id !== CUSTOM_SAMPLE_ID) setAccountOpened(value => value + 1);
+                }}
                 placeholder="Select preset"
                 options={[
                   // The edited portfolio is a real listed choice, so the control
@@ -574,7 +629,7 @@ export default function Dashboard({
           {exampleAuthority && <div className="live-example">
             <button
               type="button"
-              onClick={() => void readAccount(undefined, { authority: exampleAuthority, protocol: protocolId, publicExample: true, network, ...(devnet ? { subaccount: DEVNET_EXAMPLE_SUBACCOUNT } : {}) })}
+              onClick={() => void readAccount(undefined, { authority: exampleAuthority, protocol: protocolId, publicExample: true, network, feedbackTarget: "account", ...(devnet ? { subaccount: DEVNET_EXAMPLE_SUBACCOUNT } : {}) })}
               disabled={!!loading}
             >
               Explore a live account <Icon name="arrow" size={14} />
@@ -585,7 +640,7 @@ export default function Dashboard({
   );
 
   return (
-    <>
+    <div className="buffer-app">
       <a className="skip-link" href="#main">
         Skip to dashboard
       </a>
@@ -600,10 +655,6 @@ export default function Dashboard({
           </Link>
           <div className="header-actions">
             <AccountPanel report={snapshot && scenario && !disabled ? createReport(snapshot, scenario) : null} />
-            <span className={`mode ${mode}`}>
-              <i />
-              {mode === "sample" ? "Demo mode" : "Live mode"}
-            </span>
             <button
               className="button subtle method-button"
               onClick={openMethod}
@@ -615,19 +666,33 @@ export default function Dashboard({
           </div>
         </div>
       </header>
+      <AppNavigation
+        positionsAvailable={Boolean(snapshot && scenario)}
+        scenarioAvailable={Boolean(snapshot && scenario)}
+        alertsAvailable={Boolean(mode === 'live' || (snapshot && scenario))}
+        networkLabel={mode === 'sample' ? 'Example workspace' : NETWORK_LABELS[network]}
+      />
       <main id="main" className={`dashboard ${mode === "live" && snapshot ? "dashboard-has-live" : ""}`}>
-        <div className="page-heading">
+        <div className="page-heading" id="app-overview">
           <div>
-            <div className="eyebrow">POSITION EXPLORER</div>
-            <h1>A little more perspective.</h1>
+            <div className="workspace-heading-context"><div className="eyebrow">YOUR WORKSPACE</div><span className={`mode ${mode}`}><i />{mode === "sample" ? "Demo mode" : "Live mode"}</span></div>
+            <h1 tabIndex={-1}>A little more perspective.</h1>
             <p>Your positions today. A clearer view of a market move.</p>
           </div>
-          {mode === 'sample' ? <div className="live-risk-entry">
+          <div className="workspace-actions">
+            <a className="button account-launch" href="#app-account" onClick={(event) => {
+              event.preventDefault();
+              const field = document.getElementById('address');
+              field?.focus({ preventScroll: true });
+              document.getElementById('app-account')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+            }}><Icon name="wallet" size={16} />Choose an account</a>
+            {mode === 'sample' ? <div className="live-risk-entry">
             <button className="button primary" onClick={() => void readAccount(undefined, { ...LIVE_RISK_EXAMPLE, network: "mainnet-beta", publicExample: true })}>
               Explore live risk <Icon name="arrow" size={16} />
             </button>
             <span>Public Velocity account · fresh data · no sign-in</span>
           </div> : <span className="readonly"><Icon name="check" size={15} />Public data. No permissions.</span>}
+          </div>
         </div>
 
         {mode === "sample" && (
@@ -657,31 +722,7 @@ export default function Dashboard({
           </section>
         )}
 
-        {!(mode === 'live' && snapshot) && addressPanel}
-
-        {error && (
-          <div className="alert error" role="alert">
-            <Icon name="info" />
-            <div>
-              <strong>
-                {error.code === "INVALID_ADDRESS"
-                  ? "Check the address"
-                  : "Account read unsuccessful"}
-              </strong>
-              <p>{error.message}</p>
-            </div>
-            {mode === 'live' && <button className="button small" onClick={() => sample(DEFAULT_SAMPLE_ID)}>Explore a preset</button>}
-            {error.retryable && (
-              <button
-                className="button small"
-                disabled={!!loading}
-                onClick={() => retry.current()}
-              >
-                Retry
-              </button>
-            )}
-          </div>
-        )}
+        {feedbackTarget === "workspace" && readError}
         {mode === "sample" && (
           <div className="sample-note">
             <span className="sample-tag">DEMO</span>
@@ -694,7 +735,7 @@ export default function Dashboard({
         {mode === "live" && publicExample && (
           <p className="public-example-note">Public example account on {protocol.label}. Balances and positions can change. This is a fresh public read; the account is not yours.</p>
         )}
-        {loading && (
+        {loading && feedbackTarget === "workspace" && (
           <div className="loading-status" role="status">
             <span className="loading-dot" />
             {loading}
@@ -858,6 +899,7 @@ export default function Dashboard({
               </section>}
 
               <section
+                id="app-scenario"
                 className="surface scenario"
                 aria-labelledby="scenario-heading"
               >
@@ -1072,14 +1114,14 @@ export default function Dashboard({
                   ))}
                 </section>
               </div>
-              <div className="positions-column">
+              <div className="positions-column" id="app-positions">
                 <section
                   className="surface positions"
                   aria-labelledby="positions-heading"
                 >
                   <div className="panel-heading">
                     <div>
-                      <h2 id="positions-heading">Your perpetual positions</h2>
+                      <h2 id="positions-heading" tabIndex={-1}>Your perpetual positions</h2>
                       <p>{mode === 'sample' ? 'Your preset. Add perps and adjust the inputs.' : snapshotProtocol.id === 'jupiter' ? 'Verified position inventory. Current prices and payoff are not modeled.' : 'Fixed sizes. Snapshot oracle prices.'}</p>
                     </div>
                     <span className="count-badge">
@@ -1225,7 +1267,7 @@ export default function Dashboard({
                   </div>
                 </section>
               </div>
-              <div className="monitoring-section"><AlertsPanel snapshot={snapshot} stale={stale || expired || Boolean(loading)} scopeChanged={Boolean(previousScope || loading)} /></div>
+              <div className="monitoring-section" id="monitoring" tabIndex={-1}><AlertsPanel snapshot={snapshot} stale={stale || expired || Boolean(loading)} scopeChanged={Boolean(previousScope || loading)} /></div>
             </div>
             {!!snapshot.warnings.length && (
               <div className="source-warnings">
@@ -1239,8 +1281,8 @@ export default function Dashboard({
             )}
           </>
         )}
-        {mode === 'live' && (!snapshot || !scenario) && <AlertsPanel snapshot={null} scopeChanged={Boolean(loading)} />}
-        {mode === 'live' && snapshot && addressPanel}
+        {mode === 'live' && (!snapshot || !scenario) && <div id="monitoring" tabIndex={-1}><AlertsPanel snapshot={null} scopeChanged={Boolean(loading)} /></div>}
+        {addressPanel}
         <footer>
           <span className="footer-brand">
             <Mark size={20} />
@@ -1499,7 +1541,7 @@ export default function Dashboard({
           </section>
         </div>
       </dialog>
-    </>
+    </div>
   );
 }
 

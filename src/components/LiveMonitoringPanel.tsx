@@ -107,7 +107,7 @@ export default function LiveMonitoringPanel({ snapshot, stale = false, scopeChan
     }
   }
 
-  return <section id="monitoring" className={`surface ${styles.panel}`} aria-labelledby="alerts-heading">
+  return <section className={`surface ${styles.panel}`} aria-labelledby="alerts-heading">
     <div className={styles.heading}><div><div className={styles.eyebrow}>LIVE MONITORING</div><h2 id="alerts-heading">Know when margin risk changes.</h2><p>{scope}</p></div><span className={styles.state}>{status}</span></div>
     <p className={styles.note}>Monitor observed maintenance headroom in USD, or the unsigned distance from the current oracle price to one position’s estimated liquidation price in percent (model cross-margin-hold-others-v1). These checks use fresh account data, independently of the price-shock calculator.</p>
     {inputProblem && <p className={styles.note} role="status">{rule ? 'Current page observation unavailable' : 'Monitoring unavailable'}: {inputProblem} {rule && 'You can still manage this saved rule independently.'}</p>}
