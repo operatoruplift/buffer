@@ -1,4 +1,5 @@
-/videos/
+/videos/*
+!/videos/metadata.json
 /work/
 /.env*
 tests/
