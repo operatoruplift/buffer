@@ -1,31 +1,45 @@
 # Buffer Technical
 
-Synthetic narration: macOS Samantha. Recorded September 13, 2026. Actual redesigned UI, deterministic sample data and provider selection; no live balances or email success are staged.
+Recorded September 30, 2026 from the current Buffer app. Narration uses the Niki synthetic preset, performed at its natural pace. Public mainnet observations are capture-time data; illustrative portfolio scenes are identified below. No authentication or recipient delivery is staged.
 
-## 00:00:00 — An inspectable read path.
+## 00:00:00 — Start with a verified observation
 
-Buffer separates the React interface, normalized snapshots, and decimal scenario engine. Fixed server endpoints handle public provider reads; wallet keys and transaction signatures are never requested.
+*Public Solana mainnet observation.*
 
-## 00:00:13 — Separate providers. Explicit limits.
+Buffer separates provider reads, normalized snapshots, and scenario calculations. Public account lookup needs no wallet connection. The optional wallet picker supplies an address; Buffer does not submit trades. Here, Velocity is selected on Solana mainnet.
 
-Velocity validates mainnet accounts, markets, and oracle identity. Pacifica checks its public API's market identities and price timestamps. Jupiter validates position PDAs, ownership, pool, and collateral custody, but remains inventory-only. Its current prices and capped payoff are not modeled. Legacy Drift remains paused.
+## 00:00:17 — Identity and freshness travel together
 
-## 00:00:35 — Signed quantity × price × move.
+*Public Solana mainnet observation.*
 
-For eligible linear positions, incremental price effect equals signed quantity, times frozen price, times the shock. Quote currencies stay separate: Velocity uses verified USDT; Pacifica price effects use USD. Sample denominations are illustrative.
+The server checks account ownership, market identity, and oracle validity before exposing an eligible observation. Account identity, source slots, and timestamps remain inspectable. A stale or failed refresh withholds calculations and exports until a valid replacement arrives.
 
-## 00:00:53 — The four-market app sample: +1,000 USDC.
+## 00:00:36 — Exact inputs, explicit scope
 
-At minus ten percent, the four-market app sample totals positive one thousand USDC. The landing page's two-position sample totals positive three thousand five hundred. Both use fixed fixtures.
+*Illustrative portfolio.*
 
-## 00:01:06 — Freshness is a boundary.
+For a supported linear position, the price effect is signed quantity, times frozen price, times the selected shock. Decimal arithmetic preserves exact report values. Quote currencies remain separate. This calculation excludes funding, fees, future fills, and collateral price changes.
 
-Live snapshots expire within one hundred twenty seconds, sometimes sooner. Bounded reads, explicit errors, and request guards prevent stale calculations and late-account replacement.
+## 00:00:55 — Current risk and a separate estimate
 
-## 00:01:18 — Private reports are optional.
+*Public Solana mainnet observation.*
 
-JSON reports preserve exact inputs and exclusions. Device reports stay separate from optional owner-protected cloud storage. Signup and recovery email remain gated. Private data bypasses the offline cache.
+Current maintenance collateral and requirement come from the Velocity observation. Their difference is headroom. A separate liquidation model changes one position's price while holding the other prices fixed. Its assumptions and exclusions are visible; it is not the protocol's liquidation engine.
 
-## 00:01:32 — Verify the behavior. Keep the boundaries.
+## 00:01:14 — Coverage is a product feature
 
-Automated tests cover arithmetic, providers, storage, and real SDK behavior with mocked transport. Point-in-time mainnet reads are separate evidence; email delivery and native store packages are not claimed.
+*Provider capabilities.*
+
+Pacifica supports price scenarios with API timestamps. Jupiter remains inventory only, and legacy Drift is paused. Devnet observations are clearly identified as test values and never enter background monitoring. Mainnet and devnet reports retain their network identity.
+
+## 00:01:34 — Monitor an observation, preserve the evidence
+
+*Monitoring setup · no delivery staged.*
+
+Hosted rules can watch maintenance headroom or a market's liquidation distance. Owner scoped storage, fresh checks, and a durable outbox protect the workflow. Discord acceptance, matching receipts, and signed webhook delivery have distinct states. A configured destination is required before sending.
+
+## 00:01:53 — A result you can inspect again
+
+*Illustrative portfolio.*
+
+Finally, download the report with its source, inputs, model identity, and exclusions. Device history works without an account; private cloud storage is optional. The same responsive workspace runs in supported browsers as an installable web app.

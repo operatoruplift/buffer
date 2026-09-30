@@ -130,6 +130,7 @@ body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; backg
 @media (max-width: 640px) {
   .buffer-app .header-inner { height: auto; min-height: 76px; padding: 14px 18px; align-items: center; flex-wrap: wrap; gap: 10px; }
   .buffer-app .header-actions { gap: 10px; margin-left: auto; }
+  .buffer-app .header-actions > [role="status"] { max-width: 62px; font-size: 10px; line-height: 1.3; }
   .buffer-app .header-actions .button { font-size: 11px; padding-left: 0; }
   .buffer-app .header-actions .method-button { min-width: 30px; font-size: 0; padding: 0; }
   .buffer-app .method-button svg { width: 18px; height: 18px; }

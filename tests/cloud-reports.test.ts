@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeCloudReports, isCloudReportPayload, MAX_CLOUD_REPORT_BYTES } from '../src/lib/cloud-reports';
+import { decodeCloudReports, isCloudReportPayload, MAX_CLOUD_REPORT_BYTES, type SavedReport } from '../src/lib/cloud-reports';
 import { createReport } from '../src/lib/report';
 import { getSampleSnapshot } from '../src/lib/samples';
 import { calculateScenario } from '../src/lib/scenario';
@@ -30,6 +30,24 @@ describe('cloud report response boundary', () => {
     for (const data of [null, undefined, {}, { data: [] }, [fixture(), fixture()], Array.from({ length: 51 }, fixture)]) {
       expect(() => decodeCloudReports(data)).toThrow();
     }
+  });
+
+  it('preserves current model identity and does not backfill historical cloud reports', () => {
+    const current = fixture();
+    expect(decodeCloudReports([current])[0].report.scenario.model).toEqual({
+      id: 'linear-perp-price-shock', version: 1,
+      formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)',
+    });
+    const historical: SavedReport = fixture();
+    delete historical.report.scenario.model;
+    const before = JSON.stringify(historical);
+    expect(isCloudReportPayload(historical.report)).toBe(true);
+    expect(JSON.stringify(decodeCloudReports([historical])[0])).toBe(before);
+    expect(decodeCloudReports([historical])[0].report.scenario).not.toHaveProperty('model');
+
+    const untrusted = { ...current, report: { ...current.report, scenario: { ...current.report.scenario, model: { ...current.report.scenario.model, version: 2 } } } };
+    expect(isCloudReportPayload(untrusted.report)).toBe(false);
+    expect(() => decodeCloudReports([untrusted])).toThrow('Unreadable saved report record');
   });
 
   it.each([

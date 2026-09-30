@@ -307,6 +307,11 @@ describe('presentation and local JSON reports', () => {
     expect(report.sourceMode).toBe('sample');
     expect(report.sampleName).toBe('Partial coverage');
     expect(report.snapshotTime).toBe(snapshot.retrievedAt);
+    expect(report.scenario.model).toEqual({
+      id: 'linear-perp-price-shock',
+      version: 1,
+      formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)',
+    });
     expect(report.scenario.totalsByQuoteCurrency).toEqual([{ quote: 'USDC', delta: '3500' }]);
     expect(report.scenario.includedPositions).toHaveLength(2);
     expect(report.scenario.excludedPositions).toHaveLength(1);

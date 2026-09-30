@@ -1,62 +1,164 @@
 {
   "buffer-demo": {
-    "duration": 81.961,
-    "bytes": 11863366,
+    "duration": 78.567,
+    "bytes": 6705598,
     "resolution": [
-      1600,
-      900
+      1920,
+      1080
     ],
-    "fps": 23.999809355861117,
+    "fps": 30,
     "videoCodec": "h264",
     "audio": {
       "codec": "aac",
       "sampleRate": 48000,
-      "channels": 2,
-      "layout": "stereo"
+      "channels": 2
     },
-    "sampleData": true,
-    "recordedAt": "2026-09-13",
-    "revision": "media-source-v2",
-    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
+    "recordedAt": "2026-09-30",
+    "revision": "media-source-v3",
+    "assembly": "Actual Buffer browser recordings, FFmpeg composition, continuous natural-pace narration",
+    "voice": "Niki",
+    "alignmentMatch": 1.0,
+    "captionCues": 24,
+    "sha256": "e4b4a21143c92e5887e96538bc6e2bf07f92c5f2af03bda2f93e663bcbab19ae",
+    "scenes": [
+      {
+        "visual": "overview",
+        "scope": "Illustrative portfolio",
+        "start": 0
+      },
+      {
+        "visual": "scenario",
+        "scope": "Illustrative portfolio",
+        "start": 14.03
+      },
+      {
+        "visual": "editor",
+        "scope": "Illustrative portfolio",
+        "start": 30.27
+      },
+      {
+        "visual": "live",
+        "scope": "Public Solana mainnet observation",
+        "start": 41.51
+      },
+      {
+        "visual": "report",
+        "scope": "Illustrative portfolio",
+        "start": 56.85
+      },
+      {
+        "visual": "mobile",
+        "scope": "Responsive app",
+        "start": 70.77
+      }
+    ]
   },
   "buffer-pitch": {
-    "duration": 51.71,
-    "bytes": 9586189,
+    "duration": 60.0,
+    "bytes": 6097761,
     "resolution": [
-      1600,
-      900
+      1920,
+      1080
     ],
-    "fps": 23.999697828139755,
+    "fps": 30,
     "videoCodec": "h264",
     "audio": {
       "codec": "aac",
       "sampleRate": 48000,
-      "channels": 2,
-      "layout": "stereo"
+      "channels": 2
     },
-    "sampleData": true,
-    "recordedAt": "2026-09-13",
-    "revision": "media-source-v2",
-    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
+    "recordedAt": "2026-09-30",
+    "revision": "media-source-v3",
+    "assembly": "Actual Buffer browser recordings, FFmpeg composition, continuous natural-pace narration",
+    "voice": "Niki",
+    "alignmentMatch": 1.0,
+    "captionCues": 19,
+    "sha256": "fd70044e27c18559b5a4d831622c8ec043d2c62bac085c7f07b3776b5c3f1883",
+    "scenes": [
+      {
+        "visual": "hero",
+        "scope": "Buffer",
+        "start": 0
+      },
+      {
+        "visual": "scenario",
+        "scope": "Illustrative portfolio",
+        "start": 8.53
+      },
+      {
+        "visual": "live",
+        "scope": "Public Solana mainnet observation",
+        "start": 19.39
+      },
+      {
+        "visual": "monitoring",
+        "scope": "Monitoring setup \u00b7 no delivery staged",
+        "start": 30.95
+      },
+      {
+        "visual": "mobile",
+        "scope": "Responsive app",
+        "start": 43.63
+      }
+    ]
   },
   "buffer-technical": {
-    "duration": 106.254,
-    "bytes": 16439087,
+    "duration": 130.1,
+    "bytes": 11302805,
     "resolution": [
-      1600,
-      900
+      1920,
+      1080
     ],
-    "fps": 23.99985294207756,
+    "fps": 30,
     "videoCodec": "h264",
     "audio": {
       "codec": "aac",
       "sampleRate": 48000,
-      "channels": 2,
-      "layout": "stereo"
+      "channels": 2
     },
-    "sampleData": true,
-    "recordedAt": "2026-09-13",
-    "revision": "media-source-v2",
-    "assembly": "Higgsfield sandbox FFmpeg scenes + native Higgsedit timeline"
+    "recordedAt": "2026-09-30",
+    "revision": "media-source-v3",
+    "assembly": "Actual Buffer browser recordings, FFmpeg composition, continuous natural-pace narration",
+    "voice": "Niki",
+    "alignmentMatch": 1.0,
+    "captionCues": 38,
+    "sha256": "692ab4b917c694ee30994889eae21af08636a8fc38b64cae4dab8aac538ef44d",
+    "scenes": [
+      {
+        "visual": "live",
+        "scope": "Public Solana mainnet observation",
+        "start": 0
+      },
+      {
+        "visual": "method",
+        "scope": "Public Solana mainnet observation",
+        "start": 17.91
+      },
+      {
+        "visual": "scenario",
+        "scope": "Illustrative portfolio",
+        "start": 36.39
+      },
+      {
+        "visual": "risk",
+        "scope": "Public Solana mainnet observation",
+        "start": 55.41
+      },
+      {
+        "visual": "providers",
+        "scope": "Provider capabilities",
+        "start": 74.59
+      },
+      {
+        "visual": "monitoring",
+        "scope": "Monitoring setup \u00b7 no delivery staged",
+        "start": 94.05
+      },
+      {
+        "visual": "report",
+        "scope": "Illustrative portfolio",
+        "start": 113.89
+      }
+    ]
   }
 }

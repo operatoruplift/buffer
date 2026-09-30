@@ -598,10 +598,7 @@ export default function Dashboard({
                 id="sample"
                 label="Try a preset"
                 value={mode !== "sample" ? "" : customPortfolio ? CUSTOM_SAMPLE_ID : sampleId}
-                onChange={(id) => {
-                  sample(id);
-                  if (id !== CUSTOM_SAMPLE_ID) setAccountOpened(value => value + 1);
-                }}
+                onChange={sample}
                 placeholder="Select preset"
                 options={[
                   // The edited portfolio is a real listed choice, so the control

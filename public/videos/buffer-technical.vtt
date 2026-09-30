@@ -1,64 +1,115 @@
 WEBVTT
 
-00:00:00.350 --> 00:00:06.146
-Buffer separates the React interface, normalized snapshots, and decimal scenario engine. Fixed
+00:00:00.000 --> 00:00:04.120 line:95% position:50% size:90% align:center
+Buffer separates provider reads, normalized snapshots, and scenario
 
-00:00:06.146 --> 00:00:11.942
-server endpoints handle public provider reads; wallet keys and transaction signatures are
+00:00:04.120 --> 00:00:08.300 line:95% position:50% size:90% align:center
+calculations. Public account lookup needs no wallet connection.
 
-00:00:11.942 --> 00:00:12.908
-never requested.
+00:00:09.160 --> 00:00:11.380 line:95% position:50% size:90% align:center
+The optional wallet picker supplies an address;
 
-00:00:13.808 --> 00:00:19.801
-Velocity validates mainnet accounts, markets, and oracle identity. Pacifica checks its public
+00:00:12.200 --> 00:00:13.660 line:95% position:50% size:90% align:center
+Buffer does not submit trades.
 
-00:00:19.801 --> 00:00:25.794
-API's market identities and price timestamps. Jupiter validates position PDAs, ownership, pool,
+00:00:14.400 --> 00:00:17.360 line:95% position:50% size:90% align:center
+Here, Velocity is selected on Solana mainnet.
 
-00:00:25.794 --> 00:00:31.787
-and collateral custody, but remains inventory-only. Its current prices and capped payoff
+00:00:18.060 --> 00:00:21.640 line:95% position:50% size:90% align:center
+The server checks account ownership, market identity, and oracle
 
-00:00:31.787 --> 00:00:35.283
-are not modeled. Legacy Drift remains paused.
+00:00:21.640 --> 00:00:24.500 line:95% position:50% size:90% align:center
+validity before exposing an eligible observation.
 
-00:00:36.183 --> 00:00:42.386
-For eligible linear positions, incremental price effect equals signed quantity, times frozen
+00:00:25.540 --> 00:00:29.140 line:95% position:50% size:90% align:center
+Account identity, source slots, and timestamps remain inspectable.
 
-00:00:42.386 --> 00:00:48.589
-price, times the shock. Quote currencies stay separate: Velocity uses verified USDT;
+00:00:29.140 --> 00:00:33.540 line:95% position:50% size:90% align:center
+A stale or failed refresh withholds calculations and exports
 
-00:00:48.589 --> 00:00:53.242
-Pacifica price effects use USD. Sample denominations are illustrative.
+00:00:33.540 --> 00:00:35.480 line:95% position:50% size:90% align:center
+until a valid replacement arrives.
 
-00:00:54.142 --> 00:00:59.310
-At minus ten percent, the four-market app sample totals positive one thousand
+00:00:36.540 --> 00:00:39.380 line:95% position:50% size:90% align:center
+For a supported linear position, the price effect is
 
-00:00:59.310 --> 00:01:04.477
-USDC. The landing page's two-position sample totals positive three thousand five hundred.
+00:00:39.380 --> 00:00:43.400 line:95% position:50% size:90% align:center
+signed quantity, times frozen price, times the selected shock.
 
-00:01:04.477 --> 00:01:06.200
-Both use fixed fixtures.
+00:00:44.360 --> 00:00:47.420 line:95% position:50% size:90% align:center
+Decimal arithmetic preserves exact report values.
 
-00:01:07.100 --> 00:01:13.000
-Live snapshots expire within one hundred twenty seconds, sometimes sooner. Bounded reads,
+00:00:48.260 --> 00:00:49.560 line:95% position:50% size:90% align:center
+Quote currencies remain separate.
 
-00:01:13.000 --> 00:01:18.408
-explicit errors, and request guards prevent stale calculations and late-account replacement.
+00:00:50.420 --> 00:00:54.720 line:95% position:50% size:90% align:center
+This calculation excludes funding, fees, future fills, and collateral
 
-00:01:19.308 --> 00:01:24.798
-JSON reports preserve exact inputs and exclusions. Device reports stay separate from
+00:00:54.720 --> 00:00:58.800 line:95% position:50% size:90% align:center
+price changes. Current maintenance collateral and requirement come
 
-00:01:24.798 --> 00:01:30.287
-optional owner-protected cloud storage. Signup and recovery email remain gated. Private data
+00:00:58.800 --> 00:01:00.160 line:95% position:50% size:90% align:center
+from the Velocity observation.
 
-00:01:30.287 --> 00:01:32.117
-bypasses the offline cache.
+00:01:01.080 --> 00:01:02.300 line:95% position:50% size:90% align:center
+Their difference is headroom.
 
-00:01:33.017 --> 00:01:38.452
-Automated tests cover arithmetic, providers, storage, and real SDK behavior with mocked
+00:01:03.060 --> 00:01:06.640 line:95% position:50% size:90% align:center
+A separate liquidation model changes one position's price while
 
-00:01:38.452 --> 00:01:43.888
-transport. Point-in-time mainnet reads are separate evidence; email delivery and native store
+00:01:06.640 --> 00:01:08.160 line:95% position:50% size:90% align:center
+holding the other prices fixed.
 
-00:01:43.888 --> 00:01:45.700
-packages are not claimed.
+00:01:09.040 --> 00:01:11.080 line:95% position:50% size:90% align:center
+Its assumptions and exclusions are visible;
+
+00:01:11.640 --> 00:01:13.720 line:95% position:50% size:90% align:center
+it is not the protocol's liquidation engine.
+
+00:01:14.740 --> 00:01:18.000 line:95% position:50% size:90% align:center
+Pacifica supports price scenarios with API timestamps.
+
+00:01:18.820 --> 00:01:22.460 line:95% position:50% size:90% align:center
+Jupiter remains inventory only, and legacy Drift is paused.
+
+00:01:22.460 --> 00:01:27.360 line:95% position:50% size:90% align:center
+Devnet observations are clearly identified as test values and
+
+00:01:27.360 --> 00:01:29.100 line:95% position:50% size:90% align:center
+never enter background monitoring.
+
+00:01:30.200 --> 00:01:33.380 line:95% position:50% size:90% align:center
+Mainnet and devnet reports retain their network identity.
+
+00:01:34.200 --> 00:01:36.900 line:95% position:50% size:90% align:center
+Hosted rules can watch maintenance headroom or a market's
+
+00:01:36.900 --> 00:01:41.420 line:95% position:50% size:90% align:center
+liquidation distance. Owner scoped storage, fresh checks, and a
+
+00:01:41.420 --> 00:01:43.400 line:95% position:50% size:90% align:center
+durable outbox protect the workflow.
+
+00:01:44.500 --> 00:01:48.140 line:95% position:50% size:90% align:center
+Discord acceptance, matching receipts, and signed webhook delivery
+
+00:01:48.140 --> 00:01:52.340 line:95% position:50% size:90% align:center
+have distinct states. A configured destination is required before
+
+00:01:52.340 --> 00:01:57.080 line:95% position:50% size:90% align:center
+sending. Finally, download the report with its source, inputs,
+
+00:01:57.520 --> 00:01:59.460 line:95% position:50% size:90% align:center
+model identity, and exclusions.
+
+00:02:00.300 --> 00:02:02.160 line:95% position:50% size:90% align:center
+Device history works without an account;
+
+00:02:02.800 --> 00:02:04.260 line:95% position:50% size:90% align:center
+private cloud storage is optional.
+
+00:02:04.960 --> 00:02:08.240 line:95% position:50% size:90% align:center
+The same responsive workspace runs in supported browsers as
+
+00:02:08.240 --> 00:02:09.500 line:95% position:50% size:90% align:center
+an installable web app.

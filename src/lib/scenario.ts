@@ -6,6 +6,13 @@ import { hasConfiguredPerpIdentity } from './perp-markets';
 import { FRESHNESS_SECONDS } from './freshness.ts';
 export { FRESHNESS_SECONDS };
 
+/** Identifies the price-effect calculation independently of the report format. */
+export const PRICE_SCENARIO_MODEL = Object.freeze({
+  id: 'linear-perp-price-shock',
+  version: 1,
+  formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)',
+} as const);
+
 export const ASSUMPTIONS = [
   'Position sizes are fixed; the selected percentage move applies together to all eligible, verified linear perpetual oracle prices.',
   'Price P&L change = signed base quantity × frozen baseline oracle price × shock fraction.',

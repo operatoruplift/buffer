@@ -1,0 +1,11 @@
+*.webm
+*.wav
+*.mp3
+*.png
+*.jpg
+*-alignment.json
+*-visible.txt
+*-failure.json
+rendered/
+__pycache__/
+illustrative-report.json

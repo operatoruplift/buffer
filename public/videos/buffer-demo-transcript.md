@@ -1,27 +1,39 @@
 # Buffer Demo
 
-Synthetic narration: macOS Samantha. Recorded September 13, 2026. Actual redesigned UI, deterministic sample data and provider selection; no live balances or email success are staged.
+Recorded September 30, 2026 from the current Buffer app. Narration uses the Niki synthetic preset, performed at its natural pace. Public mainnet observations are capture-time data; illustrative portfolio scenes are identified below. No authentication or recipient delivery is staged.
 
-## 00:00:00 — A little more perspective.
+## 00:00:00 — One calm workspace
 
-Meet Buffer: a read-only way to understand perpetual positions. Start with a sample, or read a public Solana account.
+*Illustrative portfolio.*
 
-## 00:00:09 — Four positions. Every contribution.
+Here's Buffer. A calmer place to understand your perpetual positions. Start with an editable portfolio, or look up a public Solana account. The navigation keeps your positions, scenarios, and monitoring within reach.
 
-The app opens with SOL, Bitcoin, Ether, and XRP sample positions. Apply a ten percent decline. Their contributions combine to positive one thousand USDC. These are fixed, illustrative prices.
+## 00:00:14 — Follow the price move
 
-## 00:00:25 — Build your own what-if.
+*Illustrative portfolio.*
 
-Open Add perps and search seventy-six configured sample markets. Add a position, change its direction, size, or baseline price. Sample USDC, USDT, and USD labels do not convert currencies.
+Let's try a ten percent decline. Each long and short contributes differently. Move the control and watch the total update, then inspect the individual contributions. These example prices are fixed, so you can explore without connecting anything.
 
-## 00:00:41 — Know what each source supports.
+## 00:00:30 — Make the scenario yours
 
-For public accounts, Velocity is the default. Pacifica also supports price scenarios. Jupiter shows position inventory only, with its modeling limits explained. Legacy Drift stays clearly paused.
+*Illustrative portfolio.*
 
-## 00:00:56 — Keep the explanation.
+Open your positions to add another market. Search the catalog, choose a direction, and adjust the quantity or starting price. Your changes become part of the same calculation.
 
-Inspect each contribution and exclusion, then open Method for the calculation, source, and freshness. Save a dated copy on this device, or download the exact scenario as JSON.
+## 00:00:41 — Keep the source in view
 
-## 00:01:10 — Perspective, wherever you are.
+*Public Solana mainnet observation.*
 
-Buffer adapts to mobile and desktop. Supported browsers can install it, and the public sample calculator works offline. Open Buffer and explore your next what-if.
+For a live view, open the public Velocity example. The account, network, and observation time stay attached. Current maintenance headroom is separate from your price scenario, with liquidation estimates and their assumptions available to inspect.
+
+## 00:00:56 — Take the explanation with you
+
+*Illustrative portfolio.*
+
+Save a dated report on this device, or download the exact inputs and results. Velocity and Pacifica support scenarios; Jupiter provides position inventory. Each source keeps its own boundaries.
+
+## 00:01:10 — A little more perspective
+
+*Responsive app.*
+
+On your phone, the same workspace fits comfortably in your hand. Open Buffer, change the move, and follow the numbers.

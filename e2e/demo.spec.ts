@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test('all three hosted videos decode, play and seek with captions available', async ({ page, request }) => {
   await page.goto('/demo');
-  await expect(page.getByRole('heading', { name: 'Meet Buffer.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Meet Buffer. Find your perspective.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Watch the walkthrough' })).toHaveAttribute('href', '#demo');
   const videos = page.locator('video');
   await expect(videos).toHaveCount(3);
   // The product prepares every native track without displaying captions or
@@ -31,7 +32,7 @@ test('all three hosted videos decode, play and seek with captions available', as
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(10);
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.textTracks[0].activeCues?.length ?? 0)).toBeGreaterThan(0);
     const state = await video.evaluate((element: HTMLVideoElement) => ({ width: element.videoWidth, height: element.videoHeight, error: element.error?.message }));
-    expect(state).toEqual({ width: 1600, height: 900, error: undefined });
+    expect(state).toEqual({ width: 1920, height: 1080, error: undefined });
     await video.evaluate((element: HTMLVideoElement) => element.pause());
     const track = await video.locator('track').getAttribute('src');
     const response = await request.get(track!);
@@ -48,7 +49,9 @@ test('all three hosted videos decode, play and seek with captions available', as
     const transcript = await response.text();
     expect(transcript).toMatch(/^# Buffer /);
     expect(transcript).toContain('Jupiter');
-    expect(transcript).toContain('September 13, 2026');
+    expect(transcript).toContain('September 30, 2026');
+    expect(transcript).toContain('Niki');
+    expect(transcript).toContain('Public Solana mainnet observation');
   }
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);
