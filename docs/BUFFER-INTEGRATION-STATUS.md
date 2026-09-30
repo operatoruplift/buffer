@@ -1,6 +1,6 @@
 # Buffer integration status
 
-Updated September 20, 2026. This matrix belongs to the current integration pass. Evidence is point-in-time and distinguishes implementation from hosted execution. Final deployment identifiers and fresh command results are recorded in [the existing release record](RELEASE-2026-09-20.md).
+Updated September 30, 2026. Evidence is point-in-time and distinguishes implementation from hosted execution. The matrix below preserves the September 20 release evidence; the subsequent verification is recorded immediately below it. The earlier deployment identifiers remain in [the September 20 release record](RELEASE-2026-09-20.md).
 
 | Integration | Implemented source | Fixture/contract tests | Local runtime | Read-only live provider | Outbound acceptance | Recipient receipt | Scheduler heartbeat | Deployed verification | Timestamp (UTC) | Remaining prerequisite |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -14,7 +14,16 @@ Updated September 20, 2026. This matrix belongs to the current integration pass.
 | Discord | One fixed-origin adapter, admin allowlist, metadata verification, preview | 77 contract tests passed; zero outbound requests | Rehearsal and receipt-state UI verified | **Not configured** | **Not run** | **Not run** | Worker verified separately above | Adapter deployed; sends disabled | 2026-09-19 19:10 | Exact channel, server-side webhook credential/owner mapping and authorized test send |
 
 
-No mock receipt, saved row, environment variable or HTTP 200 without validated data is counted as a live delivery. Discord “delivered” means a matching message was retrieved from the configured channel, not that a human read it. Signup/recovery SMTP is separately gated and remains disabled. Liquidation estimates ship as model `cross-margin-hold-others-v1` (added 28 September 2026): one position at a time from the SDK’s current maintenance collateral and requirement, with every other price held. The SDK’s linear extrapolation is still not used; observed maintenance context and scenario exclusions are retained. Hosted monitoring can now watch that distance per market (`liquidation_distance`, `%`) and deliver to HMAC-signed webhook destinations beside Discord; migration `20260928120000_liquidation_sentinels.sql` is verified locally by the contract script and has not yet been applied to the deployed project.
+No mock receipt, saved row, environment variable or HTTP 200 without validated data is counted as a live delivery. Discord “delivered” means a matching message was retrieved from the configured channel, not that a human read it. Signup/recovery SMTP is separately gated and remains disabled. Liquidation estimates ship as model `cross-margin-hold-others-v1` (added 28 September 2026): one position at a time from the SDK’s current maintenance collateral and requirement, with every other price held. The SDK’s linear extrapolation is still not used; observed maintenance context and scenario exclusions are retained. Hosted monitoring can watch that distance per market (`liquidation_distance`, `%`) and deliver to HMAC-signed webhook destinations beside Discord.
+
+## September 30 verification
+
+- Hosted migration history confirms `liquidation_sentinels` was applied on September 28 as `20260928154216`. The hosted rule constraints, destination kinds, RLS, owner isolation, function bodies and execution grants match the checked-in migration. It was not reapplied.
+- Scheduler maintenance `20260930095233_acknowledge_webhook_delivery_in_scheduler` adds recognition of webhook `delivered` acknowledgements. The helper retains its owner, OID, restricted grants, 55-second HTTP timeout, disabled keepalive and existing active minute job. A session-local HTTP extension initialization registers its settings before the function DDL; no elevated grants are required.
+- Natural scheduler runs at 09:53, 09:54 and 09:55 UTC completed successfully after the update. The latest protected worker heartbeat was `ok` in `dry_run` mode; this verifies the scheduled path without claiming a recipient delivery.
+- Fresh public provider probes returned two Velocity positions in USDT and 22 Pacifica positions in USD. These are current read-only observations, not notification-delivery evidence.
+- Devnet reports retain a visible network label and export identity. Explorer links use the observed network, and switching to a mainnet deep link or the fixed live-risk example explicitly selects mainnet. A failed cross-network read labels retained data as a previous observation and disables calculations.
+- No new recipient test, Discord message, webhook delivery, SMTP acceptance or on-device Android wallet session was exercised in this pass.
 
 ## Current demonstration
 

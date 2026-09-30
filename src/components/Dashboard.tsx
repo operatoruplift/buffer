@@ -128,8 +128,10 @@ export default function Dashboard({
   const exampleAuthority = devnet ? DEVNET_ACCOUNT_EXAMPLE : PUBLIC_ACCOUNT_EXAMPLES[protocolId];
   const accountLabel = mode === "live" && (protocolId === "pacifica" || protocolId === "jupiter") ? "Account" : "Subaccount";
   const selectedAuthority = discovery?.authority ?? address.trim();
+  const selectedNetwork = discovery ? discovery.network ?? "mainnet-beta" : network;
   const previousScope = snapshot?.source === 'live' && mode === 'live' && (
     snapshotProtocol.id !== protocolId || snapshot.authority !== discovery?.authority ||
+    snapshot.network !== selectedNetwork ||
     selectedId === '' || snapshot.subaccount.id !== Number(selectedId)
   );
   const canRefresh = mode === 'sample' || Boolean(discovery && selectedId !== '');
@@ -356,7 +358,7 @@ export default function Dashboard({
   const syncLiveLink = useEffectEvent((link: LiveLink) => {
     if (link.state === 'ready') {
       const selection = link.selection;
-      void readAccount(undefined, { ...selection, publicExample: selection.network === "devnet" ? selection.authority === DEVNET_ACCOUNT_EXAMPLE : PUBLIC_ACCOUNT_EXAMPLES[selection.protocol] === selection.authority });
+      void readAccount(undefined, { ...selection, network: selection.network ?? "mainnet-beta", publicExample: selection.network === "devnet" ? selection.authority === DEVNET_ACCOUNT_EXAMPLE : PUBLIC_ACCOUNT_EXAMPLES[selection.protocol] === selection.authority });
     } else if (link.state === 'invalid') {
       sample(DEFAULT_SAMPLE_ID);
       setError({ code: 'INVALID_LINK', message: link.message, retryable: false });
@@ -499,6 +501,7 @@ export default function Dashboard({
                 <input
                   id="address"
                   value={address}
+                  disabled={!!loading}
                   onChange={(e) => {
                     setAddress(e.target.value);
                     setPublicExample(false);
@@ -620,7 +623,7 @@ export default function Dashboard({
             <p>Your positions today. A clearer view of a market move.</p>
           </div>
           {mode === 'sample' ? <div className="live-risk-entry">
-            <button className="button primary" onClick={() => void readAccount(undefined, { ...LIVE_RISK_EXAMPLE, publicExample: true })}>
+            <button className="button primary" onClick={() => void readAccount(undefined, { ...LIVE_RISK_EXAMPLE, network: "mainnet-beta", publicExample: true })}>
               Explore live risk <Icon name="arrow" size={16} />
             </button>
             <span>Public Velocity account · fresh data · no sign-in</span>
@@ -738,7 +741,7 @@ export default function Dashboard({
                       <a
                         className="icon-button"
                         aria-label="View authority on Solana Explorer"
-                        href={`https://explorer.solana.com/address/${selectedAuthority}`}
+                        href={`https://explorer.solana.com/address/${selectedAuthority}${selectedNetwork === "devnet" ? "?cluster=devnet" : ""}`}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -1418,7 +1421,7 @@ export default function Dashboard({
                           <Icon name="copy" size={14} />
                         </button>
                         <a
-                          href={`https://explorer.solana.com/address/${snapshot.subaccount.address}`}
+                          href={`https://explorer.solana.com/address/${snapshot.subaccount.address}${snapshot.network === "devnet" ? "?cluster=devnet" : ""}`}
                           target="_blank"
                           rel="noreferrer"
                         >

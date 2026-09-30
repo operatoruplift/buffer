@@ -5,7 +5,7 @@ Added 28 September 2026. Two additions to hosted monitoring, both behind the sam
 - a second **metric**, `liquidation_distance`: the unsigned percentage move from the current oracle price to one position's estimated liquidation price under model `cross-margin-hold-others-v1` (see [RISK-CONTEXT.md](RISK-CONTEXT.md));
 - a second **destination kind**, `webhook`: an HMAC-signed JSON POST to a server-configured HTTPS URL.
 
-No credentials, URLs or recipient tests were exercised outside synthetic transports. The migration `20260928120000_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`.
+No recipient tests were exercised outside synthetic transports. The migration `20260928120000_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`. Hosted history confirms it was applied on September 28 as `20260928154216`; its constraints, RLS, function definitions and execution grants were verified on September 30.
 
 ## Liquidation-distance rules
 
@@ -73,7 +73,7 @@ const ok = timingSafeEqual(Buffer.from(req.headers['x-buffer-signature']), Buffe
 
 Compare over the raw body bytes, reject old timestamps, and deduplicate on `X-Buffer-Event`: the worker never re-sends an event whose outcome is uncertain, but a receiver may still see a retried event after a `429` or `5xx`.
 
-Before configuring the first webhook destination on a deployment whose scheduler was installed before 28 September 2026, re-run the `private.invoke_buffer_monitor_worker()` block of `supabase/setup/monitoring-scheduler.sql` as the project owner (the SQL editor's role can set the helper's HTTP timeout; the migration role cannot). The updated helper accepts a worker result of `delivered`; the earlier one would report each webhook delivery minute as a failed invocation, although the delivery itself is recorded.
+Before configuring the first webhook destination on a deployment whose scheduler was installed before 28 September 2026, re-run the HTTP initialization and `private.invoke_buffer_monitor_worker()` blocks of `supabase/setup/monitoring-scheduler.sql`. Loading the HTTP extension in the same database session registers its user-settable timeout settings before function creation; permissions and timeout protections must remain intact. The updated helper accepts a worker result of `delivered`; the earlier one would report each webhook delivery minute as a failed invocation, although the delivery itself is recorded. Buffer's production helper was updated and verified on September 30 by migration `20260930095233_acknowledge_webhook_delivery_in_scheduler`, without changing the existing schedule or enabling outbound sends.
 
 ### Outcomes
 

@@ -320,18 +320,57 @@ test('a failed subaccount switch retains and labels the previous scope until a s
   await expect(page.getByRole('dialog')).toContainText('Mock second · #1');
 });
 
+test('a failed network switch labels a retained observation even when authority and subaccount match', async ({ page }) => {
+  await page.route('**/api/accounts?*', route => {
+    const devnet = new URL(route.request().url()).searchParams.get('network') === 'devnet';
+    return route.fulfill({ json: { ...discovery(), ...(devnet ? { network: 'devnet' } : {}) } });
+  });
+  await page.route('**/api/snapshot?*', route => new URL(route.request().url()).searchParams.get('network') === 'devnet'
+    ? route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'Devnet snapshot unavailable.', retryable: true } } })
+    : route.fulfill({ json: mockSnapshot() }));
+  await page.goto('/app');
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await expect(page.getByTestId('scenario-total')).toContainText('0.00');
+  const originalTime = await page.locator('.freshness small').textContent();
+  await page.getByRole('group', { name: 'Network' }).getByRole('button', { name: 'Devnet', exact: true }).click();
+  await readAddress(page);
+  await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  await expect(page.getByRole('alert').filter({ hasText: 'Devnet snapshot unavailable.' })).toBeVisible();
+  const prior = page.getByRole('alert').filter({ hasText: 'Showing the previous Velocity observation' });
+  await expect(prior).toContainText(`${AUTHORITY}, Mock main · #0`);
+  await expect(prior).toContainText('These values do not describe the new selection.');
+  await expect(page.locator('.freshness small')).toHaveText(originalTime!);
+  await expect(page.getByTestId('scenario-total')).toContainText('Unavailable');
+  await expect(page.getByRole('slider')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Download report JSON' })).toBeDisabled();
+  await expect(page.getByRole('link', { name: 'View authority on Solana Explorer' })).toHaveAttribute('href', `https://explorer.solana.com/address/${AUTHORITY}?cluster=devnet`);
+  await page.getByRole('button', { name: 'Method', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('link', { name: 'Explorer ↗', exact: true })).toHaveAttribute('href', `https://explorer.solana.com/address/${AUTHORITY}`);
+});
+
 test('a failed wallet lookup preserves the prior live account without presenting it as the new wallet', async ({ page }) => {
+  let finishSnapshot!: () => void;
+  const snapshotReady = new Promise<void>(resolve => { finishSnapshot = resolve; });
   await page.route('**/api/accounts?*', route => {
     const authority = new URL(route.request().url()).searchParams.get('authority');
     return authority === AUTHORITY
       ? route.fulfill({ json: discovery() })
       : route.fulfill({ status: 503, json: { error: { code: 'RPC_ERROR', message: 'New wallet unavailable.', retryable: true } } });
   });
-  await page.route('**/api/snapshot?*', route => route.fulfill({ json: mockSnapshot() }));
+  await page.route('**/api/snapshot?*', async route => {
+    await snapshotReady;
+    await route.fulfill({ json: mockSnapshot() });
+  });
   await page.goto('/app');
   await readAddress(page);
   await chooseOption(page, 'Subaccount', 'Mock main · #0');
+  // Completing this read moves the address form below the live dashboard.
+  // Do not accept an edit that could be lost when that form is remounted.
+  await expect(page.getByRole('textbox', { name: 'Solana wallet address', exact: true })).toBeDisabled();
+  finishSnapshot();
   await readAddress(page, OTHER_AUTHORITY);
+  await expect(page.getByRole('alert').filter({ hasText: 'New wallet unavailable.' })).toBeVisible();
   const prior = page.getByRole('alert').filter({ hasText: 'Showing the previous Velocity observation' });
   await expect(prior).toContainText(AUTHORITY);
   await expect(prior).toContainText('These values do not describe the new selection.');
