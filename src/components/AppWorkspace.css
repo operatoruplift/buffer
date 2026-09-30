@@ -117,6 +117,7 @@ body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; backg
 }
 @media (max-width: 1179px) {
   .buffer-app .dashboard { padding-bottom: 28px; }
+  .buffer-app .presets button, .buffer-app .guide-steps button, .buffer-app .network-picker button { min-height: 44px; }
   .buffer-app .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
   body:has(.buffer-app) #app-installation { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 }
