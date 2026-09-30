@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { createReport } from '@/lib/report';
 import { formatDecimal, formatUtc } from '@/lib/format';
+import { NETWORK_LABELS } from '@/lib/networks';
 import { DEVICE_REPORTS_KEY, deleteDeviceReport, listDeviceReports, saveDeviceReport, type DeviceReport } from '@/lib/device-reports';
 import styles from './AccountPanel.module.css';
 
@@ -51,7 +52,7 @@ export default function DeviceReportsPanel({ report }: { report: Report | null }
       {error && <p role="alert">{error} <button className="button subtle" onClick={load}>Retry</button></p>}
       {!error && reports.length === 0 && <p>No reports saved yet.</p>}
       <ul className={styles.list}>{reports.map(item => <li key={item.id}>
-        <strong>{item.title}</strong><small>{formatUtc(item.created_at)} · {item.report.sourceMode === 'sample' ? 'Preset fixture' : 'Live snapshot'} · Historical</small>
+        <strong>{item.title}</strong><small>{formatUtc(item.created_at)} · {item.report.sourceMode === 'sample' ? 'Preset fixture' : `Live snapshot · ${NETWORK_LABELS[item.report.network === 'devnet' ? 'devnet' : 'mainnet-beta']}`} · Historical</small>
         <details className={styles.summary}><summary>View saved explanation</summary>
           <p>Perp price P&amp;L change at {item.report.scenario.shockPercent}%</p>
           {item.report.scenario.totalsByQuoteCurrency.map(total => <p className={styles.total} key={total.quote}>{formatDecimal(total.delta, 2, true)} <span>{total.quote}</span></p>)}

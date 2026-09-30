@@ -1,7 +1,8 @@
 /** Local PostgreSQL contract checks; HTTP and Vault are synthetic, with no network I/O.
  * The fixture registers http 1.6 metadata only in this disposable PGlite database.
- * Its transport stub checks the HEAD request and TLS/deadline options. Actual
- * extension behavior and hosted ACLs remain separate deployment checks. Local
+ * Its library stub models user-settable GUC registration; PGlite cannot load
+ * native HTTP. Its transport stub checks HEAD and TLS/deadline options. Actual
+ * extension loading and hosted ACLs remain separate deployment checks. Local
  * revocation assertions cover tenant-owned fixtures; managed extension grants
  * can remain present in production without exposing the private helper/Vault.
  */
@@ -25,6 +26,16 @@ insert into pg_catalog.pg_extension(oid,extname,extowner,extnamespace,extrelocat
 values(777777,'http',current_user::regrole,(select oid from pg_namespace where nspname='extensions'),true,'1.6');
 create table private.fixture(status integer,headers extensions.http_header[],body text);
 create table private.options(name text primary key,value text);
+create table private.http_settings(name text primary key,context text);
+create table private.http_library(register_settings boolean not null);
+insert into private.http_library values(true);
+create function extensions.http_list_curlopt() returns table(curlopt text,value text) language plpgsql as $$
+begin
+ if (select register_settings from private.http_library) then
+  insert into private.http_settings values('http.timeout_msec','user'),('http.keepalive','user') on conflict(name) do nothing;
+ end if;
+ return query select o.name,o.value from private.options o;
+end$$;
 create function extensions.http_reset_curlopt() returns boolean language plpgsql as $$begin delete from private.options; return true; end$$;
 create function extensions.http_set_curlopt(a text,b text) returns boolean language plpgsql as $$begin insert into private.options values(a,b) on conflict(name) do update set value=excluded.value; return true; end$$;
 create function extensions.http(req extensions.http_request) returns extensions.http_response language plpgsql as $$
@@ -41,7 +52,18 @@ grant execute on function extensions.http(extensions.http_request) to public,ano
 grant usage on schema private,extensions,vault to anon,authenticated,service_role;
 `);
 const setup=await readFile(new URL('../supabase/setup/monitoring-scheduler.sql', import.meta.url), 'utf8');
-await db.exec(setup.replace(/^create extension[^\n]+\n/gm,''));
+// Only the settings catalog is synthetic; execute the actual initialization
+// guard, including its order, before installing the unchanged helper body.
+assert.equal((setup.match(/pg_catalog\.pg_settings/g) ?? []).length,1);
+const localSetup=setup.replace(/^create extension[^\n]+\n/gm,'').replace('pg_catalog.pg_settings','private.http_settings');
+await db.exec("update pg_extension set extversion='1.7' where extname='http'");
+await assert.rejects(db.exec(localSetup),e=>e.message==='Buffer scheduler HTTP extension requires version review');checks++;
+await db.exec("update pg_extension set extversion='1.6' where extname='http'; update private.http_library set register_settings=false");
+await assert.rejects(db.exec(localSetup),e=>e.message==='Buffer scheduler HTTP settings are not registered as user-settable');checks++;
+await db.exec("update private.http_library set register_settings=true; insert into private.http_settings values('http.timeout_msec','superuser')");
+await assert.rejects(db.exec(localSetup),e=>e.message==='Buffer scheduler HTTP settings are not registered as user-settable');checks++;
+await db.exec('delete from private.http_settings');
+await db.exec(localSetup);
 async function fixture(body,status=200,headers=1){
  await db.query('delete from private.fixture');
  await db.query(`insert into private.fixture values($1,case when $3=0 then array[]::extensions.http_header[] when $3=2 then array[('X-Buffer-Monitoring-Result',$2)::extensions.http_header,('x-buffer-monitoring-result',$2)::extensions.http_header] else array[('X-Buffer-Monitoring-Result',$2)::extensions.http_header] end,null)`,[status,typeof body==='string'?body:JSON.stringify(body),headers]);

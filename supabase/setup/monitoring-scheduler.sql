@@ -11,6 +11,23 @@ revoke all on table vault.secrets, vault.decrypted_secrets from public, anon, au
 -- for browser roles. The private helper and Vault ACLs are the required gates.
 revoke all on function extensions.http(extensions.http_request) from public, anon, authenticated;
 
+-- Load HTTP in this connection before validating the function's SET clauses.
+-- Unloaded custom GUCs are restricted placeholders; HTTP 1.6 registers these
+-- as USERSET. Listing options sends no request and discards all option values.
+do $load_http$
+begin
+  if not exists(select 1 from pg_catalog.pg_extension e join pg_catalog.pg_namespace n on n.oid=e.extnamespace
+    where e.extname='http' and e.extversion='1.6' and n.nspname='extensions') then
+    raise exception 'Buffer scheduler HTTP extension requires version review';
+  end if;
+  perform 1 from extensions.http_list_curlopt();
+  if (select count(*) from pg_catalog.pg_settings
+    where name in ('http.timeout_msec','http.keepalive') and context='user')<>2 then
+    raise exception 'Buffer scheduler HTTP settings are not registered as user-settable';
+  end if;
+end;
+$load_http$;
+
 -- Reviewed against https://supabase.com/docs/guides/database/extensions/http
 -- and https://github.com/pramsey/pgsql-http/blob/v1.6.0/http.c on 2026-09-20.
 -- Version 1.6 follows redirects for POST/GET, but explicitly not for HEAD.
