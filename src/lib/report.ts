@@ -1,4 +1,4 @@
-import { ASSUMPTIONS, FRESHNESS_SECONDS } from './scenario';
+import { ASSUMPTIONS, FRESHNESS_SECONDS, PRICE_SCENARIO_MODEL } from './scenario';
 import type { Scenario, Snapshot } from './types';
 
 /** JSON export keeps financial values as precise decimal strings. */
@@ -24,6 +24,7 @@ export function createReport(snapshot: Snapshot, scenario: Scenario) {
     },
     scenario: {
       label: 'Perp price P&L change',
+      model: { ...PRICE_SCENARIO_MODEL },
       shockPercent: scenario.shockPercent,
       disabledReason: scenario.disabledReason,
       modeledPositions: scenario.eligible,

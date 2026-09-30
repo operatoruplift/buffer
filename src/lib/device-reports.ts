@@ -2,8 +2,15 @@ import { isJupiterInventory } from './jupiter-inventory';
 import type { createReport } from './report';
 import { isReferencePerpCatalog } from './perp-markets';
 import { isCanonicalProtocol } from './protocols';
+import { PRICE_SCENARIO_MODEL } from './scenario';
 
-export type Report = ReturnType<typeof createReport>;
+type GeneratedReport = ReturnType<typeof createReport>;
+/** Earlier version-1 reports did not include scenario model metadata. */
+export type Report = Omit<GeneratedReport, 'scenario'> & {
+  scenario: Omit<GeneratedReport['scenario'], 'model'> & {
+    model?: GeneratedReport['scenario']['model'];
+  };
+};
 export type DeviceReport = { id: string; title: string; created_at: string; report: Report };
 export type DeviceReportStorage = Pick<Storage, 'getItem' | 'setItem'>;
 export const DEVICE_REPORTS_KEY = 'buffer.device-reports.v1';
@@ -47,6 +54,12 @@ function catalog(value: unknown) {
   return value === undefined || isReferencePerpCatalog(value);
 }
 
+function scenarioModel(value: unknown) {
+  return value === undefined || (object(value) && Object.keys(value).length === 3 &&
+    value.id === PRICE_SCENARIO_MODEL.id && value.version === PRICE_SCENARIO_MODEL.version &&
+    value.formula === PRICE_SCENARIO_MODEL.formula);
+}
+
 /** Validate stored JSON before it can be rendered or downloaded as a report. */
 export function isReport(value: unknown): value is Report {
   if (!object(value) || value.report !== 'Buffer perpetual price scenario' || value.version !== 1 ||
@@ -63,7 +76,7 @@ export function isReport(value: unknown): value is Report {
   const inventory = value.inventoryOutsideScenario;
   if (!object(subaccount) || !count(subaccount.id) || !text(subaccount.name) || !nullableText(subaccount.address) ||
       !object(slots) || !slot(slots.account) || !slot(slots.observed) || slots.atomicSameSlotRead !== false ||
-      !object(scenario) || scenario.label !== 'Perp price P&L change' || !integer(scenario.shockPercent) ||
+      !object(scenario) || scenario.label !== 'Perp price P&L change' || !scenarioModel(scenario.model) || !integer(scenario.shockPercent) ||
       scenario.shockPercent < -20 || scenario.shockPercent > 20 || !nullableText(scenario.disabledReason) ||
       !count(scenario.modeledPositions) || !count(scenario.totalPositions) || scenario.modeledPositions > scenario.totalPositions ||
       !object(inventory) || typeof inventory.available !== 'boolean') return false;

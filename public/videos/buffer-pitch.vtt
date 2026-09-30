@@ -1,37 +1,58 @@
 WEBVTT
 
-00:00:00.350 --> 00:00:05.558
-A market move can affect every position differently. Buffer makes those differences
+00:00:00.000 --> 00:00:02.780 line:95% position:50% size:90% align:center
+When the market moves, one number rarely tells the
 
-00:00:05.558 --> 00:00:05.992
-visible.
+00:00:02.780 --> 00:00:05.860 line:95% position:50% size:90% align:center
+whole story. Buffer gives you a clearer view of
 
-00:00:06.892 --> 00:00:12.169
-Start with an editable sample, or read a public account without connecting
+00:00:05.860 --> 00:00:07.920 line:95% position:50% size:90% align:center
+how your perpetual positions fit together.
 
-00:00:12.169 --> 00:00:17.446
-a wallet. Explore seventy-six sample markets, change the price move, and follow
+00:00:08.680 --> 00:00:11.240 line:95% position:50% size:90% align:center
+Start with a portfolio you can edit, or read
 
-00:00:17.446 --> 00:00:18.325
-each contribution.
+00:00:11.240 --> 00:00:12.540 line:95% position:50% size:90% align:center
+a public Solana account.
 
-00:00:19.225 --> 00:00:26.001
-Velocity and Pacifica support price scenarios. Jupiter adds clearly labeled position inventory.
+00:00:13.360 --> 00:00:15.660 line:95% position:50% size:90% align:center
+Change the price move and follow each long and
 
-00:00:26.001 --> 00:00:28.825
-Unsupported exposure keeps its explanation.
+00:00:15.660 --> 00:00:18.300 line:95% position:50% size:90% align:center
+short, with the math and its assumptions close at
 
-00:00:29.725 --> 00:00:35.381
-Open the method. Inspect the source. Save a dated report. The result
+00:00:18.300 --> 00:00:22.660 line:95% position:50% size:90% align:center
+hand. For eligible Velocity accounts, current maintenance headroom
 
-00:00:35.381 --> 00:00:41.036
-is a focused price effect, with fees, funding, collateral changes, and liquidation
+00:00:22.660 --> 00:00:24.900 line:95% position:50% size:90% align:center
+sits beside a separate liquidation estimate.
 
-00:00:41.036 --> 00:00:42.450
-outside the calculation.
+00:00:25.600 --> 00:00:28.640 line:95% position:50% size:90% align:center
+The source and observation time remain visible, so you
 
-00:00:43.350 --> 00:00:48.035
-On mobile or desktop, Buffer gives you room to understand the numbers
+00:00:28.640 --> 00:00:29.760 line:95% position:50% size:90% align:center
+know what you're looking at.
 
-00:00:48.035 --> 00:00:51.158
-before you act. Buffer. A little more perspective.
+00:00:31.100 --> 00:00:33.640 line:95% position:50% size:90% align:center
+Monitoring brings headroom and market distance into the same
+
+00:00:33.640 --> 00:00:38.060 line:95% position:50% size:90% align:center
+workspace. Destination readiness and delivery status stay distinct.
+
+00:00:38.800 --> 00:00:41.780 line:95% position:50% size:90% align:center
+A saved report keeps the explanation, not just the
+
+00:00:41.780 --> 00:00:45.820 line:95% position:50% size:90% align:center
+headline number. Velocity and Pacifica support price scenarios.
+
+00:00:46.920 --> 00:00:48.300 line:95% position:50% size:90% align:center
+Jupiter adds position inventory.
+
+00:00:49.220 --> 00:00:52.000 line:95% position:50% size:90% align:center
+Across desktop and mobile, Buffer gives you room to
+
+00:00:52.000 --> 00:00:54.000 line:95% position:50% size:90% align:center
+understand your exposure before you act.
+
+00:00:54.820 --> 00:00:55.840 line:95% position:50% size:90% align:center
+A little more perspective.

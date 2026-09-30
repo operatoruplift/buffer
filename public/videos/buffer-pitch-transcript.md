@@ -1,23 +1,33 @@
 # Buffer Pitch
 
-Synthetic narration: macOS Samantha. Recorded September 13, 2026. Actual redesigned UI, deterministic sample data and provider selection; no live balances or email success are staged.
+Recorded September 30, 2026 from the current Buffer app. Narration uses the Niki synthetic preset, performed at its natural pace. Public mainnet observations are capture-time data; illustrative portfolio scenes are identified below. No authentication or recipient delivery is staged.
 
-## 00:00:00 — Make room for understanding.
+## 00:00:00 — Make room to understand
 
-A market move can affect every position differently. Buffer makes those differences visible.
+*Buffer.*
 
-## 00:00:06 — Shape the scenario.
+When the market moves, one number rarely tells the whole story. Buffer gives you a clearer view of how your perpetual positions fit together.
 
-Start with an editable sample, or read a public account without connecting a wallet. Explore seventy-six sample markets, change the price move, and follow each contribution.
+## 00:00:08 — Ask a better what-if
 
-## 00:00:18 — Clear about coverage.
+*Illustrative portfolio.*
 
-Velocity and Pacifica support price scenarios. Jupiter adds clearly labeled position inventory. Unsupported exposure keeps its explanation.
+Start with a portfolio you can edit, or read a public Solana account. Change the price move and follow each long and short, with the math and its assumptions close at hand.
 
-## 00:00:29 — The reasoning stays visible.
+## 00:00:19 — Context beside the calculation
 
-Open the method. Inspect the source. Save a dated report. The result is a focused price effect, with fees, funding, collateral changes, and liquidation outside the calculation.
+*Public Solana mainnet observation.*
 
-## 00:00:43 — A little more perspective.
+For eligible Velocity accounts, current maintenance headroom sits beside a separate liquidation estimate. The source and observation time remain visible, so you know what you're looking at.
 
-On mobile or desktop, Buffer gives you room to understand the numbers before you act. Buffer. A little more perspective.
+## 00:00:30 — Know what is ready
+
+*Monitoring setup · no delivery staged.*
+
+Monitoring brings headroom and market distance into the same workspace. Destination readiness and delivery status stay distinct. A saved report keeps the explanation, not just the headline number.
+
+## 00:00:43 — Built around your attention
+
+*Responsive app.*
+
+Velocity and Pacifica support price scenarios. Jupiter adds position inventory. Across desktop and mobile, Buffer gives you room to understand your exposure before you act. A little more perspective.

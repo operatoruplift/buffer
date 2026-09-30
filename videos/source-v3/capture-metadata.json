@@ -1,0 +1,239 @@
+{
+  "revision": "20260930",
+  "origin": "http://127.0.0.1:3001",
+  "readOrigin": "https://bufferonsolana.vercel.app",
+  "recordedAt": "2026-09-30T11:33:22.739Z",
+  "clips": [
+    {
+      "id": "hero",
+      "path": "hero.webm",
+      "kind": "landing",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 31.08,
+      "trimStartSeconds": 4.198999999999996,
+      "usableSeconds": 26.781000000000002,
+      "capturedAt": "2026-09-30T10:52:22.012Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "overview",
+      "path": "overview.webm",
+      "kind": "illustrative",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 28.32,
+      "trimStartSeconds": 3.187,
+      "usableSeconds": 25.033,
+      "capturedAt": "2026-09-30T10:53:06.834Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "scenario",
+      "path": "scenario.webm",
+      "kind": "illustrative",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 31,
+      "trimStartSeconds": 5.906999999999998,
+      "usableSeconds": 24.993000000000002,
+      "capturedAt": "2026-09-30T10:56:46.695Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "editor",
+      "path": "editor.webm",
+      "kind": "illustrative",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 30.76,
+      "trimStartSeconds": 5.343000000000002,
+      "usableSeconds": 25.317,
+      "capturedAt": "2026-09-30T10:58:15.269Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "live",
+      "path": "live.webm",
+      "kind": "public-mainnet",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 29.68,
+      "trimStartSeconds": 4.607999999999999,
+      "usableSeconds": 24.972,
+      "capturedAt": "2026-09-30T10:59:12.440Z",
+      "observations": [
+        {
+          "status": 200,
+          "readOrigin": "https://bufferonsolana.vercel.app",
+          "network": "mainnet-beta",
+          "source": "live",
+          "protocol": "velocity",
+          "authority": "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+          "retrievedAt": "2026-09-30T10:59:10.147Z",
+          "expiresAt": "2026-09-30T11:01:10.147Z"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "risk",
+      "path": "risk.webm",
+      "kind": "public-mainnet",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 29.32,
+      "trimStartSeconds": 4.238000000000001,
+      "usableSeconds": 24.982,
+      "capturedAt": "2026-09-30T11:00:19.975Z",
+      "observations": [
+        {
+          "status": 200,
+          "readOrigin": "https://bufferonsolana.vercel.app",
+          "network": "mainnet-beta",
+          "source": "live",
+          "protocol": "velocity",
+          "authority": "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+          "retrievedAt": "2026-09-30T11:00:17.703Z",
+          "expiresAt": "2026-09-30T11:02:17.703Z"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "method",
+      "path": "method.webm",
+      "kind": "public-mainnet",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 41.16,
+      "trimStartSeconds": 15.950999999999995,
+      "usableSeconds": 25.109,
+      "capturedAt": "2026-09-30T11:02:46.800Z",
+      "observations": [
+        {
+          "status": 200,
+          "readOrigin": "https://bufferonsolana.vercel.app",
+          "network": "mainnet-beta",
+          "source": "live",
+          "protocol": "velocity",
+          "authority": "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+          "retrievedAt": "2026-09-30T11:02:44.370Z",
+          "expiresAt": "2026-09-30T11:04:44.370Z"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "report",
+      "path": "report.webm",
+      "kind": "illustrative",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 30.76,
+      "trimStartSeconds": 4.939000000000002,
+      "usableSeconds": 25.721,
+      "capturedAt": "2026-09-30T11:06:43.867Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "mobile",
+      "path": "mobile.webm",
+      "kind": "illustrative",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "totalSeconds": 28.68,
+      "trimStartSeconds": 3.636999999999999,
+      "usableSeconds": 24.943,
+      "capturedAt": "2026-09-30T11:07:28.715Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "providers",
+      "path": "providers.webm",
+      "kind": "capabilities",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 38.08,
+      "trimStartSeconds": 12.934,
+      "usableSeconds": 25.046,
+      "capturedAt": "2026-09-30T11:08:22.226Z",
+      "observations": [],
+      "errors": []
+    },
+    {
+      "id": "monitoring",
+      "path": "monitoring.webm",
+      "kind": "public-mainnet",
+      "origin": "http://127.0.0.1:3001",
+      "readOrigin": "https://bufferonsolana.vercel.app",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "totalSeconds": 31.68,
+      "trimStartSeconds": 6.566000000000001,
+      "usableSeconds": 25.014,
+      "capturedAt": "2026-09-30T11:33:28.178Z",
+      "observations": [
+        {
+          "status": 200,
+          "readOrigin": "https://bufferonsolana.vercel.app",
+          "network": "mainnet-beta",
+          "source": "live",
+          "protocol": "velocity",
+          "authority": "DxoRJ4f5XRMvXU9SGuM4ZziBFUxbhB3ubur5sVZEvue2",
+          "retrievedAt": "2026-09-30T11:33:24.727Z",
+          "expiresAt": "2026-09-30T11:35:24.727Z"
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

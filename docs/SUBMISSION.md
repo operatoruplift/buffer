@@ -43,13 +43,13 @@ The latest auth journeys exercised the installed SDK with intercepted transport;
 | Asset | Contents |
 | --- | --- |
 | [Interactive explorer](https://bufferonsolana.vercel.app/app) | Four-market sample, 76-market builder, 12 preserved fixtures, modeled Velocity/Pacifica reads, Jupiter inventory, coverage, Method, device save, and JSON export |
-| [Product demo](https://bufferonsolana.vercel.app/demo#demo) | Current sample journey, editor, provider selector, reports, and mobile app |
-| [Pitch](https://bufferonsolana.vercel.app/demo#pitch) | Current product story with authentic redesigned UI, assembled in the Higgsfield sandbox |
+| [Product demo](https://bufferonsolana.vercel.app/demo#demo) | Workspace navigation, editable portfolio, public mainnet observation, reports, and mobile app |
+| [Pitch](https://bufferonsolana.vercel.app/demo#pitch) | Current product story with actual app recordings and conversational narration |
 | [Technical walkthrough](https://bufferonsolana.vercel.app/demo#technical) | Provider boundaries, quote identity, precise arithmetic, freshness, report privacy, and verification limits |
 
-Measured runtimes come from the encoded exports. [Video documentation](VIDEO.md) and the [version-2 source archive and storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) describe source footage, narration, captions, transcripts, and provenance. [Media-source-v1](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) remains a historical archive.
+Measured runtimes come from the encoded exports in `videos/metadata.json`. [Video documentation](VIDEO.md) and the [version-3 source instructions and storyboard](../videos/source-v3/README.md) describe the September 30 footage, narration, captions, transcripts, and provenance. [Media-source-v2](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) and [media-source-v1](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) remain historical archives.
 
-The films use sample footage and the real provider selector. They do not stage live account values or production authentication success. The refreshed production does not claim a new Seedance generation.
+The films distinguish editable illustrative portfolios from actual capture-time Velocity mainnet observations. They use natural-pace synthetic Niki narration and FFmpeg assembly of current product recordings. They do not stage authentication success or recipient delivery, and do not claim a new Seedance generation.
 
 ## 90-second presentation
 

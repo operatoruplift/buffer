@@ -1,0 +1,180 @@
+/* App-only workspace treatment; the marketing surfaces keep their own layout. */
+.buffer-app {
+  --bg: #f3f5f1;
+  --surface: #fff;
+  --text: #21302e;
+  --muted: #65736e;
+  --border: #dfe5dd;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+.buffer-app .header {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  background: #fbfcfa;
+  border-color: #dfe5dd;
+}
+.buffer-app .header-inner {
+  max-width: none;
+  height: 80px;
+  margin: 0;
+  padding: 0 32px;
+}
+.buffer-app .header-actions { gap: 20px; }
+.buffer-app .header-actions .button { min-height: 44px; }
+.buffer-app .mode { border: 1px solid var(--border); border-radius: 30px; padding: 7px 11px; background: #fff; }
+.buffer-app .descriptor { color: var(--muted); }
+.buffer-app .dashboard {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 34px 28px 40px;
+}
+.buffer-app :is(#app-overview, #app-scenario, #app-positions, #monitoring, #app-account, #scenario-heading, #positions-heading) { scroll-margin-top: 104px; }
+.buffer-app .page-heading { align-items: flex-start; gap: 24px; margin-bottom: 24px; }
+.buffer-app .page-heading h1 { font-size: clamp(26px, 2.4vw, 36px); font-weight: 550; letter-spacing: -1.4px; }
+.buffer-app .page-heading p { font-size: 14px; line-height: 1.7; }
+.buffer-app .workspace-heading-context { display: flex; align-items: center; gap: 14px; margin-bottom: 13px; }
+.buffer-app .workspace-heading-context .eyebrow { margin: 0; }
+.buffer-app .workspace-heading-context .mode { padding: 4px 9px; font-size: 10px; }
+.buffer-app .eyebrow { font-size: 10px; letter-spacing: 1.6px; }
+.buffer-app .workspace-actions { display: flex; align-items: flex-start; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+.buffer-app .workspace-actions .readonly { margin: 12px 0 0; }
+.buffer-app .button { border-radius: 11px; min-height: 44px; transition: background-color .16s ease, border-color .16s ease; }
+.buffer-app .button.primary { box-shadow: 0 3px 7px #315fe81a; }
+.buffer-app .button.subtle { box-shadow: none; }
+.buffer-app .live-risk-entry span { max-width: 200px; line-height: 1.6; font-size: 10px; }
+.buffer-app .surface { border-color: var(--border); background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #263d3005; }
+.buffer-app .sample-guide { border: 1px solid #d9e3d1; border-radius: 16px; background: #eaf0e4; padding: 16px 20px 10px; margin-bottom: 12px; }
+.buffer-app .guide-heading strong { font-size: 13px; }
+.buffer-app .guide-steps { margin-top: 5px; }
+.buffer-app .guide-steps button { min-height: 40px; font-size: 12px; }
+.buffer-app .sample-note { margin: 0 0 4px; padding: 8px 2px; font-size: 11px; color: var(--muted); }
+.buffer-app .sample-tag { border-color: #cdd9c7; background: #f8fbf4; color: #617355; }
+.buffer-app .account-strip { margin-bottom: 22px; border-color: var(--border); gap: 16px; padding: 20px 0; }
+.buffer-app .account-icon { background: #e6ebe3; color: #53684c; border-radius: 12px; }
+.buffer-app .account-name { font-size: 14px; }
+.buffer-app .freshness small { font-size: 10px; }
+.buffer-app .freshness span { font-size: 11px; }
+.buffer-app .section-kicker { font-size: 10px; }
+.buffer-app .metric { border-color: var(--border); border-radius: 15px; padding: 19px 22px; background: #fff; }
+.buffer-app .metric-label { font-size: 12px; }
+.buffer-app .metric-value { font-size: 29px; letter-spacing: -.9px; }
+.buffer-app .metric p { font-size: 11px; line-height: 1.65; }
+.buffer-app .workspace-grid { gap: 22px; }
+.buffer-app .panel-heading { padding: 22px; border-color: var(--border); }
+.buffer-app .panel-heading h2 { font-size: 17px; letter-spacing: -.45px; }
+.buffer-app .panel-heading p { font-size: 12px; line-height: 1.6; }
+.buffer-app .positions.surface { background: #fff; overflow: hidden; }
+.buffer-app .scenario { overflow: hidden; }
+.buffer-app .scenario > .panel-heading { background: #fbfcfa; }
+.buffer-app .scenario-title h2 { font-size: 15px; }
+.buffer-app .scenario-result { padding: 26px 24px 22px; background: #eff3ea; border-color: #dde5d6; }
+.buffer-app .result-label { font-size: 12px; }
+.buffer-app .result-number { font-size: clamp(34px, 3.6vw, 48px); font-weight: 550; letter-spacing: -1.6px; }
+.buffer-app .scenario-result p { font-size: 11px; line-height: 1.7; }
+.buffer-app .shock-control { padding: 24px; }
+.buffer-app .presets button { min-height: 38px; border-radius: 8px; }
+.buffer-app .coverage strong, .buffer-app .coverage p, .buffer-app .assumption-line { font-size: 11px; line-height: 1.7; }
+.buffer-app .scenario-actions { background: #fbfcfa; }
+.buffer-app .download { font-size: 11px; }
+.buffer-app .position-table td { font-size: 12px; }
+.buffer-app .market strong { font-size: 13px; }
+.buffer-app .market small { font-size: 11px; }
+.buffer-app .inventory-group h3, .buffer-app .inventory-row { font-size: 12px; }
+.buffer-app .table-note { font-size: 11px; line-height: 1.7; }
+.buffer-app .risk-context-heading > div > p, .buffer-app .risk-context-note { font-size: 12px; line-height: 1.65; }
+.buffer-app .risk-status { font-size: 11px; }
+.buffer-app .liquidation-list li { background: #fafbf8; border-color: var(--border); }
+.buffer-app .liquidation-list li span, .buffer-app .liquidation-assumptions { font-size: 11px; line-height: 1.65; }
+.buffer-app .address-panel { margin-top: 32px; padding: 24px; }
+.buffer-app .address-panel label, .buffer-app .address-help { font-size: 12px; }
+.buffer-app .input-wrap { border-radius: 11px; background: #fafbf8; border-color: var(--border); }
+.buffer-app .input-wrap input { min-height: 48px; }
+.buffer-app .network-picker { gap: 8px; }
+.buffer-app .network-picker button { min-height: 36px; border-color: var(--border); }
+.buffer-app .network-picker button[aria-pressed="true"] { background: #243b31; border-color: #243b31; }
+.buffer-app .address-bottom p { font-size: 12px; line-height: 1.6; }
+.buffer-app .model-tag { font-size: 9px; }
+.buffer-app footer { margin-top: 32px; padding-bottom: 0; font-size: 11px; }
+.buffer-app .toast { z-index: 45; }
+body:has(.buffer-app) { background: #f3f5f1; }
+body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; background: #f3f5f1; }
+
+@media (min-width: 1180px) {
+  .buffer-app .dashboard { margin-left: 244px; margin-right: max(28px, calc((100vw - 1770px) / 2)); padding-left: 12px; padding-right: 0; }
+  body:has(.buffer-app) #app-installation { margin-left: 256px; margin-right: 28px; padding-left: 0; padding-right: 0; }
+}
+@media (min-width: 941px) and (max-width: 1360px) {
+  .buffer-app .page-heading { flex-wrap: wrap; gap: 18px; }
+  .buffer-app .workspace-actions { align-items: center; }
+  .buffer-app .live-risk-entry { flex-direction: row; align-items: center; gap: 10px; }
+  .buffer-app .positions-column { grid-template-columns: 1fr; }
+  .buffer-app .panel-heading { padding: 18px; }
+  .buffer-app .panel-heading h2 { font-size: 15px; }
+  .buffer-app .scenario-title h2 { font-size: 14px; }
+}
+@media (max-width: 1179px) {
+  .buffer-app .dashboard { padding-bottom: 28px; }
+  .buffer-app .presets button, .buffer-app .guide-steps button, .buffer-app .network-picker button { min-height: 44px; }
+  .buffer-app .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  body:has(.buffer-app) #app-installation { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 940px) {
+  .buffer-app .page-heading { flex-direction: column; gap: 20px; }
+  .buffer-app .workspace-actions { align-items: center; justify-content: flex-start; flex-wrap: wrap; }
+  .buffer-app .positions-column { grid-template-columns: 1fr; }
+  .buffer-app .workspace-grid { gap: 20px; }
+  .buffer-app .descriptor, .buffer-app .brand-divider { display: none; }
+}
+@media (max-width: 640px) {
+  .buffer-app .header-inner { height: auto; min-height: 76px; padding: 14px 18px; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .buffer-app .header-actions { gap: 10px; margin-left: auto; }
+  .buffer-app .header-actions > [role="status"] { max-width: 62px; font-size: 10px; line-height: 1.3; }
+  .buffer-app .header-actions .button { font-size: 11px; padding-left: 0; }
+  .buffer-app .header-actions .method-button { min-width: 30px; font-size: 0; padding: 0; }
+  .buffer-app .method-button svg { width: 18px; height: 18px; }
+  .buffer-app .brand [data-brand="buffer"] { font-size: 26px; }
+  .buffer-app .brand [data-brand="buffer"] > svg { width: 29px; height: 29px; }
+  .buffer-app .dashboard { margin: 0; padding: 26px 16px 24px; }
+  .buffer-app .page-heading h1 { max-width: 290px; font-size: 30px; line-height: 1.15; }
+  .buffer-app .page-heading p { font-size: 13px; margin-top: 12px; }
+  .buffer-app .workspace-actions { gap: 12px; width: 100%; align-items: flex-start; }
+  .buffer-app .workspace-actions .account-launch { min-width: 0; padding: 10px 13px; }
+  .buffer-app .workspace-actions .live-risk-entry { flex: 1; min-width: 144px; }
+  .buffer-app .live-risk-entry .button.primary { min-width: 0; width: 100%; padding: 10px 13px; gap: 8px; }
+  .buffer-app .live-risk-entry span { font-size: 10px; max-width: 175px; }
+  .buffer-app .workspace-actions .readonly { font-size: 11px; }
+  .buffer-app .sample-guide { padding: 14px 14px 8px; }
+  .buffer-app .guide-heading strong { font-size: 12px; }
+  .buffer-app .guide-steps { gap: 2px; }
+  .buffer-app .guide-steps button { font-size: 11px; }
+  .buffer-app .sample-note { font-size: 11px; line-height: 1.6; }
+  .buffer-app .account-strip { padding: 20px 2px; gap: 15px; align-items: flex-start; }
+  .buffer-app .account-identity { flex-basis: 100%; }
+  .buffer-app .account-name { font-size: 13px; }
+  .buffer-app .account-identity .eyebrow { font-size: 9px; }
+  .buffer-app .subaccount { max-width: 100%; flex: 1; min-width: 0; }
+  .buffer-app .freshness { padding-left: 0; flex: 1; }
+  .buffer-app .freshness small { font-size: 10px; overflow-wrap: anywhere; }
+  .buffer-app .freshness span { font-size: 10px; }
+  .buffer-app .account-strip > .button { align-self: center; }
+  .buffer-app .surface { border-radius: 16px; }
+  .buffer-app .panel-heading { padding: 19px 17px; }
+  .buffer-app .panel-heading h2 { font-size: 16px; }
+  .buffer-app .scenario-title h2 { font-size: 13px; }
+  .buffer-app .scenario-result { padding: 24px 18px; }
+  .buffer-app .result-number { font-size: 40px; }
+  .buffer-app .shock-control { padding: 20px 18px; }
+  .buffer-app .position-card dl { gap: 10px; }
+  .buffer-app .position-card dd, .buffer-app .position-card dt { font-size: 12px; }
+  .buffer-app .metric { padding: 16px 18px; }
+  .buffer-app .metric-value { font-size: 25px; }
+  .buffer-app .address-panel { padding: 20px 16px; }
+  .buffer-app .address-bottom p { font-size: 11px; }
+  .buffer-app footer { line-height: 1.7; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buffer-app .button { transition: none; }
+}

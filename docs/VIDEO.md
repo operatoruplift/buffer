@@ -1,76 +1,53 @@
-# Buffer videos
+# Buffer films
 
-**Updated:** September 20, 2026 (current implementation and historical film context).
+The September 30 refresh uses current app recordings and one continuous conversational Niki voice take for each film. The three films share the same visual language as the workspace: a light surface, cobalt identity, readable UI, concise chapters, and a desktop/mobile composition. The narration runs at its original pace; it is not time-stretched.
 
-The version-2 films cover the core Buffer website and app: the cobalt B identity, animated landing page, four-market sample, 76-market sample builder, provider coverage, reports, and responsive mobile interface. The [source archive and production storyboard](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) contain the scene titles, narration, captures, and audio sources.
+## The three journeys
 
-## Current build update
-
-The films were recorded on September 13, 2026 and remain intact. The current `/demo` introduction opens **Explore live risk** in the actual updated app: fresh public Velocity account, adjacent maintenance context and an independent price scenario. A sole eligible account selects automatically; multiple accounts require deliberate selection.
-
-Current monitoring has separate local example and hosted modes. Live rules use authenticated owner-scoped APIs and a durable worker. Discord acceptance and a matching channel receipt are separate statuses. Actual outbound verification still requires a configured destination and authorized test send; neither an intercepted browser test nor a mock journal is presented as delivery. See [integration status](BUFFER-INTEGRATION-STATUS.md). The films predate these changes and their narration is not relabeled as new footage.
-
-| Film | Story | Timing |
-| --- | --- | --- |
-| Product demo | Four-market sample, −10% move, Add perps, provider selector, Method, device save/JSON export, mobile | **1:22** (81.961 s) |
-| Pitch | Why Buffer exists, editable samples, explicit provider coverage, inspectable results, mobile | **0:52** (51.710 s) |
-| Technical walkthrough | Provider boundaries, exact arithmetic, quote identity, freshness, reports, auth and verification limits | **1:46** (106.254 s) |
-
-The current films and production package are available in [media-source-v2](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2). The [version-1 archive](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) is historical and contains the old U identity and September 11 explorer footage.
-
-## What the current footage represents
-
-All account, position, and price footage is **sample data**. The provider selector demonstrates available choices and their stated boundaries; it does not stage a successful live lookup. The auth scene shows the actual optional account interface and disabled public email actions. It does not stage production sign-in, recovery delivery, or private report access.
-
-The two sample examples are deliberately distinct:
-
-- **App four-market sample:** 100 SOL long at 150, 0.5 BTC short at 100,000, 8 ETH long at 2,500, and 2,500 XRP long at 2. A −10% move contributes −1,500, +5,000, −2,000, and −500 USDC, totaling **+1,000 USDC**.
-- **Landing two-position sample:** the SOL long and BTC short contribute −1,500 and +5,000 USDC, totaling **+3,500 USDC** at −10%.
-
-These are fixed illustrative prices, not current market observations. Sample USDC, USDT, and USD denominations preserve the same numeric inputs and perform no FX conversion. The model holds position sizes fixed and excludes funding, fees, future fills, borrowing interest, collateral-price changes, and liquidation effects. A price effect is not account equity, margin health, or a liquidation forecast.
-
-The films describe provider coverage as follows:
-
-| Provider | Film claim |
+| Film | Story |
 | --- | --- |
-| Velocity | Default live provider; eligible linear price scenarios, with verified USDT quote identity |
-| Pacifica | Eligible price scenarios across configured markets; API price effects use USD and API price timestamps |
-| Jupiter Perps | Canonical position inventory only; current prices and collateral-dependent capped payoff remain unmodeled |
-| Legacy Drift | Paused; no current price scenario advertised |
+| Product walkthrough | New navigation, editable portfolio, price scenario and contributions, a public Velocity mainnet observation, saved/downloaded reports, and mobile navigation |
+| Pitch | The problem Buffer addresses, scenarios, current risk context, monitoring readiness, and the responsive workspace |
+| Technical walkthrough | Provider validation and freshness, exact price-effect math, separate liquidation estimates, provider/network boundaries, hosted monitoring design, and portable reports |
 
-[Provider coverage](PROVIDER-COVERAGE.md) contains the separate point-in-time mainnet evidence. No changing public balance or live P&L is narrated as a fixed demonstration result.
+Measured durations and codecs live in `videos/metadata.json`; the `/demo` page reads its runtime labels from those values. Every film has a matching poster, English WebVTT captions, Markdown transcript, and download link. The public media revision is `20260930`.
 
-## Higgsfield and production provenance
+## Picture and data provenance
 
-Version 2 uses **actual captures of the redesigned Buffer application, assembled on a native Higgsedit timeline in the Higgsfield sandbox**. FFmpeg and Pillow prepare scenes, diagrams, captions, and end cards. Interface screens, logos, positions, and numbers come from the application. This refresh uses no newly generated Seedance clip.
+All product screens are actual browser recordings from the current Buffer application. Mainnet scenes read the public Velocity example through the deployed provider API; their network, authority and observation time are recorded in `videos/source-v3/capture-metadata.json`. When captured from the local production build, only the public accounts/snapshot GET requests pass through to the production origin. Query parameters and actual provider responses are preserved. No balance, account response, authentication success or notification receipt is fabricated.
 
-The version-1 pitch used a generated eight-second opening shot from Higgsfield Seedance 2.5, job `5f1dbdb3-e9dd-4b54-915d-892b2bdbcb81`. That historical job and its 52-credit preflight do not describe a new generation or new credit expenditure. Its cobalt U motif belongs to the old film and is not presented as the current B logo.
+Desktop footage is captured at 1600 × 900 and mobile footage at 390 × 844, then composed into the 1920 × 1080 films. The desktop frame leaves space below the interface for optional captions.
 
-The source package contains public sample captures, scripts, narration audio, scene data, and rendering inputs. It excludes environment files, credentials, private wallet data, and production account records. Narration uses the installed macOS Samantha synthetic voice at 155 words per minute for the demo and pitch, and 168 words per minute for the technical walkthrough. No person's voice is cloned and no stock soundtrack is used. Encoding, dimensions, measured durations, and audio measurements are recorded for the version-2 exports.
+Chapter labels distinguish illustrative portfolios from public Solana mainnet observations. An observation is evidence of what that public account returned at capture time; it is not a promise that the account will retain the same balances. The walkthrough intentionally avoids narrating changing live amounts as permanent results.
 
-## Captions, transcripts, and verification
+The recorded portfolio editor and price controls use fixed illustrative inputs. The scenario calculates an incremental price effect for supported linear positions. Current maintenance headroom is a separate provider observation, and the liquidation estimate uses the separately versioned `cross-margin-hold-others-v1` model. It holds other prices fixed and is not the protocol's liquidation engine.
 
-Each MP4 has a matching poster, English WebVTT captions, and a Markdown transcript. Caption timing follows the current narration and render. Public assets and mirrored caption/transcript files describe the same version-2 scenes and speech.
+Velocity and Pacifica support eligible price scenarios. Jupiter remains inventory-only, and legacy Drift remains paused. Devnet observations retain a test-network identity and do not enter background monitoring. Private cloud features and recipient delivery are described with their actual setup boundaries; the films do not stage a signed-in account or a successful outbound message.
 
-The release verification record covers:
+## Voice and assembly
 
-- End-to-end decode and measured duration/codec metadata for all three films.
-- Contact-sheet review of the current B mark, readable app captures, correct sample numbers, and provider labels.
-- Browser playback and seeking with working controls, caption tracks, and no media errors.
-- Audio review for intelligibility, clipping, and synchronization.
-- Matching `/demo` runtime labels, posters, captions, transcripts, and source-release links.
+The Niki preset is generated synthetic narration, chosen for conversational delivery. It does not clone or impersonate a real person. The accepted generation IDs, measured durations and file hashes are recorded in `videos/source-v3/narration-metadata.json`; expiring download URLs and credentials are excluded. There is no macOS Samantha fallback in this refresh.
 
-Public exploration and device reports need no sign-in. Optional cloud behavior is covered by SDK tests with mocked transport and the existing owner-only schema/RLS audit. Current production email delivery and real nonproduction auth/report mutation journeys remain unverified; signup and recovery sending stay gated. The public offline calculator and supported-browser PWA installation are included, without claiming native store binaries.
+The current films are composed with FFmpeg from real browser footage, with short transitions and continuous audio. They do not claim a new generated Higgsfield visual or native Higgsedit render. Existing background imagery retains its original provenance in `public/videos/design/README.md`.
 
-## September 13 measured exports
+Speech recognition supplies word timestamps from the accepted voice files. Captions preserve the authored script, aligned against that recording; scene timing follows the paragraph boundaries in the measured audio. Generated timestamps are checked for ordering, bounds and agreement before publication.
 
-All three final Higgsedit exports are H.264, 1600 × 900, nominal 24 fps, with AAC stereo at 48 kHz and faststart. The complete output files pass FFmpeg decode without errors. Mean audio levels are −20.6, −20.8 and −20.7 dBFS; peaks are −5.4, −5.0 and −5.9 dBFS respectively. All 50 caption cues match the narration text, stay in time order, and end within their films. The contact sheet was visually reviewed for current branding, sample arithmetic, source boundaries, and framing. See `videos/metadata.json` and `videos/quality-checks.json` for measured values and hashes.
+## Reproduction and verification
 
-The 78-file source archive has SHA256 `8069264a9219ed1d24ebb4165f2de00370740fcd596077444921af9c1ab12ca9` and records the captured application source commit `f612c22`. It contains no environment files or credentials. The original films remain preserved in the version-1 release.
+The preparation and rendering pipeline is in `videos/source-v3/README.md`. It preserves the prior source archive and separates new scripts from large generated recordings and voice files. Its checks cover:
 
-The published films pass desktop/mobile playback with native English captions selected: cues load and activate after seeking. All transcript links return current content. Production MP4 hashes match the verified exports and support HTTP 206 seeking; `videos/production-verification.json` records the check.
+- Complete MP4 video/audio decoding and browser-compatible 1920 × 1080 H.264/AAC output.
+- Exact agreement among narration scripts, caption text and transcripts.
+- Measured caption bounds, audio peaks, file hashes and runtime metadata.
+- Actual desktop/mobile video playback, sequential seeking, caption activation, transcript links and responsive page layout through `e2e/demo.spec.ts`.
+- Visual review of real UI captures, source labeling, current branding and readable framing.
 
-The September 19 local pass preserves the September 13 films and their narration, captions, audio, download, and seek controls. The demo-page introduction explicitly identifies them as earlier recordings. No new film generation, narration claim, upload, or media release was performed. The current 90-second script is in the final verification record.
+Release-specific results are recorded in `videos/quality-checks.json` and the current release evidence directory. A passing synthetic test is not described as real recipient delivery or a real wallet-device test.
 
+`videos/buffer-video-sources-v3.tar.gz` contains the reviewed scripts, all eleven public/illustrative recordings, accepted narration, word alignments, capture provenance, and the approved brand mark. Extract it at a project root to retain the renderer's expected paths. The archive excludes environment files, credentials, private sessions and expiring provider URLs.
 
-Final playback polish: all three native English caption tracks prepare without displaying captions, so they are ready before sequential playback. A viewer/browser preference that already enables captions is preserved. The native play, seek, audio, fullscreen, download and caption controls remain. Final evidence includes actual sequential playback and a separate 23-second recording of hero travel, B4 animation and B6 refraction under `work/evidence/real-alerts-2026-09-20/production/`.
+## Historical versions
+
+The [September 13 v2 source release](https://github.com/operatoruplift/buffer/releases/tag/media-source-v2) remains intact. It contains the earlier 1600 × 900 films, macOS Samantha narration, Higgsfield sandbox/native Higgsedit assembly, and the earlier UI. Its films lasted 81.961, 51.710 and 106.254 seconds. Those historical measurements and checks do not validate the current exports.
+
+The [v1 source release](https://github.com/operatoruplift/buffer/releases/tag/media-source-v1) preserves the original September 11 films and old U identity. The old generated Seedance opener belongs to that historical film and is not presented as a new B-brand generation.

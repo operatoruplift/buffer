@@ -1,0 +1,49 @@
+{
+  "revision": "20260930",
+  "recordedAt": "2026-09-30",
+  "voice": "Niki",
+  "films": [
+    {
+      "id": "demo",
+      "title": "Your next what-if, made clear.",
+      "kind": "Product walkthrough",
+      "targetSeconds": [75, 90],
+      "scenes": [
+        {"visual":"overview","title":"One calm workspace","scope":"Illustrative portfolio","narration":"Here's Buffer. A calmer place to understand your perpetual positions. Start with an editable portfolio, or look up a public Solana account. The navigation keeps your positions, scenarios, and monitoring within reach."},
+        {"visual":"scenario","title":"Follow the price move","scope":"Illustrative portfolio","narration":"Let's try a ten percent decline. Each long and short contributes differently. Move the control and watch the total update, then inspect the individual contributions. These example prices are fixed, so you can explore without connecting anything."},
+        {"visual":"editor","title":"Make the scenario yours","scope":"Illustrative portfolio","narration":"Open your positions to add another market. Search the catalog, choose a direction, and adjust the quantity or starting price. Your changes become part of the same calculation."},
+        {"visual":"live","title":"Keep the source in view","scope":"Public Solana mainnet observation","narration":"For a live view, open the public Velocity example. The account, network, and observation time stay attached. Current maintenance headroom is separate from your price scenario, with liquidation estimates and their assumptions available to inspect."},
+        {"visual":"report","title":"Take the explanation with you","scope":"Illustrative portfolio","narration":"Save a dated report on this device, or download the exact inputs and results. Velocity and Pacifica support scenarios; Jupiter provides position inventory. Each source keeps its own boundaries."},
+        {"visual":"mobile","title":"A little more perspective","scope":"Responsive app","narration":"On your phone, the same workspace fits comfortably in your hand. Open Buffer, change the move, and follow the numbers."}
+      ]
+    },
+    {
+      "id":"pitch",
+      "title":"A little more perspective.",
+      "kind":"The pitch",
+      "targetSeconds":[60,80],
+      "scenes":[
+        {"visual":"hero","title":"Make room to understand","scope":"Buffer","narration":"When the market moves, one number rarely tells the whole story. Buffer gives you a clearer view of how your perpetual positions fit together."},
+        {"visual":"scenario","title":"Ask a better what-if","scope":"Illustrative portfolio","narration":"Start with a portfolio you can edit, or read a public Solana account. Change the price move and follow each long and short, with the math and its assumptions close at hand."},
+        {"visual":"live","title":"Context beside the calculation","scope":"Public Solana mainnet observation","narration":"For eligible Velocity accounts, current maintenance headroom sits beside a separate liquidation estimate. The source and observation time remain visible, so you know what you're looking at."},
+        {"visual":"monitoring","title":"Know what is ready","scope":"Monitoring setup · no delivery staged","narration":"Monitoring brings headroom and market distance into the same workspace. Destination readiness and delivery status stay distinct. A saved report keeps the explanation, not just the headline number."},
+        {"visual":"mobile","title":"Built around your attention","scope":"Responsive app","narration":"Velocity and Pacifica support price scenarios. Jupiter adds position inventory. Across desktop and mobile, Buffer gives you room to understand your exposure before you act. A little more perspective."}
+      ]
+    },
+    {
+      "id":"technical",
+      "title":"Understand what powers the view.",
+      "kind":"Technical walkthrough",
+      "targetSeconds":[110,130],
+      "scenes":[
+        {"visual":"live","title":"Start with a verified observation","scope":"Public Solana mainnet observation","narration":"Buffer separates provider reads, normalized snapshots, and scenario calculations. Public account lookup needs no wallet connection. The optional wallet picker supplies an address; Buffer does not submit trades. Here, Velocity is selected on Solana mainnet."},
+        {"visual":"method","title":"Identity and freshness travel together","scope":"Public Solana mainnet observation","narration":"The server checks account ownership, market identity, and oracle validity before exposing an eligible observation. Account identity, source slots, and timestamps remain inspectable. A stale or failed refresh withholds calculations and exports until a valid replacement arrives."},
+        {"visual":"scenario","title":"Exact inputs, explicit scope","scope":"Illustrative portfolio","narration":"For a supported linear position, the price effect is signed quantity, times frozen price, times the selected shock. Decimal arithmetic preserves exact report values. Quote currencies remain separate. This calculation excludes funding, fees, future fills, and collateral price changes."},
+        {"visual":"risk","title":"Current risk and a separate estimate","scope":"Public Solana mainnet observation","narration":"Current maintenance collateral and requirement come from the Velocity observation. Their difference is headroom. A separate liquidation model changes one position's price while holding the other prices fixed. Its assumptions and exclusions are visible; it is not the protocol's liquidation engine."},
+        {"visual":"providers","title":"Coverage is a product feature","scope":"Provider capabilities","narration":"Pacifica supports price scenarios with API timestamps. Jupiter remains inventory only, and legacy Drift is paused. Devnet observations are clearly identified as test values and never enter background monitoring. Mainnet and devnet reports retain their network identity."},
+        {"visual":"monitoring","title":"Monitor an observation, preserve the evidence","scope":"Monitoring setup · no delivery staged","narration":"Hosted rules can watch maintenance headroom or a market's liquidation distance. Owner scoped storage, fresh checks, and a durable outbox protect the workflow. Discord acceptance, matching receipts, and signed webhook delivery have distinct states. A configured destination is required before sending."},
+        {"visual":"report","title":"A result you can inspect again","scope":"Illustrative portfolio","narration":"Finally, download the report with its source, inputs, model identity, and exclusions. Device history works without an account; private cloud storage is optional. The same responsive workspace runs in supported browsers as an installable web app."}
+      ]
+    }
+  ]
+}

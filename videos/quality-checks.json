@@ -1,54 +1,69 @@
 {
-  "revision": "media-source-v2",
-  "recordedAt": "2026-09-13",
+  "revision": "media-source-v3",
+  "recordedAt": "2026-09-30",
   "films": {
     "buffer-demo": {
-      "duration": 81.961,
-      "bytes": 11863366,
-      "sha256": "95b9362c6750d524c203a18569f4402faf95135fe02cc1c47e222fd01aa73da5",
-      "codec": "h264",
-      "resolution": [
-        1600,
-        900
-      ],
-      "audio": "aac",
+      "duration": 78.567,
+      "bytes": 6705598,
+      "sha256": "e4b4a21143c92e5887e96538bc6e2bf07f92c5f2af03bda2f93e663bcbab19ae",
+      "artifacts": {
+        ".mp4": "e4b4a21143c92e5887e96538bc6e2bf07f92c5f2af03bda2f93e663bcbab19ae",
+        ".vtt": "e1bbb76b11e5e4c054b5dc0ef9203b4390b76631c39ace7ebc1ffa3d799213a5",
+        "-poster.jpg": "78e9340d03c3fdf1d449ba557f95eb29626a3ab68c46a7addbd90783e2b3f4e7",
+        "-transcript.md": "90ee2025492a88ae9b59f4a4e785feeddf3b78d4d7e38d7e217c87ca48351707"
+      },
       "fullDecode": "pass",
-      "meanVolumeDb": -20.6,
-      "maxVolumeDb": -5.4,
-      "captionCues": 17,
-      "captionTextAndBounds": "pass"
+      "resolution": [
+        1920,
+        1080
+      ],
+      "captionCues": 24,
+      "captionTextAndBounds": "pass",
+      "alignmentMatch": 1.0,
+      "meanVolumeDb": -19.8,
+      "maxVolumeDb": -4.3
     },
     "buffer-pitch": {
-      "duration": 51.71,
-      "bytes": 9586189,
-      "sha256": "7ec7225f7f11f56b0a350cbc1d32e8c7ec74308e4c17421e020af69676e7dc64",
-      "codec": "h264",
-      "resolution": [
-        1600,
-        900
-      ],
-      "audio": "aac",
+      "duration": 60.0,
+      "bytes": 6097761,
+      "sha256": "fd70044e27c18559b5a4d831622c8ec043d2c62bac085c7f07b3776b5c3f1883",
+      "artifacts": {
+        ".mp4": "fd70044e27c18559b5a4d831622c8ec043d2c62bac085c7f07b3776b5c3f1883",
+        ".vtt": "7b841a54c2492c18fe2e12adab35b4ff93c69ad5b288affdc564dda16f649af2",
+        "-poster.jpg": "d85473021b08345af9c2f13fe0ec946f9af1217a022fa3b7a984c13d27ee1517",
+        "-transcript.md": "5f71d76ced8b7cc5fdf5c17fe363d37024f481cf59b92a66a6d2058065fa786f"
+      },
       "fullDecode": "pass",
-      "meanVolumeDb": -20.8,
-      "maxVolumeDb": -5.0,
-      "captionCues": 12,
-      "captionTextAndBounds": "pass"
+      "resolution": [
+        1920,
+        1080
+      ],
+      "captionCues": 19,
+      "captionTextAndBounds": "pass",
+      "alignmentMatch": 1.0,
+      "meanVolumeDb": -20.1,
+      "maxVolumeDb": -4.5
     },
     "buffer-technical": {
-      "duration": 106.254,
-      "bytes": 16439087,
-      "sha256": "e77792f7f9a550139428211e114ce174de49531ed504db624b9b7150aa4f7b0e",
-      "codec": "h264",
-      "resolution": [
-        1600,
-        900
-      ],
-      "audio": "aac",
+      "duration": 130.1,
+      "bytes": 11302805,
+      "sha256": "692ab4b917c694ee30994889eae21af08636a8fc38b64cae4dab8aac538ef44d",
+      "artifacts": {
+        ".mp4": "692ab4b917c694ee30994889eae21af08636a8fc38b64cae4dab8aac538ef44d",
+        ".vtt": "5dfa5265dc176779d5c99af533b897eb52ca2ecab62b22d5529869d6c7228381",
+        "-poster.jpg": "4517927a77c45a295eac25f9d597795b168cd3f9d6aabf50d37b9d7aaf07ef8f",
+        "-transcript.md": "acc09a26ea207c15aa3a72449092b290920ecd23a83b7ce1ed308e9b7e6ef688"
+      },
       "fullDecode": "pass",
-      "meanVolumeDb": -20.7,
-      "maxVolumeDb": -5.9,
-      "captionCues": 21,
-      "captionTextAndBounds": "pass"
+      "resolution": [
+        1920,
+        1080
+      ],
+      "captionCues": 38,
+      "captionTextAndBounds": "pass",
+      "alignmentMatch": 1.0,
+      "meanVolumeDb": -19.8,
+      "maxVolumeDb": -4.4
     }
   }
 }

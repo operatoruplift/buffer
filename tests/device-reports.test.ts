@@ -65,6 +65,39 @@ describe('device report library', () => {
     expect(decodeDeviceReports(encodeDeviceReports([item]))[0].report).toEqual(item.report);
   });
 
+  it('round-trips scenario model metadata and preserves historical reports that omit it', () => {
+    const current = record();
+    expect(current.report.scenario.model).toEqual({
+      id: 'linear-perp-price-shock', version: 1,
+      formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)',
+    });
+    expect(decodeDeviceReports(encodeDeviceReports([current]))[0].report.scenario.model).toEqual(current.report.scenario.model);
+
+    const historical = record();
+    delete historical.report.scenario.model;
+    const before = JSON.stringify(historical);
+    const decoded = decodeDeviceReports(JSON.stringify({ version: 1, reports: [historical] }));
+    expect(JSON.stringify(decoded[0])).toBe(before);
+    expect(decoded[0].report.scenario).not.toHaveProperty('model');
+    expect(JSON.parse(encodeDeviceReports(decoded)).reports[0].report.scenario).not.toHaveProperty('model');
+  });
+
+  it.each([
+    null,
+    [],
+    'linear-perp-price-shock',
+    { id: 'different-model', version: 1, formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)' },
+    { id: 'linear-perp-price-shock', version: 2, formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)' },
+    { id: 'linear-perp-price-shock', version: '1', formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)' },
+    { id: 'linear-perp-price-shock', version: 1, formula: 'includes liquidation effects' },
+    { id: 'linear-perp-price-shock', version: 1 },
+    { id: 'linear-perp-price-shock', version: 1, formula: 'delta = signedBaseQuantity * baselinePrice * (shockPercent / 100)', liquidation: true },
+  ])('rejects unrecognized scenario model metadata: %j', model => {
+    const current = record();
+    const untrusted = { ...current, report: { ...current.report, scenario: { ...current.report.scenario, model } } };
+    expect(() => decodeDeviceReports(JSON.stringify({ version: 1, reports: [untrusted] }))).toThrow(DeviceReportsError);
+  });
+
   it('round-trips known protocols and rejects altered deployment identities or labels', () => {
     for (const protocol of Object.values(PROTOCOLS)) {
       const item = record();
