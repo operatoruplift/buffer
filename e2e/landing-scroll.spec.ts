@@ -207,9 +207,11 @@ test('feature links keep a stable hitbox during entrance and activate on the fir
     if (input === 'pointer') {
       await link.click();
     } else {
-      // Begin at the preceding real control; the first Tab must expose the
-      // feature CTA and its content, then the first Enter must follow it.
+      // Follow the real control order through the launch-film link. The next
+      // Tab must expose the feature CTA, then the first Enter must follow it.
       await page.locator('.buffer-hero-stage').getByRole('button', { name: 'Pause page animations', exact: true }).focus();
+      await page.keyboard.press('Tab');
+      await expect(page.getByRole('link', { name: 'Watch the launch film 30 sec', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(link).toBeFocused();
       await expect(card).toHaveCSS('opacity', '1');
