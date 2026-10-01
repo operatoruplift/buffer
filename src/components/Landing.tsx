@@ -217,7 +217,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <div className="buffer-facts" aria-label="Product essentials" data-scroll-reveal="fade"><span>Built for curious humans.</span><div><span>No trading permissions</span><span>Transparent calculations</span><span>Solana perpetuals</span></div></div>
+        <div className="buffer-facts" aria-label="Product essentials" data-scroll-reveal="fade"><Link className="buffer-launch-link" href="/demo#launch"><span className="buffer-launch-play" aria-hidden="true">▶</span> Watch the launch film <small>30 sec</small></Link><div><span>No trading permissions</span><span>Transparent calculations</span><span>Solana perpetuals</span></div></div>
 
         <VideoFeatures paused={motionPaused} />
 

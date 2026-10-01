@@ -46,7 +46,7 @@ export default function WalletAddressButton({ onAddress, disabled }: { onAddress
       const feature = wallet.features['standard:connect'] as ConnectFeature | undefined;
       if (!feature) throw new Error('This wallet does not support the standard connection flow.');
       const result = await feature.connect();
-      const account = result.accounts.find((item) => item.chains.some((chain) => chain.startsWith('solana:'))) ?? result.accounts[0];
+      const account = result.accounts.find((item) => item.chains.some((chain) => chain.startsWith('solana:')));
       if (!account) throw new Error('The wallet did not share a Solana address.');
       setOpen(false);
       onAddress(account.address, wallet.name);

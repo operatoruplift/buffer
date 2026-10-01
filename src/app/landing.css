@@ -88,6 +88,11 @@
 .buffer-facts > div { display: flex; gap: 39px; }
 .buffer-facts > div span { display: flex; gap: 8px; align-items: center; }
 .buffer-facts > div span::before { content: ""; width: 4px; height: 4px; background: var(--cobalt); border-radius: 50%; }
+.buffer-launch-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--cobalt); font-size: 11px; white-space: nowrap; }
+.buffer-launch-play { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 1px solid #cbd5f0; border-radius: 50%; font-size: 8px; padding-left: 1px; }
+.buffer-launch-link small { font-size: 9px; color: var(--quiet); }
+.buffer-launch-link:hover { color: #1740ac; }
+.buffer-launch-link:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 4px; border-radius: 4px; }
 .buffer-section { max-width: 1296px; margin: auto; padding: 106px 0; }
 .buffer-site h2 { font-size: clamp(34px, 3.6vw, 51px); line-height: 1.08; letter-spacing: -.055em; font-weight: 450; }
 .buffer-features { display: grid; grid-template-columns: 1fr 1.1fr; gap: 96px; }

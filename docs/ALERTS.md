@@ -1,6 +1,6 @@
 # Buffer threshold monitoring
 
-Updated September 20, 2026. This runbook separates local rehearsal, hosted dry runs, and configured Discord sending. The current evidence and outstanding gates are in [the integration matrix](BUFFER-INTEGRATION-STATUS.md).
+Updated October 1, 2026. This runbook separates local rehearsal, hosted dry runs, and configured Discord or signed-webhook sending. The current evidence and outstanding gates are in [the integration matrix](BUFFER-INTEGRATION-STATUS.md).
 
 Buffer checks **observed Velocity cross-margin maintenance headroom in USD**, or, since 28 September 2026, the **unsigned distance in percent from the current oracle to one position's estimated liquidation price** (model `cross-margin-hold-others-v1`, see [WEBHOOK-ALERTS.md](WEBHOOK-ALERTS.md)). It never alerts on the price slider. A rule binds an authenticated cloud owner, Solana authority/subaccount, provider/network, metric (and market for liquidation distance), exact threshold and direction, cadence, timezone, cooldown, hysteresis, destination reference (Discord or signed webhook), enabled state, and version. Watching a public address does not prove ownership or require signing.
 
@@ -23,7 +23,7 @@ The additive migration `20260920020000_hosted_monitoring.sql` extends the existi
 - Cadence, cooldown and hysteresis survive unavailable observations and restarts. Pausing, deleting or changing a rule version invalidates pending work. History is retained; a remotely accepted message cannot be recalled.
 - The scheduler is bounded server work, not a browser timer. A heartbeat expires after 180 seconds, including on a page left open. UI separates attempted check, last fresh observation, next check, provider acceptance and matching receipt.
 
-## Exactly one outbound provider: Discord
+## Outbound destinations: Discord and signed webhooks
 
 See [the Discord contract and setup](DISCORD-ALERTS.md) for exact configuration, official API references, quotas and sanitized preview. `BUFFER_DISCORD_DESTINATIONS_JSON` contains platform-admin destination references and an explicit allowed-owner list. Tokens stay in server environment variables. Users cannot paste arbitrary fetch URLs. Metadata GET verifies the configured channel; webhook calls use a fixed Discord HTTPS origin/path with redirects rejected.
 
@@ -32,6 +32,8 @@ Sending is disabled unless `BUFFER_ALERT_SEND_ENABLED=true`. `BUFFER_ALERT_NOTIF
 States are `queued`, `sending`, `accepted_by_provider`, `delivered`, `failed`, `suppressed` and `unknown_outcome`. Discord `wait=true` returns a validated message ID; this establishes acceptance only. A separate GET must return the matching message ID, channel, webhook and event content before Buffer records a receipt. “Receipt verified” means the channel message was retrieved; it does not mean a person read it.
 
 Discord webhook POST has no documented idempotency key. An ambiguous POST or an expired in-flight send becomes `unknown_outcome`; it is never blindly resent. If the message ID was durably recorded, the worker can reconcile it by GET without another POST. Retries are bounded and safe rate-limit responses respect validated Retry-After with jitter. Permanent credential/destination failures require intervention. No database outbox promises exactly-once external delivery.
+
+Signed webhooks use server-only `BUFFER_WEBHOOK_DESTINATIONS_JSON`, explicit owner allowlists, and HMAC authentication. Their verification confirms configuration policy; it does not contact the receiver. A receiver's successful HTTP response establishes delivery acknowledgement, without Discord's separate message read-back. See [the webhook contract](WEBHOOK-ALERTS.md) for configuration, receipt semantics, retry limits, and rotation. Neither destination is configured by pasting an arbitrary URL into the app.
 
 ## Local rehearsal command
 
@@ -50,14 +52,16 @@ SQLite `.local/alerts.sqlite` uses WAL, full synchronization and transactional r
 1. Apply the reviewed additive migration and verify RLS/function privileges. Use the existing Buffer Supabase project; do not create another project or replace its report tables.
 2. Generate distinct random worker and cron credentials. Store the worker hash in the private credential row, and put the actual values in server-only Vercel variables. Configure `BUFFER_ALERT_SEND_ENABLED=false` and `BUFFER_ALERT_NOTIFICATION_MODE=test` initially. Deploy before activating the scheduler.
 3. Use Supabase Pro `pg_cron` + pinned synchronous `http` 1.6 HEAD to invoke the fixed production worker once per minute. Keep the cron credential in Supabase Vault. [Deployment](DEPLOYMENT.md) records the activation/rollback procedure. Check actual cron result and persisted heartbeat; environment variables alone do not prove execution.
-4. Configure exactly one Discord destination for the intended confirmed Supabase owner. Verify its metadata; prepare the exact redacted message and destination. Obtain recipient-send authorization before turning on sends. Existing signup/recovery email stays disabled independently.
-5. Save an authorized test threshold around a real current observation. Confirm event ID, rule version, source slot/time, provider message ID and matching channel receipt. Retain redacted evidence, then pause/delete the test rule. Do not call this step verified until a real receipt exists.
+4. Configure a reviewed Discord or signed-webhook destination for the intended confirmed Supabase owner. Verify the destination according to its provider contract; prepare the exact redacted message and destination. Obtain recipient-send authorization before turning on sends. Existing signup/recovery email stays disabled independently.
+5. Save an authorized test threshold around a real current observation. Confirm event ID, rule version, source slot/time, and the destination-specific delivery receipt. Retain redacted evidence, then pause/delete the test rule. Do not call this step verified until a real receipt exists.
 
 To pause: disable the scheduler job and set sending false. To rotate: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
 
 ## Verification
 
 Unit suites cover exact threshold semantics, provider contracts, response bounds, invalid inputs, owner/session changes, immutable report semantics and crash outcomes. PGlite scripts exercise actual migrations, RLS, two-owner denial, uniqueness and fenced transitions. Real-process SQLite tests exercise independent concurrent runners and crash rollback. Browser tests intercept auth/provider/monitoring transport and explicitly check fixture/live separation, accepted-versus-receipt UI, unknown outcomes, expired heartbeat, unavailable storage and sign-out. These deterministic tests never send to Discord. Hosted scheduler execution and actual recipient delivery have separate evidence gates.
+
+On October 1, 2026 at 06:23 UTC, the production database showed 30 successful scheduled cron runs and 30 completed protected worker runs in the preceding 30 minutes. The worker remained in `dry_run` mode. This verifies execution of the scheduler, not outbound delivery.
 
 
 The narrow worker processes at most one work item per minute; configured cadence is a minimum interval, not a guaranteed maximum notification delay under backlog. Limits are 20 rules per owner, 100 events per owner per day, 10 send attempts per owner per hour, 3 send attempts and 5 receipt lookups per event. Stale queued events are suppressed after 120seconds rather than dispatched after an outage. Completed/suppressed unreferenced history is pruned after 30 days in bounded batches; unresolved outcomes remain available for investigation. Fresh deliveries take precedence over receipt retries so a slow receipt cannot expire another event's send window.
