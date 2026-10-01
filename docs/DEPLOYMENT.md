@@ -1,6 +1,6 @@
 # Deployment and cloud configuration
 
-**Last updated:** September 20, 2026. Production deployment is now authorized. The reviewed alert hardening and function-permission migrations have been applied; see [the release record](RELEASE-2026-09-20.md) for the final deployment and verification result.
+**Last updated:** October 1, 2026. The reviewed alert hardening, function-permission and liquidation-sentinel migrations have been applied. [The September 20 release record](RELEASE-2026-09-20.md) documents the initial hosted-monitoring activation; later verification is described below.
 
 Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app` is the public explorer with live Velocity as the default, modeled Pacifica reads, and inventory-only Jupiter Perps, and `/auth` contains optional email/password sign-in. The protocol selector also exposes the explicitly paused legacy Drift reader. Scenario functionality, live public reads, device-local reports, and downloads work without a cloud account.
 
@@ -27,6 +27,8 @@ The default live provider is the official `@velocity-exchange/sdk` **0.23.1**, b
 
 The server-side RPC endpoint used by Velocity, Jupiter, and legacy Drift must be Solana **mainnet-beta**. Those providers reject a different genesis hash, check program ownership and account identity, and never substitute a sample when a live read fails. Requests have an 18-second abort deadline; Vercel functions need at least 30 seconds. Each process allows 60 reads per minute and four concurrent reads. The live-read route also applies the configured distributed limit when available; see `src/server/rate-limit.ts` and the environment template for its current readiness. A dedicated RPC is still needed for sustained provider capacity. Pacifica uses its fixed HTTPS API boundary and its own timestamp freshness rule.
 
+Buffer's connection to mainnet is read-only. The wallet button requests a public address through Wallet Standard; providers cannot sign, submit or settle transactions. “Settlement” in provider metadata describes the venue's accounting asset, not an execution feature in Buffer.
+
 ## Supabase
 
 Create or use the dedicated Buffer project **`vhbngdatlowfnwaymvuq`** in **operatoruplift's Org**. Apply all files in `supabase/migrations/` in timestamp order through the Supabase migration workflow. They create `saved_reports`, the user/date index, authenticated select/insert/delete grants, owner-only row-level security, and strict report/title constraints, plus the additive owner-scoped alert pipeline tables (`alert_rules`, `alert_events`, and `alert_outbox`). Anonymous users have no table privileges. Reports are immutable historical JSON records with a maximum size of 256 KiB and are never inputs to the live reader.
@@ -44,7 +46,7 @@ The browser SDK manages sessions and refreshes tokens. Database RLS is the autho
 
 ### Provisioning status
 
-The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Supabase quoted **$10/month** for the additional project. Both saved-report migrations and the September 15 additive alert migration are recorded as applied; the September 19 hardening and September 20 function-permission migrations are now applied; owner isolation, malformed JSON rejection, restricted insert columns, query indexing, and the alert tables' RLS posture have been verified. The shipped browser monitor uses bounded localStorage state and a local mock sink, so hosted delivery is not implied by the production deploy; a hosted provider-polling worker and verified external destination are still required. See [database verification](DATABASE-VERIFICATION.md) and the [alert runbook](ALERTS.md).
+The dedicated project **Buffer** (`vhbngdatlowfnwaymvuq`, US East) was created in **operatoruplift's Org** after the organization was upgraded to Pro. Saved-report, alert hardening, owner-scoped hosted-monitoring, and liquidation-sentinel migrations are applied. The hosted worker and minute scheduler are active; the local rehearsal remains a separate experience. A read-only production check on October 1 at 06:23 UTC found 30 successful cron runs and 30 completed protected worker runs in the preceding 30 minutes, all in `dry_run` mode. Outbound notification delivery is not yet verified. See [database verification](DATABASE-VERIFICATION.md), [the alert runbook](ALERTS.md), and [webhook migration evidence](WEBHOOK-ALERTS.md).
 
 The original implementation recorded confirmed-account password sign-in and private report CRUD with disposable confirmed accounts. That is historical evidence from the original version. The current redesign's browser auth and report coverage uses the installed Supabase SDK with intercepted/mock transport; it does not prove a current production auth or email journey. Production SMTP delivery, redirect allowlists, Auth password policy, and compromised-password screening still require management-side configuration and verification. Do not treat the built-in restricted Supabase mail sender as public production signup delivery.
 
@@ -57,7 +59,7 @@ The latest production verification also exercises `/brand-kit`, `/api/config`, a
 
 ## Installable app
 
-See [PWA details](PWA.md) for supported browser installation and offline behavior. The same responsive web application works on mobile and desktop, and the service worker provides a clearly labeled fixed sample offline. Native App Store/Play Store packages and signed desktop installers are outside this delivery.
+See [PWA details](PWA.md) for supported browser installation and offline behavior. The same responsive web application works on mobile and desktop, and the service worker provides a clearly labeled fixed sample offline. The repository also contains an [Android Web Shell project](seeker-and-pwa.md); physical-device installation and store distribution require separate verification. App Store/Play Store releases and signed desktop installers are outside the web deployment.
 
 ## Hosted monitoring addition — September 20
 
@@ -70,6 +72,7 @@ The current monitoring implementation adds authenticated `/api/monitoring` confi
 | `BUFFER_ALERT_SEND_ENABLED` | Server only | Defaults to false. Keep false until an exact destination and test message are authorized. |
 | `BUFFER_ALERT_NOTIFICATION_MODE` | Server only | Defaults to `test`; labels genuine live observations as test notifications. `production` is a deliberate separate choice. |
 | `BUFFER_DISCORD_DESTINATIONS_JSON` | Server only | One reviewed Discord configuration with webhook credentials, channel ID, stable config UUID and explicit allowed owner UUIDs. See the exact schema in the provider runbook. |
+| `BUFFER_WEBHOOK_DESTINATIONS_JSON` | Server only | Reviewed HTTPS receivers, HMAC secrets, stable destination UUIDs and explicit allowed owner UUIDs. See [the signed-webhook contract](WEBHOOK-ALERTS.md). |
 
 Apply `20260920020000_hosted_monitoring.sql` only after its PostgreSQL verification passes. Initialize `private.buffer_monitor_credentials` with a SHA-256 hash through the administrator connection. Never commit the plaintext secret or put it in a URL. Deploy the new server variables before scheduling. Worker routes declare 60-second duration; their coordinator bounds due-provider work and dispatch. Browser requests time out after 45 seconds.
 

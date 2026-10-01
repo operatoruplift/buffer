@@ -1,6 +1,6 @@
 # Buffer on mobile and desktop
 
-Buffer is a responsive, installable progressive web app. The same deployment serves the website, phone app, tablet app and desktop app. It does not include App Store, Play Store, Electron or native installer binaries.
+Buffer is a responsive, installable progressive web app. The same deployment serves the website, phone app, tablet app and desktop app. The repository also includes an Android Web Shell project in `android/`; see [Seeker and Android setup](seeker-and-pwa.md). A generated shell is not evidence of a tested physical-device installation or an approved store release. App Store, Play Store, Electron and signed desktop distribution are not part of the web deployment.
 
 ## Install
 

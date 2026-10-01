@@ -1,6 +1,6 @@
 # Seeker and PWA readiness
 
-This branch makes Buffer run as an installed app on Android, iOS and the Solana Seeker, and ships the Android shell the Solana Mobile hackathon and dApp Store need. Everything below was lint-, type- and build-checked; the on-device steps still need a phone.
+Buffer supports browser installation as a PWA and includes an Android Web Shell project for Seeker and Android distribution. Web lint, type and build checks do not establish a signed APK release or physical-device compatibility; the on-device steps below still need a phone.
 
 ## What changed
 
@@ -15,7 +15,7 @@ This branch makes Buffer run as an installed app on Android, iOS and the Solana 
 1. Open https://bufferonsolana.vercel.app in Chrome on Android or Seeker. Use the browser menu → **Install app**, or the in-page install control where one exists. On iPhone use Safari → Share → **Add to Home Screen**.
 2. Launch from the home screen. The app should open full-screen with the status bar in the theme colour and content clear of the notch and gesture bar.
 3. Wallet: Open `/app`, pick a protocol and tap **Use my wallet**. On Seeker the phone's wallet chooser opens; approving fills the address and reads the account. Nothing is signed.
-4. Offline: turn on airplane mode and relaunch. Static assets and the shell load from cache; live data shows its normal unavailable state rather than a browser error.
+4. Offline: after a successful online visit, turn on airplane mode and reopen `/` or `/app`. The service worker serves the separate fixed-price offline scenario. It does not cache live page HTML, account data or authentication. An already-open live screen displays a disconnected notice. See [PWA behavior](PWA.md).
 
 Mobile Wallet Adapter registers itself only on Android in a secure context (or inside the Web Shell). Desktop, iOS and in-wallet browsers keep their injected wallets; nothing changes for them.
 
