@@ -97,7 +97,10 @@
 .buffer-app .network-picker button[aria-pressed="true"] { background: #243b31; border-color: #243b31; }
 .buffer-app .address-bottom p { font-size: 12px; line-height: 1.6; }
 .buffer-app .model-tag { font-size: 9px; }
-.buffer-app footer { margin-top: 32px; padding-bottom: 0; font-size: 11px; }
+.buffer-app footer { margin-top: 32px; padding-bottom: 0; font-size: 11px; gap: 16px; }
+.buffer-app .footer-legal { display: flex; gap: 18px; }
+.buffer-app .footer-legal a { display: inline-flex; align-items: center; min-height: 32px; color: var(--muted); }
+.buffer-app .footer-legal a:hover { color: var(--blue); }
 .buffer-app .toast { z-index: 45; }
 body:has(.buffer-app) { background: #f3f5f1; }
 body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; background: #f3f5f1; }

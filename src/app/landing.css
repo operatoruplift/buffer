@@ -163,6 +163,7 @@
 .buffer-privacy h2 { font-size: 34px; letter-spacing: -1.4px; margin-top: 6px; }
 .buffer-privacy p { font-size: 12px; line-height: 1.85; color: var(--quiet); max-width: 392px; }
 .buffer-privacy .buffer-text-link { margin-top: 19px; }
+.buffer-privacy-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
 .buffer-faq { display: grid; grid-template-columns: 1fr 1.25fr; gap: 70px; }
 .buffer-faq h2 { margin: 25px 0; }
 .buffer-faq-list { border-top: 1px solid var(--line); }
@@ -178,7 +179,7 @@
 .buffer-last-call .buffer-cta { background: #fff; color: var(--cobalt) !important; }
 .buffer-last-call .buffer-cta > span { background: #e9edff; }
 .buffer-footer { margin: 0; padding: 56px max(48px, calc((100vw - 1296px) / 2)) 25px; border: 0; display: block; color: var(--ink); background: #f0f1e9; }
-.buffer-footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 35px; }
+.buffer-footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 35px; }
 .buffer-footer-top > p { font-size: 22px; line-height: 1.3; letter-spacing: -.6px; }
 .buffer-footer nav { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; font-size: 11px; }
 .buffer-footer nav a:hover { color: var(--cobalt); }
@@ -587,3 +588,5 @@ html[data-buffer-scroll="smooth"] { scroll-behavior: smooth; }
   html[data-buffer-scroll="smooth"] { scroll-behavior: auto; }
   .buffer-site [data-scroll-depth] { transform: none !important; }
 }
+/* The footer gained a legal column; give it a row of its own before phones stack it. */
+@media (min-width: 521px) and (max-width: 800px) { .buffer-footer-top { grid-template-columns: repeat(3, minmax(0, 1fr)); } .buffer-footer-top > p { grid-column: 1 / -1; } }
