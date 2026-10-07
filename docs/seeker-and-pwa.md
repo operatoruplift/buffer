@@ -21,40 +21,44 @@ Mobile Wallet Adapter registers itself only on Android in a secure context (or i
 
 ## Build the Android APK
 
-The shell in `android/` was generated with `@solana-mobile/webshell-cli`, which the Solana Mobile docs now recommend over Bubblewrap. It wraps `https://bufferonsolana.vercel.app/app` in a WebView with native wallet-intent handling, so the deployed site is the app: redeploying the web app updates the app without a new APK.
+The shell in `android/` was generated with `@solana-mobile/webshell-cli`, which the Solana Mobile docs now recommend over Bubblewrap. It wraps `https://bufferonsolana.vercel.app/app` in a WebView with native wallet-intent handling, so the deployed site is the app: redeploying the web app updates the app without a new APK. The shell ships English resources only (`androidResources.localeFilters` in `android/app/build.gradle.kts`), so the APK declares one locale.
 
-Prerequisites: Node 24+, `adb`, and about 2 GB of disk for the Android SDK. The CLI installs a managed JDK 17 and the SDK packages it needs on the first `build` (`doctor --fix` does the same without building).
+Prerequisites: JDK 21, the Android SDK with build-tools 36.1.0, and `adb`. Build with the Gradle wrapper; Gradle reads the signing values below and nothing else.
 
 ```bash
-npm install -g @solana-mobile/webshell-cli
+export JAVA_HOME=/usr/local/opt/openjdk@21 ANDROID_HOME=$HOME/Library/Android/sdk
 cd android
 
-# First build only: choose a release keystore. The CLI creates it if the file
-# does not exist. Keep it and its passwords outside the repo; losing it means
-# you can never update the app on the dApp Store.
-export WEB_SHELL_KEYSTORE_PASSWORD='...'
-export WEB_SHELL_KEY_PASSWORD='...'
-webshell build . --keystore-path ~/keys/buffer-release.keystore --keystore-alias buffer
+# First release only: create the release keystore. Keep it and its passwords
+# outside the repo. Losing it means you can never update the app on the dApp Store.
+keytool -genkeypair -v -keystore $HOME/keys/buffer-release.keystore -alias buffer -keyalg RSA -keysize 4096 -validity 10000
 
+WEB_SHELL_SIGNING_STORE_PASSWORD=… WEB_SHELL_SIGNING_KEY_PASSWORD=… ./gradlew --no-daemon assembleRelease -PWEB_SHELL_SIGNING_STORE_FILE=$HOME/keys/buffer-release.keystore -PWEB_SHELL_SIGNING_KEY_ALIAS=buffer
+
+$ANDROID_HOME/build-tools/36.1.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-Bump `--version-code` on every release (`webshell init . --force --version-code 2 --version-name 1.1.0` rewrites `gradle.properties`; the URL, id and icons are already recorded in `twa-manifest.json`).
+**A missing signing value does not fail the build.** Without the store file, store password or key alias, Gradle silently produces an unsigned `app-release-unsigned.apk`, which the dApp Store rejects. Always run the `apksigner verify` line before uploading. The key password falls back to the store password when it is not set.
+
+Raise the version code on every release: set `WEB_SHELL_VERSION_CODE` and `WEB_SHELL_VERSION_NAME` in `android/gradle.properties`, or pass `-PWEB_SHELL_VERSION_CODE=2 -PWEB_SHELL_VERSION_NAME=1.1.0`. The URL, application ID and icons are already recorded in `gradle.properties` and `twa-manifest.json`.
 
 ## Publish on the Solana dApp Store
 
-Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is the distribution channel for every Seeker owner.
+Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is the distribution channel for every Seeker owner. The store text, banner and screenshots are ready in [docs/dapp-store](dapp-store/listing.md).
 
-- Register at the Publisher Portal (https://docs.solanamobile.com/dapp-publishing/intro): KYC/KYB, and a publisher wallet holding about 0.2 SOL. That wallet signs every future update, so treat it like the keystore.
-- Signing key: a **new** key never used on Google Play. The keystore above qualifies.
-- Assets: the 512×512 icon (`icons/icon-512.png` or equivalent here), a 1200×600 banner, and at least four phone screenshots.
-- Submit the release APK; review currently takes 3–5 business days. Updates go through the `dapp-store` CLI with the same publisher wallet.
+- **Publisher Portal:** register at https://publish.solanamobile.com and complete KYC/KYB.
+- **Publisher wallet:** connect a desktop browser-extension wallet, not a Ledger. Hold about 0.05 to 0.1 SOL for each release, plus ArDrive storage for the uploaded files. That wallet signs every future update, so treat it like the keystore.
+- **Signing key:** a **new** key never used on Google Play. The keystore above qualifies. Upload a signed release APK only.
+- **Text:** app name up to 25 characters, subtitle up to 30.
+- **Assets:** the 512×512 icon (`public/icons/icon-512.png`), a banner of exactly 1200×600, and 4 to 8 portrait screenshots at least 1080 px wide.
+- **Review** takes 3 to 5 business days. Every update needs a higher version code, the same signing key and the same publisher wallet.
 
 ## Decisions to make before the first publish
 
-- **Application ID is permanent.** This shell uses `com.operatoruplift.buffer`. Change it now (`webshell init . --force --application-id ...`) or never.
+- **Application ID is permanent.** This shell uses `com.operatoruplift.buffer`. Change `WEB_SHELL_APPLICATION_ID` in `android/gradle.properties` now or never.
 - **Host is pinned.** The shell keeps navigation on `bufferonsolana.vercel.app` and opens other hosts in the system browser. Moving to a custom domain later needs a rebuild but keeps the application ID.
-- **Deep links.** The shell opens the start URL; if you want `/rwa?mint=...`-style links to open the app, add an intent filter for the host in `android/app/src/main/AndroidManifest.xml`.
+- **Deep links.** The shell opens the start URL. To let a shared account link such as `https://bufferonsolana.vercel.app/app?protocol=velocity&authority=<public address>` open the app, add an intent filter for that host and the `/app` path in `android/app/src/main/AndroidManifest.xml`.
 
 ## CLOCK IN checklist (Solana Mobile × RadiantsDAO, closes 8 October 2026)
 

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares English explicitly. With localeFilters = en, this is the APK's only
+     locale, so the dApp Store reads one supported language. Keep in step with values/. -->
+<resources>
+    <string name="app_name">Buffer</string>
+</resources>

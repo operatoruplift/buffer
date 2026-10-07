@@ -104,6 +104,11 @@ android {
         compose = true
         buildConfig = true
     }
+    // Buffer is English only. Without this filter the AndroidX libraries add
+    // 85 more translated locales, which the dApp Store reads as language claims.
+    androidResources {
+        localeFilters += listOf("en")
+    }
 }
 
 dependencies {
