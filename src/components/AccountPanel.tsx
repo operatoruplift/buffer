@@ -4,12 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { getSupabase } from '@/lib/supabase';
 import { runAuthOperation } from '@/lib/auth-flow';
+import { AccountDeletionError, accountDeletionMessage, clearAccountDeviceData, deleteOwnAccount, runAccountDeletion } from '@/lib/account-deletion';
 import { persistedAuthSession, sessionIdentity, sameAuthSession, withIdentityBoundSignOut, type AuthSessionIdentity } from '@/lib/auth-storage';
 import { decodeCloudReports, isCloudReportPayload, type SavedReport } from '@/lib/cloud-reports';
 import { formatUtc } from '@/lib/format';
 import type { createReport } from '@/lib/report';
 import styles from './AccountPanel.module.css';
 import DeviceReportsPanel from './DeviceReportsPanel';
+import { AccountDeletedNotice, DeleteAccountSection, type DeletionStage } from './AccountDeletion';
 
 type Report = ReturnType<typeof createReport>;
 type Operation = { identity: string; controller: AbortController };
@@ -40,6 +42,10 @@ export default function AccountPanel({ report }: { report: Report | null }) {
   const [loadState, setLoadState] = useState<'idle' | 'loaded' | 'error'>('idle');
   const [writeUncertain, setWriteUncertain] = useState(false);
   const [message, setMessage] = useState('');
+  const [deletion, setDeletion] = useState<DeletionStage>('idle');
+  const [deletionMessage, setDeletionMessage] = useState('');
+  const [accountDeleted, setAccountDeleted] = useState(false);
+  const deleting = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const identity = useRef<string | null>(null);
@@ -59,6 +65,9 @@ export default function AccountPanel({ report }: { report: Report | null }) {
       setBusy(false);
       setLoadState('idle');
       setWriteUncertain(false);
+      setDeletion('idle');
+      setDeletionMessage('');
+      if (nextIdentity) setAccountDeleted(false);
       if (!nextIdentity) dialog.current?.close();
     }
     acceptedSession.current = nextSession;
@@ -218,6 +227,33 @@ export default function AccountPanel({ report }: { report: Report | null }) {
       if (current(ticket)) setMessage('Could not sign out. Please retry.');
     } finally { finish(ticket); }
   }
+  /** The database confirms the deletion before this device clears its data or session. */
+  async function deleteAccount() {
+    const db = getSupabase();
+    if (!db || busy || deleting.current) return;
+    const expected = acceptedSession.current;
+    if (!expected || expected.userId !== user?.id) { setDeletionMessage(accountDeletionMessage(new AccountDeletionError('session'))); return; }
+    const ticket = begin();
+    if (!ticket) return;
+    deleting.current = true;
+    setDeletion('deleting');
+    setDeletionMessage('');
+    try {
+      await runAccountDeletion({
+        remove: () => deleteOwnAccount(expected, ticket.controller.signal),
+        afterDelete: () => { clearAccountDeviceData(expected.userId); setAccountDeleted(true); },
+        // The deleted account's session is already revoked; this clears it from this browser.
+        signOut: () => runAuthOperation('signout', signal => withIdentityBoundSignOut(AUTH_URL, expected,
+          () => db.auth.signOut({ scope: 'local' }), signal), undefined, REQUEST_TIMEOUT_MS, expected),
+      });
+      if (current(ticket) && sameAuthSession(persistedAuthSession(AUTH_URL), expected)) setDeletion('deleted');
+    } catch (error) {
+      if (current(ticket)) { setDeletion('confirming'); setDeletionMessage(accountDeletionMessage(error)); }
+    } finally {
+      deleting.current = false;
+      finish(ticket);
+    }
+  }
   function download(item: SavedReport) {
     const url = URL.createObjectURL(new Blob([JSON.stringify(item.report, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a');
@@ -225,16 +261,20 @@ export default function AccountPanel({ report }: { report: Report | null }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function close() {
-    operation.current?.controller.abort();
-    operation.current = null;
-    setBusy(false);
+    // Closing never abandons a deletion in flight; its result still signs this device out.
+    if (!deleting.current) {
+      operation.current?.controller.abort();
+      operation.current = null;
+      setBusy(false);
+      if (deletion === 'confirming') { setDeletion('idle'); setDeletionMessage(''); }
+    }
     trigger.current?.focus();
   }
-  if (!user) return <><DeviceReportsPanel report={report} />{authReady ? <a className="button subtle cloud-sign-in" href="/auth">Sign in</a> : authError ? <button className="button subtle" onClick={() => void retryAccount()}>Retry account</button> : <span role="status">Checking account…</span>}</>;
+  if (!user) return <><DeviceReportsPanel report={report} />{authReady ? <a className="button subtle cloud-sign-in" href="/auth">Sign in</a> : authError ? <button className="button subtle" onClick={() => void retryAccount()}>Retry account</button> : <span role="status">Checking account…</span>}{accountDeleted && <AccountDeletedNotice onDismiss={() => setAccountDeleted(false)} />}</>;
   return <>
     <button className="button subtle" data-report-storage="cloud" data-session-state={authError ? 'error' : 'ready'} ref={trigger} disabled={busy} onClick={() => { dialog.current?.showModal(); void load(); }}>My reports</button>
-    <dialog className={styles.dialog} ref={dialog} aria-labelledby="saved-reports-title" onClose={close}>
-      <div className={styles.heading}><div><p className="eyebrow">YOUR WORKSPACE</p><h2 id="saved-reports-title">Saved perspectives.</h2></div><button className="button subtle" aria-label="Close saved reports" onClick={() => dialog.current?.close()}>×</button></div>
+    <dialog className={styles.dialog} ref={dialog} aria-labelledby="saved-reports-title" onClose={close} onCancel={event => { if (deleting.current) event.preventDefault(); }}>
+      <div className={styles.heading}><div><p className="eyebrow">YOUR WORKSPACE</p><h2 id="saved-reports-title">Saved perspectives.</h2></div><button className="button subtle" aria-label="Close saved reports" disabled={deletion === 'deleting'} onClick={() => dialog.current?.close()}>×</button></div>
       <p className={styles.email}>{user.email}</p>
       <p>Keep a dated copy of a scenario. Saved reports are historical records; they do not refresh with the market.</p>
       <button className="button primary" disabled={!report || busy || writeUncertain} onClick={() => void save()}>Save current scenario</button>
@@ -244,6 +284,10 @@ export default function AccountPanel({ report }: { report: Report | null }) {
       <ul className={styles.list}>{reports.map(item => <li key={item.id}><div><strong>{item.title}</strong><small>{formatUtc(item.created_at)}</small></div><div className={styles.actions}><button className="button subtle" onClick={() => download(item)}>Download JSON</button><button className="button subtle" disabled={busy || writeUncertain} onClick={() => void remove(item.id)}>Delete</button></div></li>)}</ul>
       <p className={styles.note}>Your most recent 50 reports. Only your signed-in account can access them.</p>
       <button className="button subtle" disabled={busy} onClick={() => void signOut()}>Sign out</button>
+      <DeleteAccountSection email={user.email} stage={deletion} message={deletionMessage} disabled={busy}
+        onStart={() => { setDeletion('confirming'); setDeletionMessage(''); }}
+        onCancel={() => { setDeletion('idle'); setDeletionMessage(''); }}
+        onConfirm={() => void deleteAccount()} />
     </dialog>
   </>;
 }
