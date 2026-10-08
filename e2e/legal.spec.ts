@@ -10,7 +10,7 @@ test('the privacy policy is public, specific to Buffer and states what deletion 
   await expect(page).toHaveTitle('Privacy policy — Buffer');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeVisible();
   const main = page.getByRole('main');
-  await expect(main).toContainText('Last updated: 7 October 2026');
+  await expect(main).toContainText('Last updated: 8 October 2026');
   await expect(main).toContainText('Operator Uplift');
   await expect(main).toContainText('IPs are hashed for rate limiting and no address is stored.');
   await expect(page.locator('#rate-limiting')).toContainText('HMAC-SHA-256 under a random key that never leaves our database');
@@ -33,7 +33,7 @@ test('the terms carry the Solana dApp Store clause and the read-only limits', as
   await expect(page).toHaveTitle('Terms of use — Buffer');
   await expect(page.getByRole('heading', { level: 1, name: 'Terms of use' })).toBeVisible();
   const main = page.getByRole('main');
-  await expect(main).toContainText('Last updated: 7 October 2026');
+  await expect(main).toContainText('Last updated: 8 October 2026');
   await expect(main).toContainText('not trading advice');
   await expect(main).toContainText('cross-margin-hold-others-v1');
   await expect(main).toContainText('never asks for your seed phrase or private key');
