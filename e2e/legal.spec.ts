@@ -13,6 +13,10 @@ test('the privacy policy is public, specific to Buffer and states what deletion 
   await expect(main).toContainText('Last updated: 7 October 2026');
   await expect(main).toContainText('Operator Uplift');
   await expect(main).toContainText('IPs are hashed for rate limiting and no address is stored.');
+  await expect(page.locator('#rate-limiting')).toContainText('HMAC-SHA-256 under a random key that never leaves our database');
+  await expect(page.locator('#rate-limiting')).toContainText('No counter is kept more than five minutes after your last request.');
+  await expect(page.locator('#retention')).toContainText('no later than five minutes after your last request');
+  await expect(main).not.toContainText('one-way SHA-256');
   for (const processor of ['Vercel', 'Supabase', 'Solana RPC provider', 'Velocity', 'Pacifica', 'Drift', 'Jupiter', 'Discord']) await expect(main).toContainText(processor);
   for (const record of ['Saved reports', 'Monitored wallet addresses and alert rules', 'Alert destinations', 'Alert events and delivery records']) await expect(page.locator('#delete-account')).toContainText(record);
   await expect(page.locator('#delete-account')).toContainText('BUFFER_WEBHOOK_DESTINATIONS_JSON');
