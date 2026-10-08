@@ -45,7 +45,7 @@ Raise the version code on every release: set `WEB_SHELL_VERSION_CODE` and `WEB_S
 
 ## Publish on the Solana dApp Store
 
-Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is the distribution channel for every Seeker owner. The store text, banner and screenshots are ready in [docs/dapp-store](dapp-store/listing.md).
+The dApp Store is the distribution channel for every Seeker owner. The store text, banner and screenshots are ready in [docs/dapp-store](dapp-store/listing.md).
 
 - **Publisher Portal:** register at https://publish.solanamobile.com and complete KYC/KYB.
 - **Publisher wallet:** connect a desktop browser-extension wallet, not a Ledger. Hold about 0.05 to 0.1 SOL for each release, plus ArDrive storage for the uploaded files. That wallet signs every future update, so treat it like the keystore.
@@ -59,11 +59,3 @@ Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is
 - **Application ID is permanent.** This shell uses `com.operatoruplift.buffer`. Change `WEB_SHELL_APPLICATION_ID` in `android/gradle.properties` now or never.
 - **Host is pinned.** The shell keeps navigation on `bufferonsolana.vercel.app` and opens other hosts in the system browser. Moving to a custom domain later needs a rebuild but keeps the application ID.
 - **Deep links.** The shell opens the start URL. To let a shared account link such as `https://bufferonsolana.vercel.app/app?protocol=velocity&authority=<public address>` open the app, add an intent filter for that host and the `/app` path in `android/app/src/main/AndroidManifest.xml`.
-
-## CLOCK IN checklist (Solana Mobile × RadiantsDAO, closes 8 October 2026)
-
-- [ ] Release APK built with the steps above and installed on a Seeker or Android device
-- [ ] Public GitHub repo (this one), with this branch merged
-- [ ] Demo video showing the install, the wallet handoff and the core flow on a phone
-- [ ] Pitch deck: problem, product, why mobile-first, traction, team
-- [ ] Optional SKR integration for the separate $10K SKR prize
