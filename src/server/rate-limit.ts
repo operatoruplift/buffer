@@ -8,11 +8,16 @@ import { createHash } from 'node:crypto';
  * and therefore not a limit under concurrency: forty parallel requests each
  * landed on a fresh instance and every one reached mainnet. When Supabase is
  * configured the count lives in Postgres behind a SECURITY DEFINER function
- * guarded by a server-held secret. Keys hash the client IP; no address is
- * stored. If the store is unreachable this returns null and the local window
- * still applies.
+ * guarded by a server-held secret. The key sent is a digest of the client IP,
+ * never the address. The database does not store it as sent: it keeps an
+ * HMAC-SHA-256 of it under a random key that never leaves the database, and
+ * deletes each counter once its window ends, within minutes even when idle
+ * (see supabase/migrations/
+ * 20261008120000_rate_limit_retention_and_keyed_hash.sql). If the store is
+ * unreachable or errors, this returns null and the local window still applies.
  */
 
+/** The database refuses longer windows: the privacy policy's retention period depends on it. */
 const WINDOW_SECONDS = 60;
 const TIMEOUT_MS = 1500;
 

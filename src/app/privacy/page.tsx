@@ -57,7 +57,8 @@ const sections: LegalSection[] = [
     <p>Destinations are Discord channels or signed webhooks that the operator configures on the server for specific accounts. You cannot add one yourself, and their URLs and secrets are never stored in the database. When an alert fires, Buffer sends the alert message, which includes the monitored wallet address, subaccount, metric and values, to that destination.</p>
   </> },
   { id: 'rate-limiting', title: 'Rate limiting and service logs', body: <>
-    <p>To keep live reads available, Buffer limits how often one connection can read. <strong>IPs are hashed for rate limiting and no address is stored.</strong> The counter keeps a one-way SHA-256 hash of your IP address, never the address itself, with a request count for the current minute. It holds no account or wallet data.</p>
+    <p>To keep live reads available, Buffer limits how often one connection can read. <strong>IPs are hashed for rate limiting and no address is stored.</strong> The counter keeps a keyed hash derived from your IP address (HMAC-SHA-256 under a random key that never leaves our database), never the address itself, with a request count for the current minute. Without that key, the hash cannot be matched to an address by trying every possible one. It holds no account or wallet data.</p>
+    <p>Each counter is deleted when its one-minute window ends: by the next rate-limit check, or by a cleanup that runs every three minutes. No counter is kept more than five minutes after your last request.</p>
     <p>Our hosting provider, Vercel, processes every request to serve Buffer and keeps standard request logs under its own policies. These can include your IP address, browser details and the address of the page or API called. For a live read, that includes the public wallet address you looked up.</p>
   </> },
   { id: 'processors', title: 'Service providers', body: <>
@@ -79,7 +80,7 @@ const sections: LegalSection[] = [
     'Alert events and delivery records: events that end delivered or suppressed are deleted 30 days after they were observed. Other events stay until you delete your account. Deleting a rule keeps its history until then.',
     'Manual check records: 7 days.',
     'Reports on your device: until you delete them or clear your browser data.',
-    'Rate-limit counters: a hashed key and a count, with no IP address, account or wallet data.',
+    'Rate-limit counters: a keyed hash and a count, with no IP address, account or wallet data. Each is deleted when its one-minute window ends, and no later than five minutes after your last request.',
     'Vercel and Supabase logs follow their own retention. Deleted data can remain in Supabase backups until those backups expire.',
   ]} /> },
   { id: 'delete-account', title: 'Deleting your account', body: <>

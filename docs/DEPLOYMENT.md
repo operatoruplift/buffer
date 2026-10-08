@@ -13,7 +13,7 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Dedicated Buffer project's API URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key; never a service-role or secret key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Public | Set `true` only after email signup, confirmation, recovery, redirects, and password policy are verified. It is currently `false`, so public signup and recovery remain visibly unavailable. |
-| `RATE_LIMIT_SECRET` | Server only | Optional secret for the protected Supabase `consume_rate_limit` RPC; absent/unreachable shared storage falls back to process limits. Never expose this value to the browser. |
+| `RATE_LIMIT_SECRET` | Server only | Optional secret for the protected Supabase `consume_rate_limit` RPC; absent/unreachable shared storage falls back to process limits. It must equal `private.rate_limit_config.secret`; on a fresh project, `20261008120000_rate_limit_retention_and_keyed_hash.sql` generates that value. Never expose this value to the browser. |
 | `BUFFER_TEST_AUTHORITY` | Local verification only | Optional public authority for manual checks; the application does not load it automatically. |
 | `BUFFER_ALERT_STORE` | Local worker only | Optional path for the durable local SQLite worker; defaults to `.local/alerts.sqlite` and is ignored by Git. |
 
