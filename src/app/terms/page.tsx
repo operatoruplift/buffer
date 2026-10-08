@@ -67,7 +67,7 @@ const sections: LegalSection[] = [
 ];
 
 export default function TermsPage() {
-  return <LegalDocument page="terms" eyebrow="Terms of use" title="Terms of use"
+  return <LegalDocument page="terms" eyebrow="Buffer · Legal" title="Terms of use"
     lede="The terms for using Buffer, a read-only tool for exploring Solana perpetual positions. Please read them with the privacy policy."
     summary={summary} sections={sections} />;
 }

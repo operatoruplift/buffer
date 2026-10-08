@@ -121,7 +121,7 @@ const sections: LegalSection[] = [
 ];
 
 export default function PrivacyPage() {
-  return <LegalDocument page="privacy" eyebrow="Privacy policy" title="Privacy policy"
+  return <LegalDocument page="privacy" eyebrow="Buffer · Legal" title="Privacy policy"
     lede="What Buffer stores when you read accounts, save reports and set alerts, and how to delete it. Buffer is read-only: it never asks for your keys and never signs."
     summary={summary} sections={sections} />;
 }

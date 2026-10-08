@@ -590,3 +590,6 @@ html[data-buffer-scroll="smooth"] { scroll-behavior: smooth; }
 }
 /* The footer gained a legal column; give it a row of its own before phones stack it. */
 @media (min-width: 521px) and (max-width: 800px) { .buffer-footer-top { grid-template-columns: repeat(3, minmax(0, 1fr)); } .buffer-footer-top > p { grid-column: 1 / -1; } }
+/* The read-only note wraps on phones; keep its check mark on the first line instead of stranded beside a centred block. */
+.buffer-site .buffer-hero-note { display: block; text-align: center; text-wrap: balance; }
+.buffer-site .buffer-hero-note svg { display: inline-block; margin-right: 6px; vertical-align: -3px; }

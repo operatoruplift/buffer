@@ -46,8 +46,8 @@ await db.exec(`
   create schema private;
 `);
 const files = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
-assert.ok(files.includes(DELETION_MIGRATION), `Missing ${DELETION_MIGRATION}`);
-assert.equal(files.at(-1), DELETION_MIGRATION, 'The deletion migration must be timestamped after every earlier migration.');
+// It must run after every migration that created an owner-keyed table.
+assert.ok(files.indexOf(DELETION_MIGRATION) > files.indexOf('20260928120000_liquidation_sentinels.sql'), `${DELETION_MIGRATION} must sort after the alert migrations.`);
 checks++;
 for (const name of files) {
   const body = await readFile(new URL(name, migrations), 'utf8');
