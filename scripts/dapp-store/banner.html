@@ -1,0 +1,139 @@
+<!doctype html>
+<!--
+  Solana dApp Store banner, 1200 x 600. Rendered by scripts/generate-dapp-store-assets.mjs
+  at deviceScaleFactor 1. The scenario card values are replaced at render time with the
+  app's own 'long-short' preset run through src/lib/scenario.ts; the defaults below match
+  that output so the file previews correctly when opened on its own.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Buffer · dApp Store banner</title>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    src: url('../../src/app/fonts/Inter-latin.woff2') format('woff2');
+    font-weight: 300 900;
+    font-display: block;
+  }
+  :root {
+    --cobalt: #315fe8;
+    --teal: #12796c;
+    --ink: #14232d;
+    --ivory: #f7f8f5;
+    --ice: #edf3f7;
+    --quiet: #58625f;
+    --up: #237969;
+    --down: #a74c53;
+    --display: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --text: 'Inter', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 600px; overflow: hidden; }
+  body { position: relative; background: var(--ivory); color: var(--ink); font-family: var(--text); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+
+  /* The glass ribbon is the hero; the ivory side of the master holds the copy. */
+  .art { position: absolute; left: 286px; top: -86px; width: 1056px; height: 704px; object-fit: cover; }
+  .wash { position: absolute; inset: 0; background:
+    linear-gradient(90deg, var(--ivory) 0%, var(--ivory) 33%, rgb(247 248 245 / .9) 44%, rgb(247 248 245 / .35) 56%, rgb(247 248 245 / 0) 66%),
+    linear-gradient(0deg, rgb(247 248 245 / .55) 0%, rgb(247 248 245 / 0) 22%); }
+  .rule { position: absolute; left: 64px; width: 560px; bottom: 76px; height: 1px; background: linear-gradient(90deg, #d5dbd2 0%, #d5dbd2 70%, rgb(213 219 210 / 0) 100%); }
+
+  .lockup { position: absolute; left: 62px; top: 50px; display: flex; align-items: center; gap: 8px; color: var(--cobalt); font-family: var(--display); font-size: 31px; font-weight: 550; letter-spacing: -1.4px; line-height: 1; }
+  .lockup svg { width: 34px; height: 34px; }
+
+  .copy { position: absolute; left: 64px; top: 140px; width: 520px; }
+  .kicker { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #3c4a47; }
+  .kicker i { width: 6px; height: 6px; border-radius: 50%; background: var(--cobalt); box-shadow: 0 0 0 4px rgb(49 95 232 / .1); }
+  h1 { margin-top: 22px; font-family: var(--display); font-size: 64px; line-height: .98; letter-spacing: -.052em; font-weight: 600; color: var(--ink); }
+  h1 span { display: block; }
+  h1 .accent { color: var(--cobalt); }
+  .lede { margin-top: 24px; width: 430px; font-size: 17px; line-height: 1.55; color: var(--quiet); }
+
+  .readonly { position: absolute; left: 64px; bottom: 98px; display: inline-flex; align-items: center; gap: 10px; padding: 9px 15px 9px 10px; border-radius: 999px; background: rgb(18 121 108 / .08); border: 1px solid rgb(18 121 108 / .26); color: var(--teal); font-size: 13px; font-weight: 550; letter-spacing: -.005em; }
+  .readonly b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--teal); color: #fff; }
+  .readonly b svg { width: 13px; height: 13px; }
+
+  .foot { position: absolute; left: 64px; width: 560px; bottom: 40px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .foot .url { color: var(--cobalt); }
+  .foot .scope { color: #69756f; }
+
+  /* Product cue: the landing scenario card, built from the deterministic preset. */
+  .stack { position: absolute; right: 70px; top: 92px; width: 340px; }
+  .ghost { position: absolute; inset: 18px -14px -16px 14px; border-radius: 18px; background: rgb(237 243 247 / .55); border: 1px solid rgb(255 255 255 / .7); backdrop-filter: blur(6px); box-shadow: 0 18px 40px rgb(20 35 45 / .08); }
+  .card { position: relative; border-radius: 16px; background: rgb(255 255 255 / .94); border: 1px solid #dbe1f5; box-shadow: 0 34px 80px rgb(10 24 70 / .26), 0 6px 18px rgb(10 24 70 / .08); overflow: hidden; backdrop-filter: blur(12px); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #edf0f6; }
+  .card-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+  .card-title svg { width: 18px; height: 18px; color: var(--cobalt); }
+  .tag { font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #5d6b78; border: 1px solid #dfe4ec; border-radius: 6px; padding: 4px 7px; }
+  .result { padding: 16px 18px 14px; }
+  .label { font-size: 11px; color: #586575; }
+  .value { margin-top: 2px; font-family: var(--display); font-size: 42px; font-weight: 500; letter-spacing: -.045em; line-height: 1.2; color: var(--ink); white-space: nowrap; }
+  .value small { margin-left: 8px; font-family: var(--text); font-size: 11px; font-weight: 500; letter-spacing: 0; color: #68747f; }
+  .move { margin-top: 2px; font-size: 11px; color: #65717c; }
+  .controls { padding: 12px 18px 14px; border-top: 1px solid #edf0f6; }
+  .controls-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #3e4b56; }
+  .controls-head output { min-width: 52px; text-align: center; background: #eef2ff; color: var(--cobalt); font-weight: 600; font-size: 12px; padding: 3px 8px; border-radius: 6px; }
+  .track { position: relative; height: 6px; margin: 16px 2px 8px; border-radius: 6px; background: #dfe6fb; }
+  .track .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--cobalt); }
+  .track .thumb { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #fff; border: 4px solid var(--cobalt); box-shadow: 0 2px 8px rgb(49 95 232 / .35); }
+  .range { display: flex; justify-content: space-between; font-size: 9px; color: #6a7582; }
+  .positions { padding: 0 18px; }
+  .position { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid #edf0f6; }
+  .position img { width: 26px; height: 26px; border-radius: 50%; }
+  .position span { flex: 1; }
+  .position span strong { display: block; font-size: 11px; font-weight: 600; letter-spacing: .01em; }
+  .position span small { display: block; margin-top: 2px; font-size: 10px; color: #66717d; }
+  .position > strong { font-size: 13px; font-weight: 550; }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
+  .note { display: flex; gap: 7px; align-items: flex-start; padding: 11px 18px; border-top: 1px solid #edf0f6; background: #fcfcfe; color: #5d6b7d; font-size: 10px; line-height: 1.55; }
+  .note svg { flex: none; width: 13px; height: 13px; margin-top: 1px; }
+</style>
+</head>
+<body>
+  <img class="art" src="../../design/brand-kit/masters/daylight.png" alt="">
+  <div class="wash"></div>
+  <div class="rule"></div>
+
+  <div class="lockup" aria-label="Buffer">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path data-mark d="M5 3H17.5C23.85 3 27.5 7.2 27.5 13H21.5C21.5 10.4 20 9 17.25 9H5V3ZM5 13.25H17.5C23.85 13.25 27.5 17.45 27.5 23.25H21.5C21.5 20.65 20 19.25 17.25 19.25H5V13.25ZM5 23.5H21.5V29.5H5V23.5Z" fill="currentColor" fill-rule="evenodd"/></svg>
+    <span>Buffer</span>
+  </div>
+
+  <div class="copy">
+    <div class="kicker"><i></i>A clearer view of your perps</div>
+    <h1><span>Every position.</span><span>Every price move.</span><span class="accent">A clearer picture.</span></h1>
+    <p class="lede">Read Solana perpetual positions and see what a shared price move would do, with the math in view.</p>
+  </div>
+
+  <div class="readonly"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></b>Read-only wallet connection. No signatures or trading permissions.</div>
+
+  <div class="foot"><span class="url">bufferonsolana.vercel.app</span><span class="scope">Velocity · Pacifica · Jupiter Perps</span></div>
+
+  <div class="stack">
+    <div class="ghost"></div>
+    <div class="card">
+      <div class="card-top">
+        <span class="card-title"><svg viewBox="0 0 32 32" aria-hidden="true"><path data-mark d="M5 3H17.5C23.85 3 27.5 7.2 27.5 13H21.5C21.5 10.4 20 9 17.25 9H5V3ZM5 13.25H17.5C23.85 13.25 27.5 17.45 27.5 23.25H21.5C21.5 20.65 20 19.25 17.25 19.25H5V13.25ZM5 23.5H21.5V29.5H5V23.5Z" fill="currentColor" fill-rule="evenodd"/></svg>Scenario explorer</span>
+        <span class="tag" data-slot="preset">Long + short preset</span>
+      </div>
+      <div class="result">
+        <div class="label">Perp price P&amp;L change</div>
+        <div class="value"><span data-slot="total">+3,500.00</span><small data-slot="quote">USDC</small></div>
+        <p class="move" data-slot="move">If both reference prices move −10% together.</p>
+      </div>
+      <div class="controls">
+        <div class="controls-head"><span>Shared price move</span><output data-slot="shock">−10%</output></div>
+        <div class="track"><span class="fill" data-slot="fill" style="width:25%"></span><span class="thumb" data-slot="thumb" style="left:25%"></span></div>
+        <div class="range"><span>−20%</span><span>0%</span><span>+20%</span></div>
+      </div>
+      <div class="positions" data-slot="positions">
+        <div class="position"><img src="../../public/tokens/sol.png" alt=""><span><strong>SOL-PERP</strong><small>Long · 100.00 at 150.00 USDC</small></span><strong class="down">−1,500.00</strong></div>
+        <div class="position"><img src="../../public/tokens/btc.png" alt=""><span><strong>BTC-PERP</strong><small>Short · 0.50 at 100,000.00 USDC</small></span><strong class="up">+5,000.00</strong></div>
+      </div>
+      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.2"/></svg><p data-slot="note">Fixed reference prices. Price effect only; excludes funding, fees, collateral changes and liquidations.</p></div>
+    </div>
+  </div>
+</body>
+</html>
