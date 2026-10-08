@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('wordmarks share the landing header typography and blue across pages and footer', async ({ page }) => {
   const identities = [];
-  for (const path of ['/', '/app', '/demo', '/auth']) {
+  for (const path of ['/', '/app', '/demo', '/auth', '/privacy', '/terms']) {
     await page.goto(path);
     for (const brand of await page.locator('[data-brand="buffer"]').all()) {
       identities.push(await brand.evaluate(element => {

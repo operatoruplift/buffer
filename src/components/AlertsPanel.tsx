@@ -7,7 +7,7 @@ import { getSupabase } from '@/lib/supabase';
 import { persistedAuthSession } from '@/lib/auth-storage';
 import { formatUtc } from '@/lib/format';
 import {
-  alertStorageKey, createAlertRule, parseAlertStore, deleteAlertRule,
+  alertRehearsalKey, alertStorageKey, createAlertRule, parseAlertStore, deleteAlertRule,
   emptyAlertStore, encodeAlertStore, evaluateFixtureAlerts,
   pauseAlertRule, runAlertWorker, updateAlertRule, type AlertStore,
 } from '@/lib/alerts';
@@ -76,7 +76,7 @@ function RehearsalAlerts({ ownerId, sessionId }: Props & { ownerId: string; sess
   const [busy, setBusy] = useState(false);
   const active = useRef(true);
   const inFlight = useRef(false);
-  const key = `buffer.alerts.rehearsal.v2:${ownerId}`;
+  const key = alertRehearsalKey(ownerId);
   const [legacyAvailable, setLegacyAvailable] = useState(false);
 
   useEffect(() => {

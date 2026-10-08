@@ -89,7 +89,7 @@ The earlier production Drift check is retained as historical evidence: authority
 
 Only server-side `SOLANA_RPC_URL` configures the RPC. The browser cannot supply an endpoint or program override. The endpoint must support `getGenesisHash`, filtered `getProgramAccounts`, `getAccountInfo`, `getMultipleAccounts`, and `getSlot`. Requests abort after 18 seconds; Vercel routes allow 30 seconds of function execution. Each process permits 60 reads per minute and four concurrent reads. Provider URLs and raw exceptions are not returned to the browser, and errors never fall back to samples.
 
-The initial production RPC is Solana's shared mainnet endpoint and has no application-specific capacity guarantee. Use a dedicated endpoint for sustained traffic, and add a shared ingress limit when deploying more than one instance. All wallet-signing methods throw; there is no transaction, custody, trading, or wallet-connection path.
+The initial production RPC is Solana's shared mainnet endpoint and has no application-specific capacity guarantee. Use a dedicated endpoint for sustained traffic, and add a shared ingress limit when deploying more than one instance. All wallet-signing methods throw; there is no transaction, custody, or trading path. The optional read-only wallet connection (**Use my wallet**) asks a Wallet Standard wallet, or Mobile Wallet Adapter on Android and Seeker, for its public address only. It never requests a signature, and the address follows the same read path as a pasted one.
 
 ## Tests and references
 

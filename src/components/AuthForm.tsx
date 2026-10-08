@@ -252,11 +252,11 @@ export default function AuthForm({ initialMode = 'signin' }: { initialMode?: 'si
           </form>}
           <div className={styles.guest} onAnimationEnd={event => { if (event.target === event.currentTarget) setEntered(true); }}>
             <Link href="/app" className={styles.continue}>Continue without an account <span aria-hidden="true">→</span></Link>
-            <p className={styles.fine}>The public explorer and device reports are ready to use. Signing in never connects a wallet or grants permission to trade.</p>
+            <p className={styles.fine}>The public explorer and device reports are ready to use. Signing in never connects a wallet or grants permission to trade. By creating an account you agree to the <Link href="/terms">Terms of use</Link>; the <Link href="/privacy">Privacy policy</Link> explains what is stored and how to delete it.</p>
           </div>
         </div>
       </section>
     </div>
-    <footer className={styles.footer}><span>A little more room to think.</span><Link href="/#privacy">Privacy by design</Link></footer>
+    <footer className={styles.footer}><span>A little more room to think.</span><nav className={styles.legal} aria-label="Legal"><Link href="/privacy">Privacy policy</Link><Link href="/terms">Terms of use</Link></nav></footer>
   </main>;
 }
