@@ -35,7 +35,8 @@ test('the terms carry the Solana dApp Store clause and the read-only limits', as
   await expect(main).toContainText('never asks for your seed phrase or private key');
   await expect(main).toContainText('Alerts can be delayed or fail');
   await expect(page.locator('#dapp-store')).toContainText('If you obtained Buffer through the Solana dApp Store, these terms are between you and Operator Uplift only.');
-  await expect(page.locator('#dapp-store')).toContainText('Solana Mobile is not a party to these terms and has no responsibility or liability for Buffer, its content, or its support or maintenance.');
+  await expect(page.locator('#dapp-store')).toContainText('(the Solana Mobile Parties) are not a party to these terms and have no responsibility or liability to you in connection with Buffer');
+  await expect(page.locator('#dapp-store')).toContainText('protect the Solana Mobile Parties to the same extent as they protect Operator Uplift');
   for (const heading of ['No warranty', 'Limitation of liability', 'Governing law', 'Changes to these terms', 'Contact']) {
     await expect(main.getByRole('heading', { name: heading })).toBeVisible();
   }

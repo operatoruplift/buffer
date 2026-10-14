@@ -59,7 +59,7 @@ const sections: LegalSection[] = [
     <p>Our total liability for any claim relating to Buffer is limited to 100 US dollars. Some places do not allow these limits, so they may not apply to you.</p>
   </> },
   { id: 'dapp-store', title: 'Solana dApp Store', body: <LegalClause>
-    <p>If you obtained Buffer through the Solana dApp Store, these terms are between you and {LEGAL_OPERATOR} only. Solana Mobile is not a party to these terms and has no responsibility or liability for Buffer, its content, or its support or maintenance.</p>
+    <p>If you obtained Buffer through the Solana dApp Store, these terms are between you and {LEGAL_OPERATOR} only. Solana Mobile and its parents, subsidiaries, affiliates, officers, employees, agents, partners, suppliers and licensors (the Solana Mobile Parties) are not a party to these terms and have no responsibility or liability to you in connection with Buffer, its content, its support or maintenance, or any Solana Mobile program. The No warranty and Limitation of liability sections of these terms protect the Solana Mobile Parties to the same extent as they protect {LEGAL_OPERATOR}. {LEGAL_OPERATOR} alone is responsible for Buffer and for answering any claim about it.</p>
   </LegalClause> },
   { id: 'law', title: 'Governing law', body: <p>These terms are governed by the laws of the place where {LEGAL_OPERATOR} is established, without regard to conflict-of-law rules. The mandatory consumer protections of the place where you live still apply.</p> },
   { id: 'changes', title: 'Changes to these terms', body: <p>We may update these terms. We post the new version on this page and update the date at the top. If you keep using Buffer after a change, the updated terms apply.</p> },
