@@ -213,7 +213,7 @@ This migration created an empty table and required no data backfill. Keep deploy
 
 ## September 20 hosted monitoring extension
 
-Applied `hosted_monitoring` as hosted migration `20260919183521`; local source is `20260920020000_hosted_monitoring.sql`. Before application, alert rules, destinations and events were empty. The additive extension preserves saved-report tables and enables real owner-authenticated rule configuration, immutable event provenance, versioned episodes, fenced worker transitions and receipt states. Local PostgreSQL verification passed 48 assertions; prior schema verifier covers 55 additional assertions. Private credential/run tables are denied to browser roles; all five public report/alert tables retain RLS.
+Applied `hosted_monitoring` as hosted migration `20260919183521`; the local source now carries that version as `20260919183521_hosted_monitoring.sql` (it was `20260920020000_hosted_monitoring.sql` until the 17 October 2026 alignment below). Before application, alert rules, destinations and events were empty. The additive extension preserves saved-report tables and enables real owner-authenticated rule configuration, immutable event provenance, versioned episodes, fenced worker transitions and receipt states. Local PostgreSQL verification passed 48 assertions; prior schema verifier covers 55 additional assertions. Private credential/run tables are denied to browser roles; all five public report/alert tables retain RLS.
 
 The security advisor reports intentionally exposed SECURITY DEFINER entry points: the worker/rate-limit RPCs require separate server secrets, and monitoring status/mutation RPCs require `auth.uid()` and enforce owner scope. Anonymous status access and browser access to helper functions are denied. These expected findings are not evidence that browser callers can bypass the explicit checks.
 
@@ -225,3 +225,18 @@ The synchronous trigger migration applied as `20260919185033` (`use_synchronous_
 ## Rate-limit retention and keyed hash (not yet applied)
 
 `20261008120000_rate_limit_retention_and_keyed_hash.sql` fixes two read-only findings on the hosted limiter: `private.prune_rate_limits()` existed but nothing called it, so counters from 17 September onward were never deleted, and each counter key was the server's unkeyed SHA-256 of the client IP, which brute force reverses for IPv4. `public.consume_rate_limit` keeps its signature, result and secret, but stores HMAC-SHA-256 of the sent key under a random 32-byte key in `private.rate_limit_hash_key` (row-level security on, no grants to anon, authenticated or service_role), refuses windows longer than one minute, deletes expired counters on every check, and `buffer-prune-rate-limits` (pg_cron, every three minutes) removes idle ones, so no counter outlives the last request by more than four minutes. The migration deletes every counter stored under the old hash, records the limiter's tables for fresh projects, and leaves only anon (the server's publishable key, gated by the secret) able to execute the limiter. It can be applied before or after the app deploys. `scripts/verify-rate-limit.mjs` checks it locally against the hosted pre-migration definitions and against an empty project, applying it as a non-superuser owner as hosted Supabase does.
+
+## 17 October 2026: migration files aligned with the hosted ledger
+
+Six checked-in migrations carried local timestamps while the hosted project's migration history recorded the versions at which they were actually applied. Tooling that compares the two (`supabase migration list`, `supabase db push`) therefore saw six "local only" and six "remote only" entries for the same bodies. The files were renamed with `git mv` to the ledger's versions, without changing a byte of their contents:
+
+| Ledger version (file now) | Previous local name |
+| --- | --- |
+| `20260915180735_create_alert_pipeline.sql` | `20260915120000_create_alert_pipeline.sql` |
+| `20260919172720_harden_alert_pipeline.sql` | `20260919090000_harden_alert_pipeline.sql` |
+| `20260919173121_harden_function_permissions.sql` | `20260920010000_harden_function_permissions.sql` |
+| `20260919183521_hosted_monitoring.sql` | `20260920020000_hosted_monitoring.sql` |
+| `20260928154216_liquidation_sentinels.sql` | `20260928120000_liquidation_sentinels.sql` |
+| `20261008081817_delete_own_account.sql` | `20261007120000_delete_own_account.sql` |
+
+Three migrations existed only in production, applied from the dashboard while the scheduler was being set up. Their bodies, exactly as the ledger recorded them, are now checked in under their ledger versions: `20260919183534_prepare_monitoring_scheduler.sql` (the pg_net preparation that was never activated), `20260919185033_use_synchronous_monitoring_trigger.sql` (the http 1.6 HEAD helper that replaced it) and `20260930095233_acknowledge_webhook_delivery_in_scheduler.sql` (the helper accepting a `delivered` worker result). They need `pg_cron`, Supabase Vault and the `http` extension, which the local PGlite verifier cannot load, so `scripts/verify-account-deletion.mjs`, the one script that applies every migration in order, skips exactly those three by name and says why; `scripts/verify-monitoring-scheduler.mjs` continues to exercise the helper body against a synthetic transport. Nothing was applied, changed or re-run on the hosted project for this alignment. `20261008120000_rate_limit_retention_and_keyed_hash.sql` and the 17 October migrations remain unapplied and sort after every applied version.

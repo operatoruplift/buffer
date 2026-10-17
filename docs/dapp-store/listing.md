@@ -109,7 +109,7 @@ Signed-in accounts can be deleted from inside the app. Tap My reports, scroll to
 
 ## Before you submit
 
-- Apply `supabase/migrations/20261007120000_delete_own_account.sql` to production. Until then, Delete account reports that deletion could not be confirmed and deletes nothing.
+- Apply `supabase/migrations/20261008081817_delete_own_account.sql` to production. Until then, Delete account reports that deletion could not be confirmed and deletes nothing.
 - Give the reviewer a way to test deletion. Email sign-up is off in production (`NEXT_PUBLIC_AUTH_EMAIL_READY` is not `true`), so either enable it or create a reviewer account and add its sign-in details in the Portal's reviewer notes.
 - Optionally regenerate the screenshots from production once this branch is deployed (the default `--base-url`).
 - Check that both example accounts still hold open positions; if not, pass `--velocity=<address>` or `--pacifica=<address>` to the script.

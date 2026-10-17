@@ -9,7 +9,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { createDatabase } from './lib/pglite.mjs';
 
-const DELETION_MIGRATION = '20261007120000_delete_own_account.sql';
+const DELETION_MIGRATION = '20261008081817_delete_own_account.sql';
 const migrations = new URL('../supabase/migrations/', import.meta.url);
 const db = createDatabase();
 let checks = 0;
@@ -47,9 +47,20 @@ await db.exec(`
   -- Hosted Supabase installs pgcrypto here; the rate-limit migration uses it.
   create schema extensions;
 `);
-const files = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
+/**
+ * Applied in production only, as the hosted ledger recorded them. They install
+ * pg_cron, read Supabase Vault and call the http extension to reach the
+ * scheduler, none of which PGlite has, and they create no table, column,
+ * policy or grant that deletion depends on. scripts/verify-monitoring-scheduler.mjs
+ * exercises the helper they define against a synthetic transport instead.
+ */
+const SCHEDULER_ONLY = ['20260919183534_prepare_monitoring_scheduler.sql', '20260919185033_use_synchronous_monitoring_trigger.sql', '20260930095233_acknowledge_webhook_delivery_in_scheduler.sql'];
+const checkedIn = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
+for (const name of SCHEDULER_ONLY) assert.ok(checkedIn.includes(name), `${name} is expected in supabase/migrations; update SCHEDULER_ONLY if it was renamed.`);
+checks++;
+const files = checkedIn.filter(name => !SCHEDULER_ONLY.includes(name));
 // It must run after every migration that created an owner-keyed table.
-assert.ok(files.indexOf(DELETION_MIGRATION) > files.indexOf('20260928120000_liquidation_sentinels.sql'), `${DELETION_MIGRATION} must sort after the alert migrations.`);
+assert.ok(files.indexOf(DELETION_MIGRATION) > files.indexOf('20260928154216_liquidation_sentinels.sql'), `${DELETION_MIGRATION} must sort after the alert migrations.`);
 checks++;
 for (const name of files) {
   const body = await readFile(new URL(name, migrations), 'utf8');

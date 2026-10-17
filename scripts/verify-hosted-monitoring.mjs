@@ -21,7 +21,7 @@ await db.exec(`create role anon; create role authenticated; create role service_
   grant usage on schema auth,public to anon,authenticated,service_role;
   alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;
   insert into auth.users values('${ownerA}'),('${ownerB}');`);
-for (const name of ['20260915120000_create_alert_pipeline.sql', '20260919090000_harden_alert_pipeline.sql', '20260920010000_harden_function_permissions.sql', '20260920020000_hosted_monitoring.sql', '20260928120000_liquidation_sentinels.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
+for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
 await sql("insert into private.buffer_monitor_credentials(secret_hash) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
 await assert.rejects(worker('start', { runKey: 'cron:1', mode: 'dry_run' }, 'invalid-secret-that-is-long-enough'), error => error.code === '42501'); checks++;
 await role('authenticated', ownerA);

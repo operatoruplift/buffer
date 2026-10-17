@@ -14,7 +14,7 @@ A live account shows **Live monitoring**. Guests can use the account explorer, r
 
 ## Hosted runtime
 
-The additive migration `20260920020000_hosted_monitoring.sql` extends the existing alert tables and adds a private worker credential and run journal. Database state, event episodes, versions, attempts, leases and receipts survive process restarts. Existing saved reports and browser/SQLite rehearsal stores retain their semantics.
+The additive migration `20260919183521_hosted_monitoring.sql` extends the existing alert tables and adds a private worker credential and run journal. Database state, event episodes, versions, attempts, leases and receipts survive process restarts. Existing saved reports and browser/SQLite rehearsal stores retain their semantics.
 
 - Authenticated owners use narrowly scoped status/mutation functions. Cross-owner reads, writes and destination assignment are denied. Server-owned destination metadata and event/outbox transitions are not browser-writable.
 - The worker uses a dedicated server-only secret. Only its SHA-256 hash is stored in `private.buffer_monitor_credentials`; this credential cannot act as a service-role key. The public SDK key alone cannot operate the worker.

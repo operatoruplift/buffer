@@ -5,7 +5,7 @@ Added 28 September 2026. Two additions to hosted monitoring, both behind the sam
 - a second **metric**, `liquidation_distance`: the unsigned percentage move from the current oracle price to one position's estimated liquidation price under model `cross-margin-hold-others-v1` (see [RISK-CONTEXT.md](RISK-CONTEXT.md));
 - a second **destination kind**, `webhook`: an HMAC-signed JSON POST to a server-configured HTTPS URL.
 
-No recipient tests were exercised outside synthetic transports. The migration `20260928120000_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`. Hosted history confirms it was applied on September 28 as `20260928154216`; its constraints, RLS, function definitions and execution grants were verified on September 30.
+No recipient tests were exercised outside synthetic transports. The migration `20260928154216_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`. Hosted history confirms it was applied on September 28 under that version (the file carried a local timestamp, `20260928120000`, until the 17 October 2026 alignment); its constraints, RLS, function definitions and execution grants were verified on September 30.
 
 ## Liquidation-distance rules
 
