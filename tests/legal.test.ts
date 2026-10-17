@@ -4,8 +4,8 @@ import { LEGAL_OPERATOR, LEGAL_UPDATED, LEGAL_UPDATED_ISO, SUPPORT_ISSUES_URL, s
 describe('legal page facts', () => {
   it('names the operator and the shared revision date', () => {
     expect(LEGAL_OPERATOR).toBe('Operator Uplift');
-    expect(LEGAL_UPDATED).toBe('7 October 2026');
-    expect(LEGAL_UPDATED_ISO).toBe('2026-10-07');
+    expect(LEGAL_UPDATED).toBe('8 October 2026');
+    expect(LEGAL_UPDATED_ISO).toBe('2026-10-08');
   });
 
   it('uses the configured support email when it is a plain address', () => {

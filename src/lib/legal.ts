@@ -1,7 +1,7 @@
 /** Facts shared by the privacy policy and the terms. Keep both pages on one revision date. */
 export const LEGAL_OPERATOR = 'Operator Uplift';
-export const LEGAL_UPDATED = '7 October 2026';
-export const LEGAL_UPDATED_ISO = '2026-10-07';
+export const LEGAL_UPDATED = '8 October 2026';
+export const LEGAL_UPDATED_ISO = '2026-10-08';
 export const SUPPORT_ISSUES_URL = 'https://github.com/operatoruplift/buffer/issues';
 
 export type SupportContact = { kind: 'email' | 'issues'; href: string; label: string };

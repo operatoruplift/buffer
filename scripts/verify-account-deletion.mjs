@@ -7,11 +7,11 @@
  */
 import { readdir, readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const { PGlite } = await import(process.env.BUFFER_PGLITE_MODULE || '@electric-sql/pglite');
+import { createDatabase } from './lib/pglite.mjs';
 
 const DELETION_MIGRATION = '20261007120000_delete_own_account.sql';
 const migrations = new URL('../supabase/migrations/', import.meta.url);
-const db = new PGlite();
+const db = createDatabase();
 let checks = 0;
 const ownerA = '00000000-0000-4000-8000-00000000000a';
 const ownerB = '00000000-0000-4000-8000-00000000000b';
@@ -44,6 +44,8 @@ await db.exec(`
   alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
   alter default privileges for role buffer_migrator in schema public grant execute on functions to anon, authenticated, service_role;
   create schema private;
+  -- Hosted Supabase installs pgcrypto here; the rate-limit migration uses it.
+  create schema extensions;
 `);
 const files = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
 // It must run after every migration that created an owner-keyed table.
