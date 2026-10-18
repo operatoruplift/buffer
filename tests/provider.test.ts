@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 vi.mock('server-only', () => ({}));
 import { PublicKey, Connection } from '@solana/web3.js';
@@ -9,6 +9,7 @@ import {
   type SpotMarketAccount, type StateAccount, type Order, DriftClient, DRIFT_PROGRAM_ID, PollingDriftClientAccountSubscriber, getPerpMarketPublicKeySync, getSpotMarketPublicKeySync,
 } from '@drift-labs/sdk';
 import { ProviderFailure, serveRead, validateAuthority, validateProtocol, validateSubaccount, type LiveProvider } from '../src/server/boundary';
+import { liveReadBudget } from '../src/server/live-read-budget';
 import { baselineCoverageIssues, normalizeRaw, normalizeSnapshot, observeOracle, requiredMarkets, type ReadData } from '../src/server/normalize';
 import { liveProvider, requireSelectedAccount, SnapshotAccountLoader, bindCanonicalDriftProgram } from '../src/server/drift';
 import { CONFIGURED_PERP_MARKETS } from '../src/lib/perp-markets';
@@ -71,6 +72,7 @@ function fixture(): ReadData {
 const mockProvider = (): LiveProvider => ({ discover: vi.fn(async () => ({ authority, subaccounts: [], retrievedAt: '2026-09-11T00:00:00.000Z' })), snapshot: vi.fn(async () => normalizeSnapshot(fixture())) });
 
 describe('read API boundaries', () => {
+  beforeEach(() => liveReadBudget.reset());
   it('defaults to Velocity and accepts only the supported protocol identifiers', () => {
     expect(validateProtocol(null)).toBe('velocity');
     expect(validateProtocol('velocity')).toBe('velocity');
