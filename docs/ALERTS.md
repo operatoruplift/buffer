@@ -56,7 +56,21 @@ SQLite `.local/alerts.sqlite` uses WAL, full synchronization and transactional r
 4. Configure a reviewed Discord or signed-webhook destination for the intended confirmed Supabase owner. Verify the destination according to its provider contract; prepare the exact redacted message and destination. Obtain recipient-send authorization before turning on sends. Existing signup/recovery email stays disabled independently.
 5. Save an authorized test threshold around a real current observation. Confirm event ID, rule version, source slot/time, and the destination-specific delivery receipt. Retain redacted evidence, then pause/delete the test rule. Do not call this step verified until a real receipt exists.
 
-To pause: disable the scheduler job and set sending false. To rotate: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
+### Worker secret
+
+`BUFFER_ALERT_WORKER_SECRET` is the only gate on `public.buffer_monitor_worker`, which the server calls with the publishable key. It must be at least 32 random characters (the function refuses anything shorter than 32 or longer than 256); generate it with `node -e "console.log(require('crypto').randomBytes(36).toString('base64url'))"` or `openssl rand -base64 48 | tr -d '=+/'`, never by hand. Only its SHA-256 hash is stored, in `private.buffer_monitor_credentials`.
+
+Since `20261019090000_worker_secret_lockout.sql` the function counts failed authentication attempts per calendar minute. Each failure writes a `WARNING` to the PostgreSQL log (`buffer_monitor_worker: authentication failed (N this minute)`, never the attempted value), and after 10 failures in one minute every call, including a correct one, is refused with `Worker authentication paused` until that minute ends. The current minute's count is `select last_value % 1000 as failures from private.buffer_monitor_auth_failures;`. A deployment carrying a wrong secret therefore shows up as a warning every minute and a stalled heartbeat, not as silent misses; an attacker holding the publishable key can pause the worker for the rest of a minute by failing ten times, which was accepted over unbounded guessing.
+
+To rotate the worker secret:
+
+1. Generate the new value as above.
+2. In Vercel, set `BUFFER_ALERT_WORKER_SECRET` to the new value for Production without promoting yet.
+3. Through the administrator connection run `update private.buffer_monitor_credentials set secret_hash = encode(sha256(convert_to('<new value>', 'UTF8')), 'hex') where id;` (one row; the old value stops working at once).
+4. Redeploy or promote immediately. Until the new deployment serves, each scheduled minute fails authentication once and logs a warning; ten failures in one minute would pause the worker for that minute, so do not leave the gap open.
+5. Confirm a fresh completed `cron:` run in `private.buffer_monitor_runs` and a healthy heartbeat in the app.
+
+To pause: disable the scheduler job and set sending false. To rotate a destination: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
 
 ## Verification
 

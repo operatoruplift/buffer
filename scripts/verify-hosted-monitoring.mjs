@@ -21,7 +21,7 @@ await db.exec(`create role anon; create role authenticated; create role service_
   grant usage on schema auth,public to anon,authenticated,service_role;
   alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;
   insert into auth.users values('${ownerA}'),('${ownerB}');`);
-for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql', '20261017103000_worker_fairness.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
+for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql', '20261017103000_worker_fairness.sql', '20261019090000_worker_secret_lockout.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
 await sql("insert into private.buffer_monitor_credentials(secret_hash) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
 await assert.rejects(worker('start', { runKey: 'cron:1', mode: 'dry_run' }, 'invalid-secret-that-is-long-enough'), error => error.code === '42501'); checks++;
 await role('authenticated', ownerA);
@@ -235,5 +235,47 @@ await sql(`insert into private.buffer_monitor_runs(run_key,mode,owner_id,started
 check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000a1', mode: 'dry_run', ownerId: ownerA }), { duplicate: true, throttled: true });
 check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', mode: 'dry_run', ownerId: ownerB }), { duplicate: false });
 await worker('end', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', outcome: 'ok' });
+
+// --- Worker secret lockout (20261019090000_worker_secret_lockout.sql).
+const wrongSecret = 'wrong-secret-that-is-long-enough-to-pass-the-length-check';
+const notices = [];
+async function attempt(credential) {
+  await role('anon');
+  return db.query('select public.buffer_monitor_worker($1,$2,$3) as result', [credential, 'prune', {}], { onNotice: notice => notices.push(notice) });
+}
+const minuteNow = async () => Number((await sql("select floor(extract(epoch from now())/60)::bigint as m")).rows[0].m);
+const failureCounter = async () => { await db.exec('reset role'); return Number((await sql('select last_value as v from private.buffer_monitor_auth_failures')).rows[0].v); };
+const authError = message => error => error.code === '42501' && error.message === message;
+// The window is a calendar minute. Start the proof only with ten seconds or more of the minute left.
+const secondOfMinute = Number((await sql('select extract(second from now())::int as s')).rows[0].s);
+if (secondOfMinute >= 50) await new Promise(resolve => setTimeout(resolve, (61 - secondOfMinute) * 1000));
+await db.exec('reset role');
+const minute = await minuteNow();
+await sql(`select setval('private.buffer_monitor_auth_failures', ${minute}::bigint * 1000 + 8, true)`);
+// Each failure is counted although the call ends in the exception the server relies on.
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 9);
+check((await attempt(secret)).rows[0].result, {});
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 10);
+// Ten failures: every call is refused for the rest of the minute, the right secret included, and refusals do not count.
+await assert.rejects(attempt(secret), authError('Worker authentication paused')); checks++;
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication paused')); checks++;
+check(await failureCounter(), minute * 1000 + 10);
+check(await minuteNow(), minute);
+// The minute ends: the next failure starts a new count and a valid call works again.
+await sql(`select setval('private.buffer_monitor_auth_failures', ${minute - 1}::bigint * 1000 + 10, true)`);
+check((await attempt(secret)).rows[0].result, {});
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 1);
+// Failures and refusals are logged as warnings that carry a count, never a secret.
+const warnings = notices.filter(notice => notice.severity === 'WARNING').map(notice => notice.message);
+check(warnings.filter(message => /^buffer_monitor_worker: authentication failed \((9|10|1) this minute\)$/.test(message)).length, 3);
+check(warnings.filter(message => message === 'buffer_monitor_worker: refusing every call until the minute ends after 10 failed authentication attempts').length, 2);
+check(notices.some(notice => JSON.stringify(notice).includes(wrongSecret) || JSON.stringify(notice).includes(secret)), false);
+for (const name of ['anon', 'authenticated', 'service_role']) {
+  const row = (await sql(`select has_sequence_privilege($1,'private.buffer_monitor_auth_failures','SELECT') as readable, has_sequence_privilege($1,'private.buffer_monitor_auth_failures','UPDATE') as writable`, [name])).rows[0];
+  check(row, { readable: false, writable: false });
+}
 await db.close();
 console.log(JSON.stringify({ result: 'PASS', assertions: checks, database: 'local PostgreSQL (PGlite)', externalWrites: false, outboundMessages: 0 }, null, 2));
