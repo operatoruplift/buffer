@@ -6,7 +6,7 @@ import { getSupabase } from '@/lib/supabase';
 import { runAuthOperation } from '@/lib/auth-flow';
 import { AccountDeletionError, accountDeletionMessage, clearAccountDeviceData, deleteOwnAccount, runAccountDeletion } from '@/lib/account-deletion';
 import { persistedAuthSession, sessionIdentity, sameAuthSession, withIdentityBoundSignOut, type AuthSessionIdentity } from '@/lib/auth-storage';
-import { decodeCloudReports, isCloudReportPayload, type SavedReport } from '@/lib/cloud-reports';
+import { decodeCloudReports, isCloudReportPayload, isSavedReportQuotaError, MAX_CLOUD_LIBRARY_BYTES, MAX_CLOUD_REPORTS, type SavedReport } from '@/lib/cloud-reports';
 import { formatUtc } from '@/lib/format';
 import type { createReport } from '@/lib/report';
 import styles from './AccountPanel.module.css';
@@ -190,11 +190,12 @@ export default function AccountPanel({ report }: { report: Report | null }) {
       if (!current(ticket)) return;
       setReports(items); setLoadState('loaded'); setWriteUncertain(false);
       setMessage('Scenario saved to your private library.');
-    } catch {
-      if (current(ticket)) {
-        setLoadState('error'); setWriteUncertain(true);
-        setMessage(saved ? 'Scenario saved, but the library could not be refreshed. Reload reports to see it.' : 'Saving could not be confirmed. Reload reports before trying again.');
-      }
+    } catch (error) {
+      if (!current(ticket)) return;
+      // The database refused a full library before writing anything; the library itself is still in step.
+      if (!saved && isSavedReportQuotaError(error)) { setMessage(`Your library is full: it holds up to ${MAX_CLOUD_REPORTS} reports or ${MAX_CLOUD_LIBRARY_BYTES / 1048576} MiB. Delete a report to save another.`); return; }
+      setLoadState('error'); setWriteUncertain(true);
+      setMessage(saved ? 'Scenario saved, but the library could not be refreshed. Reload reports to see it.' : 'Saving could not be confirmed. Reload reports before trying again.');
     } finally { finish(ticket); }
   }
   async function remove(id: string) {

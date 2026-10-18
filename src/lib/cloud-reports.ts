@@ -3,6 +3,15 @@ import { isReport, type Report } from './device-reports';
 export type SavedReport = { id: string; title: string; created_at: string; report: Report };
 export const MAX_CLOUD_REPORTS = 50;
 export const MAX_CLOUD_REPORT_BYTES = 262144;
+/** The database caps each account at MAX_CLOUD_REPORTS rows and this many bytes of report JSON. */
+export const MAX_CLOUD_LIBRARY_BYTES = 8 * 1024 * 1024;
+/** SQLSTATE raised by the saved_reports quota trigger (20261019091500_saved_report_quota.sql). */
+export const SAVED_REPORT_QUOTA_CODE = '54000';
+
+/** A refusal because the account's library is full; nothing was written. */
+export function isSavedReportQuotaError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === SAVED_REPORT_QUOTA_CODE;
+}
 
 /** Database timestamps may contain microseconds and a UTC offset. Keep them unchanged. */
 function timestamp(value: unknown): value is string {

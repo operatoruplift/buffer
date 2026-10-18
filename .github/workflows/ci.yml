@@ -46,6 +46,7 @@ jobs:
           node scripts/verify-monitoring-scheduler.mjs
           node scripts/verify-account-deletion.mjs
           node scripts/verify-rate-limit.mjs
+          node scripts/verify-saved-report-quota.mjs
       - run: npm run build
 
   # Deterministic browser regressions block the release. External credentials
