@@ -95,7 +95,7 @@ export async function freshMonitoringCheck(request: Request, id: string) { retur
   if (!raw.rules.some(rule => rule.id === ruleId && rule.enabled)) throw new MonitoringFailure('RULE_NOT_FOUND', 'An enabled rule for this account is required.', 404);
   const result = await runMonitoringWorker({ repository: workerRepository(), adapter: createNotificationAdapter(), sendEnabled: false, notificationMode: process.env.BUFFER_ALERT_NOTIFICATION_MODE === 'production' ? 'production' : 'test',
     snapshot: async (authority, subaccount) => (await resolveProvider('velocity')).snapshot(authority, subaccount) }, { runKey: `manual:${randomUUID()}`, ownerId: session.ownerId, ruleId });
-  if (!result.checked) throw new MonitoringFailure('CHECK_NOT_DUE', 'A check is already running or this rule was checked within the last minute.', 429, true);
+  if (!result.checked) throw new MonitoringFailure('CHECK_NOT_DUE', 'A check is already running, this account was checked within the last minute, or it has used this hour\'s manual checks.', 429, true);
   return response(await overview(session.ownerId, session.client));
 }); }
 export function validCronAuthorization(request: Request): boolean {

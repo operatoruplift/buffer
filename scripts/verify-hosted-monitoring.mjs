@@ -21,7 +21,7 @@ await db.exec(`create role anon; create role authenticated; create role service_
   grant usage on schema auth,public to anon,authenticated,service_role;
   alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;
   insert into auth.users values('${ownerA}'),('${ownerB}');`);
-for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
+for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql', '20261017103000_worker_fairness.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
 await sql("insert into private.buffer_monitor_credentials(secret_hash) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
 await assert.rejects(worker('start', { runKey: 'cron:1', mode: 'dry_run' }, 'invalid-secret-that-is-long-enough'), error => error.code === '42501'); checks++;
 await role('authenticated', ownerA);
@@ -160,5 +160,80 @@ check([deliveredSentinel.state, deliveredSentinel.provider_message_id, delivered
 check(await worker('claim_receipt'), null);
 check((await status(ownerA)).rules.find(item => item.id === sentinelId).unresolved_event_id, null);
 await worker('end', { runKey: 'cron:3', outcome: 'ok' });
+
+// --- Worker fairness (20261017103000_worker_fairness.sql).
+// Owner B gets a verified destination and a due rule next to owner A's sentinel.
+await worker('destination', { ownerId: ownerB, configRef: ref, fingerprint, label: 'Second owner channel', maskedDestination: 'Discord …0002' });
+const destinationB = (await status(ownerB)).destinations[0].id;
+const ruleB = await mutate(ownerB, 'create', null, { ...config, destinationId: destinationB });
+const ruleA = sentinelId;
+const resetClaims = async () => { await db.exec('reset role'); await sql('update public.alert_rules set last_attempt_at=null,next_check=null,check_token=null,check_lease_until=null,check_lease_kind=null'); };
+/** Sixty-one seconds pass: every timestamp the scheduler orders by moves back, keeping its order. */
+const minutePasses = async () => { await db.exec('reset role'); await sql("update public.alert_rules set last_attempt_at=last_attempt_at-interval '61 seconds',next_check=next_check-interval '61 seconds'"); };
+async function completeClaim(claimed) {
+  const at = new Date();
+  const claimedMonitor = { ...monitor, ruleId: claimed.id, ruleVersion: claimed.version, ownerId: claimed.owner_id, lastFreshCheck: at.toISOString(), inputExpiresAt: new Date(at.getTime() + 120000).toISOString(), nextCheckAt: new Date(at.getTime() + 60000).toISOString(), lastTriggeredAt: at.toISOString() };
+  const claimedObservation = { ...observation, ruleId: claimed.id, ruleVersion: claimed.version, metric: claimed.metric, unit: claimed.unit, ...(claimed.market ? { market: claimed.market } : {}) };
+  check((await worker('complete_check', { ruleId: claimed.id, version: claimed.version, token: claimed.check_token, monitor: claimedMonitor, observation: claimedObservation, event: null })).available, true);
+}
+let tick = 10;
+async function scheduledTick() {
+  const runKey = `cron:${tick++}`;
+  await worker('start', { runKey, mode: 'dry_run' });
+  const claimed = await worker('claim_check');
+  if (claimed) await completeClaim(claimed);
+  await worker('end', { runKey, outcome: 'ok' });
+  return claimed?.id ?? null;
+}
+// Owner A edits their rule every minute. Each edit resets next_check to null, which used to put the
+// rule first in a queue the worker drains one rule per minute, so owner B's rule was never checked.
+await resetClaims();
+const served = [];
+for (let cycle = 1; cycle <= 4; cycle++) {
+  await mutate(ownerA, 'update', ruleA, { threshold: `${cycle}` });
+  served.push(await scheduledTick());
+  await minutePasses();
+}
+check(served, [ruleA, ruleB, ruleA, ruleB]);
+// One claimed check per owner per minute: right after A's rule was claimed, nothing else of A's is due.
+await resetClaims();
+check((await worker('claim_check')).id, ruleA);
+check((await worker('claim_check', { ownerId: ownerA, ruleId: ruleA })), null);
+await db.exec('reset role'); await sql('update public.alert_rules set check_token=null,check_lease_until=null,check_lease_kind=null');
+// A manual check holds its own, owner-scoped lease: the scheduled tick still claims owner B's rule
+// while owner A's manual check is in flight, a second scheduled lease is refused, and the owner's
+// own second manual check waits for the first.
+await resetClaims();
+const manualRun = 'manual:00000000-0000-4000-8000-0000000000a0';
+check(await worker('start', { runKey: manualRun, mode: 'dry_run', ownerId: ownerA }), { duplicate: false });
+const manualClaim = await worker('claim_check', { ownerId: ownerA, ruleId: ruleA });
+check([manualClaim.id, manualClaim.check_lease_kind], [ruleA, 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+const scheduledDuringManual = await worker('claim_check');
+check([scheduledDuringManual.id, scheduledDuringManual.check_lease_kind], [ruleB, 'scheduled']);
+check(await worker('claim_check'), null);
+await completeClaim(manualClaim); await completeClaim(scheduledDuringManual);
+await worker('end', { runKey: manualRun, outcome: 'ok' });
+check((await status(ownerA)).rules.find(item => item.id === ruleA).check_lease_kind, null);
+// Manual leases are per owner: owner B's manual check proceeds while owner A's is in flight.
+await minutePasses();
+const manualA = await worker('claim_check', { ownerId: ownerA, ruleId: ruleA });
+const manualB = await worker('claim_check', { ownerId: ownerB, ruleId: ruleB });
+check([manualA.check_lease_kind, manualB.check_lease_kind], ['manual', 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+await completeClaim(manualA); await completeClaim(manualB);
+// A claim that names only the rule is a manual claim scoped to that rule's owner.
+await minutePasses();
+const byRuleOnly = await worker('claim_check', { ruleId: ruleA });
+check([byRuleOnly.id, byRuleOnly.check_lease_kind], [ruleA, 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+check(await worker('claim_check', { ruleId: '00000000-0000-4000-8000-00000000ffff' }), null);
+await completeClaim(byRuleOnly);
+// Manual checks are capped at 60 per owner per hour, beyond the existing 30 per minute.
+await db.exec('reset role');
+await sql(`insert into private.buffer_monitor_runs(run_key,mode,owner_id,started_at) select 'manual:'||gen_random_uuid(),'dry_run',$1,now()-interval '30 minutes' from generate_series(1,60)`, [ownerA]);
+check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000a1', mode: 'dry_run', ownerId: ownerA }), { duplicate: true, throttled: true });
+check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', mode: 'dry_run', ownerId: ownerB }), { duplicate: false });
+await worker('end', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', outcome: 'ok' });
 await db.close();
 console.log(JSON.stringify({ result: 'PASS', assertions: checks, database: 'local PostgreSQL (PGlite)', externalWrites: false, outboundMessages: 0 }, null, 2));
