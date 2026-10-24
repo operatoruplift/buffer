@@ -80,7 +80,7 @@ Before configuring the first webhook destination on a deployment whose scheduler
 | Response | Recorded state | Notes |
 |---|---|---|
 | `2xx` | `delivered` | The acknowledgement is the receipt; generic receivers offer no read-back. The receipt id is `X-Buffer-Receipt`, `X-Request-Id` or JSON `id` when present, else `http-<status>`. |
-| `429` | `failed` (retryable) | Honors a numeric `Retry-After` up to one hour, else waits about 30 s, with bounded jitter. |
+| `429` | `failed` (retryable) | Honours `Retry-After` given in seconds or as an HTTP-date, capped at one hour; an absent or unreadable header waits about 30 s, with bounded jitter. |
 | `5xx`, `408` | `failed` (retryable) | About 60 s before the next attempt; three attempts total. |
 | other `4xx` | `failed` (permanent) | Not retried. |
 | redirect, timeout, transport error after the write | `unknown_outcome` | Never re-sent automatically. |

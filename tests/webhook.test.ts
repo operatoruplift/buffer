@@ -4,7 +4,7 @@ vi.mock('server-only', () => ({}));
 import type { DiscordEvent } from '../src/server/monitoring/discord';
 import { createDiscordAdapter } from '../src/server/monitoring/discord';
 import { createNotificationAdapter } from '../src/server/monitoring/notification';
-import { acceptableWebhookUrl, createWebhookAdapter, renderWebhookPayload, signWebhookPayload, WebhookConfigurationError, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_TIMESTAMP_HEADER } from '../src/server/monitoring/webhook';
+import { acceptableWebhookUrl, createWebhookAdapter, parseRetryAfterMs, renderWebhookPayload, signWebhookPayload, WebhookConfigurationError, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_TIMESTAMP_HEADER } from '../src/server/monitoring/webhook';
 
 const owner = '10000000-0000-4000-8000-000000000001';
 const otherOwner = '10000000-0000-4000-8000-000000000002';
@@ -114,10 +114,28 @@ describe('signed webhook delivery', () => {
   it('classifies 4xx as permanent, 429 and 5xx as bounded retries, and transport failure as unknown', async () => {
     expect(await fixture(vi.fn<typeof fetch>(async () => json({}, 404))).adapter.send(owner, destination, event)).toEqual({ kind: 'permanent', errorCode: 'WEBHOOK_HTTP_404' });
     expect(await fixture(vi.fn<typeof fetch>(async () => json({}, 429, { 'retry-after': '120' }))).adapter.send(owner, destination, event)).toEqual({ kind: 'retry', retryAfterMs: 120_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
-    expect(await fixture(vi.fn<typeof fetch>(async () => json({}, 429, { 'retry-after': 'soon' }))).adapter.send(owner, destination, event)).toEqual({ kind: 'permanent', errorCode: 'INVALID_RETRY_AFTER' });
+    expect(await fixture(vi.fn<typeof fetch>(async () => json({}, 429, { 'retry-after': 'soon' }))).adapter.send(owner, destination, event)).toEqual({ kind: 'retry', retryAfterMs: 30_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
     expect(await fixture(vi.fn<typeof fetch>(async () => json({}, 503))).adapter.send(owner, destination, event)).toMatchObject({ kind: 'retry', errorCode: 'WEBHOOK_HTTP_503' });
     expect(await fixture(vi.fn<typeof fetch>(async () => { throw new Error('socket hang up'); })).adapter.send(owner, destination, event)).toEqual({ kind: 'unknown', errorCode: 'WEBHOOK_SEND_OUTCOME_UNKNOWN' });
     expect(await fixture(vi.fn<typeof fetch>(async () => new Response(null, { status: 302, headers: { location: 'https://elsewhere.example.com/' } }))).adapter.send(owner, destination, event)).toEqual({ kind: 'unknown', errorCode: 'REDIRECT_REJECTED' });
+  });
+  it('honours Retry-After as seconds or an HTTP-date, caps it at one hour, and retries normally on an unreadable header', async () => {
+    const limited = (retryAfter: string) => fixture(vi.fn<typeof fetch>(async () => json({}, 429, { 'retry-after': retryAfter }))).adapter.send(owner, destination, event);
+    const httpDate = (offsetMs: number) => new Date(now + offsetMs).toUTCString();
+    expect(httpDate(90_000)).toBe('Mon, 28 Sep 2026 10:01:30 GMT');
+    expect(await limited('120')).toEqual({ kind: 'retry', retryAfterMs: 120_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    expect(await limited(httpDate(90_000))).toEqual({ kind: 'retry', retryAfterMs: 90_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    // A date already past means retry now; the floor and jitter still apply.
+    expect(await limited(httpDate(-5_000))).toEqual({ kind: 'retry', retryAfterMs: 1_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    // Both forms are capped at one hour instead of failing permanently.
+    expect(await limited('7200')).toEqual({ kind: 'retry', retryAfterMs: 3_600_000, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    expect(await limited(httpDate(2 * 3_600_000))).toEqual({ kind: 'retry', retryAfterMs: 3_600_000, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    // Unreadable headers are an ordinary retry, about thirty seconds out.
+    for (const odd of ['soon', '', '12abc', 'Sunday, 06-Nov-94 08:49:37 GMT', 'Mon, 99 Sep 2026 10:01:30 GMT', '1e3']) expect(await limited(odd)).toEqual({ kind: 'retry', retryAfterMs: 30_125, errorCode: 'WEBHOOK_RATE_LIMITED' });
+    expect(parseRetryAfterMs(null, now)).toBeNull();
+    expect(parseRetryAfterMs(' 15 ', now)).toBe(15_000);
+    expect(parseRetryAfterMs('Wed, 21 Oct 2015 07:28:00 GMT', Date.parse('2015-10-21T07:27:30.000Z'))).toBe(30_000);
+    expect(parseRetryAfterMs('Wed, 21 Oct 2015 07:28:00 GMT', Date.parse('2015-10-21T08:28:00.000Z'))).toBe(0);
   });
   it('ends a stalled POST at the deadline with an unknown outcome and no retry', async () => {
     vi.useFakeTimers();
