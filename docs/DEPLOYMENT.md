@@ -67,7 +67,7 @@ The current monitoring implementation adds authenticated `/api/monitoring` confi
 
 | Variable | Scope | Purpose |
 | --- | --- | --- |
-| `BUFFER_ALERT_WORKER_SECRET` | Server only | Random 32+ character secret; only its SHA-256 hash is stored in the private worker credential row. |
+| `BUFFER_ALERT_WORKER_SECRET` | Server only | Random 32+ character secret; only its SHA-256 hash is stored in the private worker credential row. It also keys the destination fingerprints, so rotating it re-verifies every destination (see [ALERTS.md](ALERTS.md)). |
 | `CRON_SECRET` | Server only | A different 32+ character secret authenticating the scheduled endpoint; also stored in Supabase Vault for the scheduler. |
 | `BUFFER_ALERT_SEND_ENABLED` | Server only | Defaults to false. Keep false until an exact destination and test message are authorized. |
 | `BUFFER_ALERT_NOTIFICATION_MODE` | Server only | Defaults to `test`; labels genuine live observations as test notifications. `production` is a deliberate separate choice. |

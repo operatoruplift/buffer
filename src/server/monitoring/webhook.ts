@@ -38,7 +38,7 @@ export interface WebhookAdapter {
   receipt(ownerId: string, destinationId: string, event: DiscordEvent, messageId: string): Promise<DiscordReceipt>;
 }
 interface Configuration { id: string; label: string; url: string; secret: string; ownerIds: string[] }
-interface Options { configuration?: string; fetch?: typeof fetch; now?: () => number; random?: () => number; timeoutMs?: number }
+interface Options { configuration?: string; fetch?: typeof fetch; now?: () => number; random?: () => number; timeoutMs?: number; fingerprintKey?: string }
 type JsonObject = Record<string, unknown>;
 
 /** Only fixed, credential-free errors may cross this server boundary. */
@@ -81,9 +81,10 @@ function parseConfiguration(raw: string | undefined): Configuration[] {
     return { id, label: safeText(item.label, 80), url: item.url, secret: item.secret, ownerIds: [...new Set((item.ownerIds as string[]).map(owner => owner.toLowerCase()))].sort() };
   });
 }
-function descriptor(config: Configuration): WebhookDestination {
+/** The fingerprint is an HMAC under the worker secret: owners see it, and it must reveal nothing about the destination secret. */
+function descriptor(config: Configuration, fingerprintKey: string): WebhookDestination {
   return { id: config.id, provider: 'webhook', label: config.label, maskedDestination: `Webhook ${new URL(config.url).hostname}`,
-    fingerprint: hash(JSON.stringify([config.id, config.url, config.secret, config.ownerIds])) };
+    fingerprint: createHmac('sha256', fingerprintKey).update(JSON.stringify([config.id, config.url, config.secret, config.ownerIds])).digest('hex') };
 }
 /** The signed body: fixed field order, validated through the shared notification renderer. */
 export function renderWebhookPayload(event: DiscordEvent): string {
@@ -142,6 +143,10 @@ export function createWebhookAdapter(options: Options = {}): WebhookAdapter {
   const random = options.random ?? Math.random;
   const timeoutMs = options.timeoutMs ?? 6000;
   if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 6000) throw new WebhookConfigurationError();
+  // Destinations cannot be described without the worker secret that keys their fingerprints.
+  const fingerprintKey = options.fingerprintKey ?? process.env.BUFFER_ALERT_WORKER_SECRET ?? '';
+  if (configs.length && (fingerprintKey.length < 32 || fingerprintKey.length > 256)) throw new WebhookConfigurationError();
+  const describe = (config: Configuration) => descriptor(config, fingerprintKey);
   const lookup = (ownerId: string, id: string) => typeof ownerId === 'string' && UUID.test(ownerId) && typeof id === 'string'
     ? configs.find(item => item.id === id.toLowerCase() && item.ownerIds.includes(ownerId.toLowerCase())) : undefined;
   const unavailable: DiscordPermanent = { kind: 'permanent', errorCode: 'DESTINATION_UNAVAILABLE' };
@@ -149,16 +154,16 @@ export function createWebhookAdapter(options: Options = {}): WebhookAdapter {
     const config = lookup(ownerId, id);
     if (!config) throw new WebhookConfigurationError();
     const content = renderWebhookPayload(event);
-    return { destination: descriptor(config), content, contentHash: hash(content) };
+    return { destination: describe(config), content, contentHash: hash(content) };
   };
   return {
-    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(descriptor) : []; },
+    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(describe) : []; },
     preview,
     /** Verification is configuration policy only: no request is made until a real event is sent. */
     async verifyDestination(ownerId, id) {
       const config = lookup(ownerId, id);
       if (!config) return unavailable;
-      return { kind: 'verified', destinationId: config.id, channelId: 'webhook', fingerprint: descriptor(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
+      return { kind: 'verified', destinationId: config.id, channelId: 'webhook', fingerprint: describe(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
     },
     async send(ownerId, id, event, beforePost) {
       const config = lookup(ownerId, id);

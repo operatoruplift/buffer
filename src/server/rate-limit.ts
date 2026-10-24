@@ -15,6 +15,11 @@ import { createHash } from 'node:crypto';
  * (see supabase/migrations/
  * 20261008120000_rate_limit_retention_and_keyed_hash.sql). If the store is
  * unreachable or errors, this returns null and the local window still applies.
+ *
+ * The secret is posted only to an https *.supabase.co origin, the same pin
+ * the monitoring repository applies. Any other configured URL leaves the
+ * shared limiter off, so a mistaken or hostile NEXT_PUBLIC_SUPABASE_URL can
+ * never receive RATE_LIMIT_SECRET.
  */
 
 /** The database refuses longer windows: the privacy policy's retention period depends on it. */
@@ -23,11 +28,19 @@ const TIMEOUT_MS = 1500;
 
 export type SharedLimit = { allowed: boolean; retryAfterSeconds: number };
 
+/** The project's own https *.supabase.co origin, or null when the URL is anything else. */
+export function supabaseOrigin(value: string): string | null {
+  let url: URL;
+  try { url = new URL(value); } catch { return null; }
+  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || !/^[a-z0-9-]+\.supabase\.co$/.test(url.hostname)) return null;
+  return url.origin;
+}
+
 function config() {
-  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
+  const origin = supabaseOrigin((process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim());
   const key = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '').trim();
   const secret = (process.env.RATE_LIMIT_SECRET ?? '').trim();
-  return url && key && secret ? { url, key, secret } : null;
+  return origin && key && secret ? { origin, key, secret } : null;
 }
 
 export function clientKey(request: Request, scope: string): string {
@@ -42,7 +55,7 @@ export async function consumeSharedLimit(request: Request, scope: string, limit:
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(`${shared.url}/rest/v1/rpc/consume_rate_limit`, {
+    const response = await fetch(`${shared.origin}/rest/v1/rpc/consume_rate_limit`, {
       method: 'POST',
       signal: controller.signal,
       headers: { apikey: shared.key, authorization: `Bearer ${shared.key}`, 'content-type': 'application/json' },

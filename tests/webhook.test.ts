@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 import type { DiscordEvent } from '../src/server/monitoring/discord';
 import { createDiscordAdapter } from '../src/server/monitoring/discord';
@@ -10,6 +10,7 @@ const owner = '10000000-0000-4000-8000-000000000001';
 const otherOwner = '10000000-0000-4000-8000-000000000002';
 const destination = '20000000-0000-4000-8000-000000000002';
 const secret = 'synthetic_test_only_webhook_secret_with_no_external_access';
+const fingerprintKey = 'synthetic_test_only_worker_secret_keying_fingerprints';
 const url = 'https://alerts.example.com/hooks/buffer';
 const config = { id: destination, label: 'Risk desk', url, secret, ownerIds: [owner] };
 const now = Date.parse('2026-09-28T10:00:00.000Z');
@@ -24,6 +25,7 @@ function fixture(fetcher = vi.fn<typeof fetch>()) {
   const adapter = createWebhookAdapter({ configuration: JSON.stringify([config]), fetch: fetcher, now: () => now, random: () => 0.5 });
   return { adapter, fetcher, preview: adapter.preview(owner, destination, event) };
 }
+beforeEach(() => vi.stubEnv('BUFFER_ALERT_WORKER_SECRET', fingerprintKey));
 afterEach(() => vi.unstubAllEnvs());
 
 describe('signed webhook destination boundary', () => {
@@ -60,6 +62,13 @@ describe('signed webhook destination boundary', () => {
     expect(JSON.stringify(descriptor)).not.toContain('/hooks/buffer');
     const rotated = createWebhookAdapter({ configuration: JSON.stringify([{ ...config, secret: `${secret}_rotated` }]) }).listDestinations(owner)[0];
     expect(rotated.fingerprint).not.toBe(descriptor.fingerprint);
+  });
+  it('commits to a destination with an HMAC under the worker secret, never a bare hash of the credentials', () => {
+    const [current] = fixture().adapter.listDestinations(owner);
+    expect(current.fingerprint).toBe(createHmac('sha256', fingerprintKey).update(JSON.stringify([destination, url, secret, [owner]])).digest('hex'));
+    expect(createWebhookAdapter({ configuration: JSON.stringify([config]), fingerprintKey: 'another_synthetic_worker_secret_long_enough_to_pass' }).listDestinations(owner)[0].fingerprint).not.toBe(current.fingerprint);
+    for (const missing of ['', 'short']) expect(() => createWebhookAdapter({ configuration: JSON.stringify([config]), fingerprintKey: missing })).toThrow(WebhookConfigurationError);
+    expect(createWebhookAdapter({ configuration: '', fingerprintKey: '' }).listDestinations(owner)).toEqual([]);
   });
 });
 

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
-import { clientKey, consumeSharedLimit } from '../src/server/rate-limit';
+import { clientKey, consumeSharedLimit, supabaseOrigin } from '../src/server/rate-limit';
 
-const URL_BASE = 'https://project.supabase.example';
+const URL_BASE = 'https://project.supabase.co';
 const PUBLISHABLE = 'sb_publishable_test';
 const SECRET = 'server-only-rate-limit-secret';
 const IP = '203.0.113.7';
@@ -78,6 +78,26 @@ describe('consumeSharedLimit', () => {
     configure();
     fetchMock.mockResolvedValueOnce(respond());
     await expect(consumeSharedLimit(request(), 'live-read', 30)).resolves.toBeNull();
+  });
+
+  // The secret is a credential for the project's database; it goes to that origin or nowhere.
+  it.each([
+    'http://project.supabase.co', 'https://project.supabase.co.evil.example', 'https://evil.example/project.supabase.co',
+    'https://user:pass@project.supabase.co', 'https://project.supabase.co/?x=1', 'https://project.supabase.co/#frag',
+    'https://project.supabase.com', 'https://supabase.co', 'https://127.0.0.1', 'not a url',
+  ])('never posts the secret to %s', async url => {
+    configure({ url });
+    await expect(consumeSharedLimit(request(), 'live-read', 30)).resolves.toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(supabaseOrigin(url)).toBeNull();
+  });
+
+  it('posts to the pinned origin even when the configured URL carries a path', async () => {
+    configure({ url: 'https://project.supabase.co/some/path/' });
+    fetchMock.mockResolvedValueOnce(rpcResponse([{ allowed: true, remaining: 29, retry_after: 60 }]));
+    await consumeSharedLimit(request(), 'live-read', 30);
+    expect(fetchMock.mock.calls[0]![0]).toBe('https://project.supabase.co/rest/v1/rpc/consume_rate_limit');
+    expect(supabaseOrigin('https://my-project-123.supabase.co')).toBe('https://my-project-123.supabase.co');
   });
 
   it('returns null when the database is unreachable', async () => {

@@ -69,6 +69,7 @@ To rotate the worker secret:
 3. Through the administrator connection run `update private.buffer_monitor_credentials set secret_hash = encode(sha256(convert_to('<new value>', 'UTF8')), 'hex') where id;` (one row; the old value stops working at once).
 4. Redeploy or promote immediately. Until the new deployment serves, each scheduled minute fails authentication once and logs a warning; ten failures in one minute would pause the worker for that minute, so do not leave the gap open.
 5. Confirm a fresh completed `cron:` run in `private.buffer_monitor_runs` and a healthy heartbeat in the app.
+6. The worker secret also keys every destination fingerprint (HMAC-SHA-256), so each configured Discord or webhook destination now carries a new fingerprint: the next status read re-verifies it and the database pauses the rules bound to it. Re-enable those rules once the destination shows as verified again.
 
 To pause: disable the scheduler job and set sending false. To rotate a destination: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
 

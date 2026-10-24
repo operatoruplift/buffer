@@ -36,7 +36,7 @@ Set **server-only** `BUFFER_WEBHOOK_DESTINATIONS_JSON` to a JSON array. Every va
 ```
 
 - `url` must be `https://`, a public DNS hostname (no IP literals, `localhost`, `.local`, `.internal`, `.home.arpa`), with no credentials, port, query or fragment. Buffer never accepts a pasted URL from the browser; an owner outside `ownerIds` cannot list, preview or send to the destination.
-- `secret` is 32–256 URL-safe characters and never leaves the server. The browser sees only the id, label, `Webhook <hostname>` and a one-way fingerprint over id, URL, secret and sorted owners. Rotating any of them changes the fingerprint, which disables rules until the destination is re-verified on the next status read.
+- `secret` is 32–256 URL-safe characters and never leaves the server. The browser sees only the id, label, `Webhook <hostname>` and a fingerprint: HMAC-SHA-256, keyed with `BUFFER_ALERT_WORKER_SECRET`, over id, URL, secret and sorted owners (an unkeyed SHA-256 until 24 October 2026, when no destination had yet been registered). Rotating any of them, or the worker secret, changes the fingerprint, which disables rules until the destination is re-verified on the next status read.
 - Verification is configuration policy only: no request is made until a real event is due. Keep `BUFFER_ALERT_SEND_ENABLED=false` until the receiver has been reviewed.
 
 ### Request
