@@ -10,7 +10,7 @@ test('the privacy policy is public, specific to Buffer and states what deletion 
   await expect(page).toHaveTitle('Privacy policy — Buffer');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeVisible();
   const main = page.getByRole('main');
-  await expect(main).toContainText('Last updated: 8 October 2026');
+  await expect(main).toContainText('Last updated: 24 October 2026');
   await expect(main).toContainText('Operator Uplift');
   await expect(main).toContainText('IPs are hashed for rate limiting and no address is stored.');
   await expect(page.locator('#rate-limiting')).toContainText('HMAC-SHA-256 under a random key that never leaves our database');
@@ -20,6 +20,9 @@ test('the privacy policy is public, specific to Buffer and states what deletion 
   for (const processor of ['Vercel', 'Supabase', 'Solana RPC provider', 'Velocity', 'Pacifica', 'Drift', 'Jupiter', 'Discord']) await expect(main).toContainText(processor);
   for (const record of ['Saved reports', 'Monitored wallet addresses and alert rules', 'Alert destinations', 'Alert events and delivery records']) await expect(page.locator('#delete-account')).toContainText(record);
   await expect(page.locator('#delete-account')).toContainText('BUFFER_WEBHOOK_DESTINATIONS_JSON');
+  await expect(page.locator('#processors')).toContainText('SOLANA_DEVNET_RPC_URL');
+  await expect(page.locator('#contact')).toContainText('GitHub issues are public: never post your email address, wallet address or other personal details there.');
+  await expect(main).not.toContainText('arrange a private way');
   await expect(main).toContainText('18');
   await expect(main.getByRole('link', { name: 'github.com/operatoruplift/buffer/issues' }).first()).toHaveAttribute('href', 'https://github.com/operatoruplift/buffer/issues');
   await expect(main.getByRole('link', { name: 'Terms of use' }).first()).toHaveAttribute('href', '/terms');
@@ -33,7 +36,7 @@ test('the terms carry the Solana dApp Store clause and the read-only limits', as
   await expect(page).toHaveTitle('Terms of use — Buffer');
   await expect(page.getByRole('heading', { level: 1, name: 'Terms of use' })).toBeVisible();
   const main = page.getByRole('main');
-  await expect(main).toContainText('Last updated: 8 October 2026');
+  await expect(main).toContainText('Last updated: 24 October 2026');
   await expect(main).toContainText('not trading advice');
   await expect(main).toContainText('cross-margin-hold-others-v1');
   await expect(main).toContainText('never asks for your seed phrase or private key');

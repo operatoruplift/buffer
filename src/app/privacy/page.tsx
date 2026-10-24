@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import LegalDocument, { LegalList, SupportLink, type LegalSection } from '@/components/legal/LegalDocument';
-import { LEGAL_OPERATOR } from '@/lib/legal';
+import { LEGAL_OPERATOR, supportContact } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Privacy policy — Buffer',
   description: 'What Buffer stores, why, for how long, and how to delete your account and its data.',
   alternates: { canonical: '/privacy' },
 };
+
+/** The configured support email is the only private channel; without one, only the in-app control exists. */
+const contact = supportContact();
 
 const summary = [
   'Presets, live account reads and reports saved on your device work without an account.',
@@ -66,7 +69,7 @@ const sections: LegalSection[] = [
     <LegalList items={[
       <><strong>Vercel</strong> hosts the website, the app and its server functions.</>,
       <><strong>Supabase</strong> stores accounts, saved reports, alerts and rate-limit counters, handles sign-in and sends account emails. Your account data is stored in the United States.</>,
-      <><strong>A Solana RPC provider</strong> chosen by the operator receives the public addresses Buffer reads on Velocity, Jupiter and legacy Drift, and returns on-chain data. Velocity devnet reads use Solana&rsquo;s public devnet RPC.</>,
+      <><strong>A Solana RPC provider</strong> chosen by the operator receives the public addresses Buffer reads on Velocity, Jupiter and legacy Drift, and returns on-chain data. Velocity devnet reads go to the devnet endpoint set in the server setting <code>SOLANA_DEVNET_RPC_URL</code> when the operator configures one, and otherwise to Solana&rsquo;s public devnet RPC.</>,
       <><strong>Velocity, Jupiter and Drift</strong> data is read from their public on-chain accounts through that RPC provider.</>,
       <><strong>Pacifica</strong> data is read from Pacifica&rsquo;s public API, which receives the public address you look up.</>,
       <><strong>Discord or webhook recipients</strong> receive alert messages for the accounts the operator set them up for.</>,
@@ -101,7 +104,9 @@ const sections: LegalSection[] = [
       'Request and security logs kept by Vercel and Supabase under their own policies, and backups until they expire.',
     ]} />
     <p>Alert destinations themselves are operator configuration, not your data. The operator lists which accounts may use each destination in the server settings <code>BUFFER_DISCORD_DESTINATIONS_JSON</code> and <code>BUFFER_WEBHOOK_DESTINATIONS_JSON</code> (their <code>ownerIds</code>). Deleting your account removes the destination records linked to it, so nothing more is sent. Your former account ID can stay in that configuration until we next update it. It no longer matches any account, and we remove it at that update.</p>
-    <p>If you can no longer sign in, contact us at <SupportLink /> and we will delete the account for you.</p>
+    {contact.kind === 'email'
+      ? <p>If you can no longer sign in, email us at <SupportLink /> from the address on the account and we will delete it for you. That address is the private channel for anything that involves your personal details.</p>
+      : <p>Deletion happens through the Delete account control inside the app, which needs your sign-in; if you have lost access, use the password recovery email first. Buffer has no private support address at the moment, and our public issue tracker must never carry your email address, wallet address or other personal details.</p>}
   </> },
   { id: 'security', title: 'Security', body: <LegalList items={[
     'Every connection uses HTTPS.',
@@ -112,12 +117,16 @@ const sections: LegalSection[] = [
   { id: 'children', title: 'Age requirement', body: <p>Buffer is for people aged 18 or older. We do not knowingly collect information from anyone under 18. If you believe a person under 18 created an account, contact us and we will delete it.</p> },
   { id: 'rights', title: 'Your choices and rights', body: <>
     <p>You can use Buffer without an account, download any saved report as JSON, delete reports and delete your account in the app.</p>
-    <p>Depending on where you live, you may have rights to access, correct, export or delete your information, or to object to how we use it. Contact us to make a request and we will respond within the time the law requires. We do not sell your information or share it for advertising.</p>
+    <p>Depending on where you live, you may have rights to access, correct, export or delete your information, or to object to how we use it. {contact.kind === 'email'
+      ? 'Email us to make a request and we will respond within the time the law requires.'
+      : 'Deleting your account and downloading your reports as JSON are available in the app at any time; for any other request, open an issue that describes it without personal details, and we will respond within the time the law requires.'} We do not sell your information or share it for advertising.</p>
   </> },
   { id: 'changes', title: 'Changes to this policy', body: <p>We post changes on this page and update the date at the top. If you keep using Buffer after a change, the updated policy applies.</p> },
   { id: 'contact', title: 'Contact', body: <>
     <p>{LEGAL_OPERATOR}: <SupportLink />.</p>
-    <p>GitHub issues are public. Do not post your email address, wallet address or other personal details there. Describe your request and we will arrange a private way to complete it.</p>
+    <p>GitHub issues are public: never post your email address, wallet address or other personal details there. {contact.kind === 'email'
+      ? 'Anything that involves them goes to the address above.'
+      : 'Account requests, including deletion, are completed with the Delete account control inside the app; Buffer has no private support address at the moment.'}</p>
   </> },
 ];
 
