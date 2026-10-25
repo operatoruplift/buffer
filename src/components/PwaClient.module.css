@@ -16,5 +16,5 @@
 .guide:target { padding: 8px 12px; outline: 1px solid #c8d3e2; border-radius: 8px; }
 .instructions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding: 8px 0 12px; line-height: 1.7; }
 .instructions strong { display: block; color: #172332; margin-bottom: 4px; }
-.footnote { max-width: 760px; font-size: 11px; line-height: 1.7; }
+.footnote { max-width: 760px; font-size:12px; line-height: 1.7; }
 @media (max-width: 680px) { .row { align-items: flex-start; flex-direction: column; gap: 4px; } .actions { justify-content: flex-start; } .instructions { grid-template-columns: 1fr; gap: 14px; } }

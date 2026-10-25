@@ -3,7 +3,7 @@
 .toolbar > button { min-height: 44px; white-space: nowrap; }
 .quote { width: 150px; min-width: 0; }
 .quote > label { display: block; color: var(--muted); font-size: 10px; margin-bottom: 5px; }
-.note { color: var(--muted); font-size: 11px; line-height: 1.65; margin: 13px 0 17px; }
+.note { color: var(--muted); font-size:12px; line-height: 1.65; margin: 13px 0 17px; }
 .rows { display: grid; gap: 12px; }
 .position { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: #fbfcfe; min-width: 0; }
 .positionHeading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
