@@ -127,6 +127,7 @@ export default function AppNavigation({ positionsAvailable, scenarioAvailable, a
     <div className={styles.utilities}>
       <Link href="/demo"><svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" /><path d="m8 6.8 5 3.2-5 3.2z" fill="currentColor" /></svg>Watch walkthrough</Link>
       <Link href="/"><span aria-hidden="true">↗</span>Back to website</Link>
+      <p className={styles.legal}><Link href="/privacy">Privacy</Link><span aria-hidden="true">·</span><Link href="/terms">Terms</Link></p>
     </div>
   </aside>;
 }

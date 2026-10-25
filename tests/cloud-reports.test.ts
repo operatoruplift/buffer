@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeCloudReports, isCloudReportPayload, MAX_CLOUD_REPORT_BYTES, type SavedReport } from '../src/lib/cloud-reports';
+import { decodeCloudReports, isCloudReportPayload, isSavedReportQuotaError, MAX_CLOUD_LIBRARY_BYTES, MAX_CLOUD_REPORT_BYTES, MAX_CLOUD_REPORTS, SAVED_REPORT_QUOTA_CODE, type SavedReport } from '../src/lib/cloud-reports';
 import { createReport } from '../src/lib/report';
 import { getSampleSnapshot } from '../src/lib/samples';
 import { calculateScenario } from '../src/lib/scenario';
@@ -71,5 +71,17 @@ describe('cloud report response boundary', () => {
     report.warnings = ['é'.repeat(MAX_CLOUD_REPORT_BYTES / 2)];
     expect(isCloudReportPayload(report)).toBe(false);
     expect(isCloudReportPayload({ report: 'Buffer perpetual price scenario', version: 1 })).toBe(false);
+  });
+});
+
+describe('saved report quota', () => {
+  it('recognises only the database quota refusal, which writes nothing', () => {
+    expect(isSavedReportQuotaError({ code: SAVED_REPORT_QUOTA_CODE, message: 'Saved report limit reached: this account already holds 50 reports', hint: 'Delete a saved report to make room.' })).toBe(true);
+    for (const other of [{ code: '23514' }, { code: 54000 }, new Error('network'), null, undefined, 'full', { message: 'Saved report limit reached' }]) expect(isSavedReportQuotaError(other)).toBe(false);
+  });
+  it('states the same limits the trigger enforces', () => {
+    expect(SAVED_REPORT_QUOTA_CODE).toBe('54000');
+    expect(MAX_CLOUD_REPORTS).toBe(50);
+    expect(MAX_CLOUD_LIBRARY_BYTES).toBe(8 * 1024 * 1024);
   });
 });

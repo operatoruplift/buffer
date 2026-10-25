@@ -1,5 +1,5 @@
 import 'server-only';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { PublicKey } from '@solana/web3.js';
 import { ALERT_MARKET, ALERT_METRICS, isAlertMetric, type AlertMetric, type AlertUnit } from '@/lib/alerts';
 
@@ -61,6 +61,7 @@ interface Options {
   now?: () => number;
   random?: () => number;
   timeoutMs?: number;
+  fingerprintKey?: string;
 }
 type JsonObject = Record<string, unknown>;
 type TransportResult = { status: number | null; body: unknown; retryAfter: string | null; failure?: string };
@@ -101,9 +102,10 @@ function parseConfiguration(raw: string | undefined): Configuration[] {
       ownerIds: [...new Set((item.ownerIds as string[]).map(owner => owner.toLowerCase()))].sort() };
   });
 }
-function descriptor(config: Configuration): DiscordDestination {
+/** The fingerprint is an HMAC under the worker secret: owners see it, and it must reveal nothing about the webhook token. */
+function descriptor(config: Configuration, fingerprintKey: string): DiscordDestination {
   return { id: config.id, provider: 'discord', label: config.label, maskedDestination: `Discord channel …${config.channelId.slice(-4)}`,
-    fingerprint: hash(JSON.stringify([config.id, config.webhookId, config.webhookToken, config.channelId, config.ownerIds])) };
+    fingerprint: createHmac('sha256', fingerprintKey).update(JSON.stringify([config.id, config.webhookId, config.webhookToken, config.channelId, config.ownerIds])).digest('hex') };
 }
 function isoDate(value: unknown): value is string {
   if (typeof value !== 'string' || value.length > 40 || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return false;
@@ -245,6 +247,10 @@ export function createDiscordAdapter(options: Options = {}): DiscordAdapter {
   const random = options.random ?? Math.random;
   const timeoutMs = options.timeoutMs ?? 6000;
   if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 6000) throw new DiscordConfigurationError();
+  // Destinations cannot be described without the worker secret that keys their fingerprints.
+  const fingerprintKey = options.fingerprintKey ?? process.env.BUFFER_ALERT_WORKER_SECRET ?? '';
+  if (configs.length && (fingerprintKey.length < 32 || fingerprintKey.length > 256)) throw new DiscordConfigurationError();
+  const describe = (config: Configuration) => descriptor(config, fingerprintKey);
   const lookup = (ownerId: string, id: string) => typeof ownerId === 'string' && UUID.test(ownerId) && typeof id === 'string'
     ? configs.find(item => item.id === id.toLowerCase() && item.ownerIds.includes(ownerId.toLowerCase())) : undefined;
   const endpoint = (config: Configuration) => `https://discord.com/api/v10/webhooks/${config.webhookId}/${config.webhookToken}`;
@@ -253,7 +259,7 @@ export function createDiscordAdapter(options: Options = {}): DiscordAdapter {
     const config = lookup(ownerId, id);
     if (!config) throw new DiscordConfigurationError();
     const content = render(event);
-    return { destination: descriptor(config), content, contentHash: hash(content) };
+    return { destination: describe(config), content, contentHash: hash(content) };
   };
   const verifyDestination = async (ownerId: string, id: string): Promise<DiscordVerification> => {
     const config = lookup(ownerId, id);
@@ -262,10 +268,10 @@ export function createDiscordAdapter(options: Options = {}): DiscordAdapter {
     const problem = failure(result, false, random);
     if (problem) return problem.kind === 'unknown' ? { kind: 'retry', errorCode: 'DISCORD_READ_UNAVAILABLE', retryAfterMs: delay(random) } : problem;
     if (!record(result.body) || result.body.id !== config.webhookId || result.body.channel_id !== config.channelId || result.body.type !== 1) return { kind: 'permanent', errorCode: 'DESTINATION_MISMATCH' };
-    return { kind: 'verified', destinationId: config.id, channelId: config.channelId, fingerprint: descriptor(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
+    return { kind: 'verified', destinationId: config.id, channelId: config.channelId, fingerprint: describe(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
   };
   return {
-    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(descriptor) : []; },
+    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(describe) : []; },
     preview,
     verifyDestination,
     async send(ownerId, id, event, beforePost) {

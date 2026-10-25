@@ -50,6 +50,8 @@
 .unavailable p + p { margin-top: 16px; }
 .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; width: 100%; max-width: 1280px; margin: 0 auto; font-size: 10px; color: #f7f9ff; text-shadow: 0 1px 5px rgb(15 31 59 / 90%); }
 .footer a { color: inherit; }
+.legal { display: flex; gap: 18px; }
+.fine a { color: #203c70; text-decoration: underline; text-underline-offset: 2px; }
 .content > .intro, .form > .field, .form > .recovery, .form > .submit, .form > .switch, .content > .guest, .content > .unavailable { animation: auth-enter 700ms cubic-bezier(.22, 1, .36, 1) both; }
 .form > :nth-child(1) { animation-delay: 100ms; }
 .form > :nth-child(2) { animation-delay: 200ms; }

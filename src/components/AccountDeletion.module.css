@@ -1,0 +1,11 @@
+.section{margin-top:28px;padding-top:22px;border-top:1px solid #e7eaf0}.section h3{font-size:14px;margin-bottom:6px}.section p{font-size:13px!important;margin-bottom:12px!important;color:#4d586b}
+.start{color:var(--red);padding-left:0}.start:hover:not(:disabled){background:transparent;text-decoration:underline;text-underline-offset:4px}
+.confirm{margin-top:14px;border:1px solid #efd4d5;border-radius:14px;padding:18px 20px;background:#fdf7f7}.confirm h4{margin:0 0 8px;font-size:15px;font-weight:600;letter-spacing:-.2px;color:#182236;overflow-wrap:anywhere}.confirm h4:focus-visible{outline:2px solid #315fe8;outline-offset:4px;border-radius:4px}.confirm ul{margin:0 0 14px;padding-left:18px;font-size:13px;line-height:1.85;color:#182236}
+.kept a{color:#315fe8;text-decoration:underline;text-underline-offset:3px}
+.actions{display:flex;flex-wrap:wrap;gap:10px}.destroy{background:var(--red);border-color:var(--red);color:#fff}.destroy:hover:not(:disabled){background:#9c3a3e;border-color:#9c3a3e}.destroy:focus-visible{outline:3px solid #e2a3a5}
+.done{display:flex;align-items:center;gap:8px;color:#182236!important}.done svg{color:var(--teal);flex-shrink:0}
+.status:empty{display:none}
+.notice{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:46;width:min(460px,calc(100% - 32px));display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:16px 14px 16px 16px;border:1px solid #d6e3df;border-radius:16px;background:#fff;color:#182236;box-shadow:0 18px 50px #1724402e}.notice:focus-visible{outline:3px solid #7b9af4;outline-offset:3px}.notice strong{font-size:14px}.notice p{margin:4px 0 0;font-size:13px;line-height:1.6;color:#4d586b}.notice button{min-height:36px;padding:6px 8px}
+.noticeIcon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#e3f2ef;color:var(--teal)}
+@media(max-width:1179px){.notice{bottom:calc(88px + env(safe-area-inset-bottom))}}
+@media(max-width:600px){.confirm{padding:16px}.actions button{width:100%;min-height:44px}.notice{grid-template-columns:auto 1fr}.notice button{grid-column:1 / -1;justify-self:end}}

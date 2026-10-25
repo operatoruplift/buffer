@@ -38,7 +38,7 @@ export interface WebhookAdapter {
   receipt(ownerId: string, destinationId: string, event: DiscordEvent, messageId: string): Promise<DiscordReceipt>;
 }
 interface Configuration { id: string; label: string; url: string; secret: string; ownerIds: string[] }
-interface Options { configuration?: string; fetch?: typeof fetch; now?: () => number; random?: () => number; timeoutMs?: number }
+interface Options { configuration?: string; fetch?: typeof fetch; now?: () => number; random?: () => number; timeoutMs?: number; fingerprintKey?: string }
 type JsonObject = Record<string, unknown>;
 
 /** Only fixed, credential-free errors may cross this server boundary. */
@@ -81,9 +81,10 @@ function parseConfiguration(raw: string | undefined): Configuration[] {
     return { id, label: safeText(item.label, 80), url: item.url, secret: item.secret, ownerIds: [...new Set((item.ownerIds as string[]).map(owner => owner.toLowerCase()))].sort() };
   });
 }
-function descriptor(config: Configuration): WebhookDestination {
+/** The fingerprint is an HMAC under the worker secret: owners see it, and it must reveal nothing about the destination secret. */
+function descriptor(config: Configuration, fingerprintKey: string): WebhookDestination {
   return { id: config.id, provider: 'webhook', label: config.label, maskedDestination: `Webhook ${new URL(config.url).hostname}`,
-    fingerprint: hash(JSON.stringify([config.id, config.url, config.secret, config.ownerIds])) };
+    fingerprint: createHmac('sha256', fingerprintKey).update(JSON.stringify([config.id, config.url, config.secret, config.ownerIds])).digest('hex') };
 }
 /** The signed body: fixed field order, validated through the shared notification renderer. */
 export function renderWebhookPayload(event: DiscordEvent): string {
@@ -102,12 +103,22 @@ function delay(random: () => number, base = 1000): number {
   const jitter = Math.floor((Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0) * 250);
   return Math.min(MAX_RETRY_MS, Math.max(1000, base) + jitter);
 }
-function retryAfter(header: string | null, random: () => number): DiscordRetry | DiscordPermanent {
-  if (header === null) return { kind: 'retry', retryAfterMs: delay(random, 30_000), errorCode: 'WEBHOOK_RATE_LIMITED' };
-  if (!/^\d{1,6}$/.test(header)) return { kind: 'permanent', errorCode: 'INVALID_RETRY_AFTER' };
-  const seconds = Number(header);
-  if (seconds * 1000 > MAX_RETRY_MS) return { kind: 'permanent', errorCode: 'INVALID_RETRY_AFTER' };
-  return { kind: 'retry', retryAfterMs: delay(random, seconds * 1000), errorCode: 'WEBHOOK_RATE_LIMITED' };
+const HTTP_DATE = /^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT$/;
+/**
+ * A Retry-After header as milliseconds to wait: delay seconds or an IMF-fixdate HTTP-date
+ * (RFC 9110), capped at one hour. Null for an absent or unreadable header, which the caller
+ * treats as an ordinary retry; a receiver's odd header is never a permanent failure.
+ */
+export function parseRetryAfterMs(header: string | null, nowMs: number): number | null {
+  if (header === null) return null;
+  const value = header.trim();
+  if (/^\d{1,10}$/.test(value)) return Math.min(MAX_RETRY_MS, Number(value) * 1000);
+  if (!HTTP_DATE.test(value)) return null;
+  const at = Date.parse(value);
+  return Number.isFinite(at) ? Math.min(MAX_RETRY_MS, Math.max(0, at - nowMs)) : null;
+}
+function retryAfter(header: string | null, nowMs: number, random: () => number): DiscordRetry {
+  return { kind: 'retry', retryAfterMs: delay(random, parseRetryAfterMs(header, nowMs) ?? 30_000), errorCode: 'WEBHOOK_RATE_LIMITED' };
 }
 async function ackId(response: Response, signal: AbortSignal): Promise<string> {
   const header = response.headers.get('x-buffer-receipt') ?? response.headers.get('x-request-id');
@@ -142,6 +153,10 @@ export function createWebhookAdapter(options: Options = {}): WebhookAdapter {
   const random = options.random ?? Math.random;
   const timeoutMs = options.timeoutMs ?? 6000;
   if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 6000) throw new WebhookConfigurationError();
+  // Destinations cannot be described without the worker secret that keys their fingerprints.
+  const fingerprintKey = options.fingerprintKey ?? process.env.BUFFER_ALERT_WORKER_SECRET ?? '';
+  if (configs.length && (fingerprintKey.length < 32 || fingerprintKey.length > 256)) throw new WebhookConfigurationError();
+  const describe = (config: Configuration) => descriptor(config, fingerprintKey);
   const lookup = (ownerId: string, id: string) => typeof ownerId === 'string' && UUID.test(ownerId) && typeof id === 'string'
     ? configs.find(item => item.id === id.toLowerCase() && item.ownerIds.includes(ownerId.toLowerCase())) : undefined;
   const unavailable: DiscordPermanent = { kind: 'permanent', errorCode: 'DESTINATION_UNAVAILABLE' };
@@ -149,16 +164,16 @@ export function createWebhookAdapter(options: Options = {}): WebhookAdapter {
     const config = lookup(ownerId, id);
     if (!config) throw new WebhookConfigurationError();
     const content = renderWebhookPayload(event);
-    return { destination: descriptor(config), content, contentHash: hash(content) };
+    return { destination: describe(config), content, contentHash: hash(content) };
   };
   return {
-    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(descriptor) : []; },
+    listDestinations(ownerId) { return typeof ownerId === 'string' && UUID.test(ownerId) ? configs.filter(item => item.ownerIds.includes(ownerId.toLowerCase())).map(describe) : []; },
     preview,
     /** Verification is configuration policy only: no request is made until a real event is sent. */
     async verifyDestination(ownerId, id) {
       const config = lookup(ownerId, id);
       if (!config) return unavailable;
-      return { kind: 'verified', destinationId: config.id, channelId: 'webhook', fingerprint: descriptor(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
+      return { kind: 'verified', destinationId: config.id, channelId: 'webhook', fingerprint: describe(config).fingerprint, verifiedAt: new Date(now()).toISOString() };
     },
     async send(ownerId, id, event, beforePost) {
       const config = lookup(ownerId, id);
@@ -182,7 +197,7 @@ export function createWebhookAdapter(options: Options = {}): WebhookAdapter {
           void response.body?.cancel().catch(() => undefined);
           return { kind: 'unknown', errorCode: 'REDIRECT_REJECTED' };
         }
-        if (response.status === 429) { void response.body?.cancel().catch(() => undefined); return retryAfter(response.headers.get('retry-after'), random); }
+        if (response.status === 429) { void response.body?.cancel().catch(() => undefined); return retryAfter(response.headers.get('retry-after'), now(), random); }
         if (response.status >= 400 && response.status < 500 && response.status !== 408) { void response.body?.cancel().catch(() => undefined); return { kind: 'permanent', errorCode: `WEBHOOK_HTTP_${response.status}` }; }
         if (response.status < 200 || response.status >= 300) { void response.body?.cancel().catch(() => undefined); return { kind: 'retry', retryAfterMs: delay(random, 60_000), errorCode: `WEBHOOK_HTTP_${response.status}` }; }
         return { kind: 'accepted', messageId: await ackId(response, controller.signal), channelId: 'webhook', acceptedAt: new Date(now()).toISOString(), contentHash: rendered.contentHash };

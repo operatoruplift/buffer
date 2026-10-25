@@ -1,15 +1,11 @@
 import { PublicKey } from '@solana/web3.js';
-import { consumeSharedLimit } from '@/server/rate-limit';
 import type { ApiError, Discovery, Snapshot } from '../lib/types';
 import type { ProtocolId } from '../lib/protocols';
 import type { LiveNetwork } from '../lib/networks';
+import { liveReadBudget } from './live-read-budget';
+import { ProviderFailure } from './provider-failure';
 
-export class ProviderFailure extends Error {
-  constructor(public readonly code: string, message: string, public readonly status = 502, public readonly retryable = true) {
-    super(message);
-    this.name = 'ProviderFailure';
-  }
-}
+export { ProviderFailure };
 
 export function validateAuthority(input: string | null): string {
   const value = input?.trim();
@@ -43,10 +39,6 @@ export function errorResponse(error: unknown): Response {
   return Response.json(body, { status: failure.status, headers: { 'Cache-Control': 'no-store' } });
 }
 
-// Per-process caps protect the fixed server RPC. No wallet addresses are retained.
-let windowStarted = 0;
-let readsInWindow = 0;
-let concurrentReads = 0;
 export function validateProtocol(value: string | null): ProtocolId {
   if (value === null || value === 'velocity') return 'velocity';
   if (value === 'jupiter') return 'jupiter';
@@ -73,22 +65,11 @@ export async function serveRead(request: Request, kind: 'discovery' | 'snapshot'
     const protocol = validateProtocol(params.get('protocol'));
     const network = validateNetwork(params.get('network'), protocol);
     const subaccount = kind === 'snapshot' ? validateSubaccount(params.get('subaccount')) : null;
-    // Per-client, across every instance, when the shared store is configured.
-    const shared = await consumeSharedLimit(request, 'live-read', 30);
-    if (shared && !shared.allowed) {
-      throw new ProviderFailure('RATE_LIMITED', 'Too many live reads from this connection. Wait a moment and retry.', 429);
-    }
-    const now = Date.now();
-    if (now - windowStarted >= 60_000) { windowStarted = now; readsInWindow = 0; }
-    if (readsInWindow >= 60 || concurrentReads >= 4) {
-      throw new ProviderFailure('RATE_LIMITED', 'Live reads are busy. Wait a moment and retry.', 429);
-    }
-    readsInWindow += 1;
-    concurrentReads += 1;
-    try {
+    // Cached for five seconds per identical request, then limited per client and per instance (see live-read-budget.ts).
+    const result: Discovery | Snapshot = await liveReadBudget.read(request, { kind, protocol, network, authority, subaccount }, async () => {
       const selected = typeof provider === 'function' ? await provider(protocol, network) : provider;
-      const result = subaccount === null ? await selected.discover(authority) : await selected.snapshot(authority, subaccount);
-      return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
-    } finally { concurrentReads -= 1; }
+      return subaccount === null ? selected.discover(authority) : selected.snapshot(authority, subaccount);
+    });
+    return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return errorResponse(error); }
 }

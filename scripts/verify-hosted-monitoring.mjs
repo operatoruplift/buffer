@@ -21,7 +21,7 @@ await db.exec(`create role anon; create role authenticated; create role service_
   grant usage on schema auth,public to anon,authenticated,service_role;
   alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;
   insert into auth.users values('${ownerA}'),('${ownerB}');`);
-for (const name of ['20260915120000_create_alert_pipeline.sql', '20260919090000_harden_alert_pipeline.sql', '20260920010000_harden_function_permissions.sql', '20260920020000_hosted_monitoring.sql', '20260928120000_liquidation_sentinels.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
+for (const name of ['20260915180735_create_alert_pipeline.sql', '20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql', '20260919183521_hosted_monitoring.sql', '20260928154216_liquidation_sentinels.sql', '20261017103000_worker_fairness.sql', '20261019090000_worker_secret_lockout.sql']) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
 await sql("insert into private.buffer_monitor_credentials(secret_hash) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
 await assert.rejects(worker('start', { runKey: 'cron:1', mode: 'dry_run' }, 'invalid-secret-that-is-long-enough'), error => error.code === '42501'); checks++;
 await role('authenticated', ownerA);
@@ -160,5 +160,122 @@ check([deliveredSentinel.state, deliveredSentinel.provider_message_id, delivered
 check(await worker('claim_receipt'), null);
 check((await status(ownerA)).rules.find(item => item.id === sentinelId).unresolved_event_id, null);
 await worker('end', { runKey: 'cron:3', outcome: 'ok' });
+
+// --- Worker fairness (20261017103000_worker_fairness.sql).
+// Owner B gets a verified destination and a due rule next to owner A's sentinel.
+await worker('destination', { ownerId: ownerB, configRef: ref, fingerprint, label: 'Second owner channel', maskedDestination: 'Discord …0002' });
+const destinationB = (await status(ownerB)).destinations[0].id;
+const ruleB = await mutate(ownerB, 'create', null, { ...config, destinationId: destinationB });
+const ruleA = sentinelId;
+const resetClaims = async () => { await db.exec('reset role'); await sql('update public.alert_rules set last_attempt_at=null,next_check=null,check_token=null,check_lease_until=null,check_lease_kind=null'); };
+/** Sixty-one seconds pass: every timestamp the scheduler orders by moves back, keeping its order. */
+const minutePasses = async () => { await db.exec('reset role'); await sql("update public.alert_rules set last_attempt_at=last_attempt_at-interval '61 seconds',next_check=next_check-interval '61 seconds'"); };
+async function completeClaim(claimed) {
+  const at = new Date();
+  const claimedMonitor = { ...monitor, ruleId: claimed.id, ruleVersion: claimed.version, ownerId: claimed.owner_id, lastFreshCheck: at.toISOString(), inputExpiresAt: new Date(at.getTime() + 120000).toISOString(), nextCheckAt: new Date(at.getTime() + 60000).toISOString(), lastTriggeredAt: at.toISOString() };
+  const claimedObservation = { ...observation, ruleId: claimed.id, ruleVersion: claimed.version, metric: claimed.metric, unit: claimed.unit, ...(claimed.market ? { market: claimed.market } : {}) };
+  check((await worker('complete_check', { ruleId: claimed.id, version: claimed.version, token: claimed.check_token, monitor: claimedMonitor, observation: claimedObservation, event: null })).available, true);
+}
+let tick = 10;
+async function scheduledTick() {
+  const runKey = `cron:${tick++}`;
+  await worker('start', { runKey, mode: 'dry_run' });
+  const claimed = await worker('claim_check');
+  if (claimed) await completeClaim(claimed);
+  await worker('end', { runKey, outcome: 'ok' });
+  return claimed?.id ?? null;
+}
+// Owner A edits their rule every minute. Each edit resets next_check to null, which used to put the
+// rule first in a queue the worker drains one rule per minute, so owner B's rule was never checked.
+await resetClaims();
+const served = [];
+for (let cycle = 1; cycle <= 4; cycle++) {
+  await mutate(ownerA, 'update', ruleA, { threshold: `${cycle}` });
+  served.push(await scheduledTick());
+  await minutePasses();
+}
+check(served, [ruleA, ruleB, ruleA, ruleB]);
+// One claimed check per owner per minute: right after A's rule was claimed, nothing else of A's is due.
+await resetClaims();
+check((await worker('claim_check')).id, ruleA);
+check((await worker('claim_check', { ownerId: ownerA, ruleId: ruleA })), null);
+await db.exec('reset role'); await sql('update public.alert_rules set check_token=null,check_lease_until=null,check_lease_kind=null');
+// A manual check holds its own, owner-scoped lease: the scheduled tick still claims owner B's rule
+// while owner A's manual check is in flight, a second scheduled lease is refused, and the owner's
+// own second manual check waits for the first.
+await resetClaims();
+const manualRun = 'manual:00000000-0000-4000-8000-0000000000a0';
+check(await worker('start', { runKey: manualRun, mode: 'dry_run', ownerId: ownerA }), { duplicate: false });
+const manualClaim = await worker('claim_check', { ownerId: ownerA, ruleId: ruleA });
+check([manualClaim.id, manualClaim.check_lease_kind], [ruleA, 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+const scheduledDuringManual = await worker('claim_check');
+check([scheduledDuringManual.id, scheduledDuringManual.check_lease_kind], [ruleB, 'scheduled']);
+check(await worker('claim_check'), null);
+await completeClaim(manualClaim); await completeClaim(scheduledDuringManual);
+await worker('end', { runKey: manualRun, outcome: 'ok' });
+check((await status(ownerA)).rules.find(item => item.id === ruleA).check_lease_kind, null);
+// Manual leases are per owner: owner B's manual check proceeds while owner A's is in flight.
+await minutePasses();
+const manualA = await worker('claim_check', { ownerId: ownerA, ruleId: ruleA });
+const manualB = await worker('claim_check', { ownerId: ownerB, ruleId: ruleB });
+check([manualA.check_lease_kind, manualB.check_lease_kind], ['manual', 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+await completeClaim(manualA); await completeClaim(manualB);
+// A claim that names only the rule is a manual claim scoped to that rule's owner.
+await minutePasses();
+const byRuleOnly = await worker('claim_check', { ruleId: ruleA });
+check([byRuleOnly.id, byRuleOnly.check_lease_kind], [ruleA, 'manual']);
+check(await worker('claim_check', { ownerId: ownerA, ruleId: ruleA }), null);
+check(await worker('claim_check', { ruleId: '00000000-0000-4000-8000-00000000ffff' }), null);
+await completeClaim(byRuleOnly);
+// Manual checks are capped at 60 per owner per hour, beyond the existing 30 per minute.
+await db.exec('reset role');
+await sql(`insert into private.buffer_monitor_runs(run_key,mode,owner_id,started_at) select 'manual:'||gen_random_uuid(),'dry_run',$1,now()-interval '30 minutes' from generate_series(1,60)`, [ownerA]);
+check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000a1', mode: 'dry_run', ownerId: ownerA }), { duplicate: true, throttled: true });
+check(await worker('start', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', mode: 'dry_run', ownerId: ownerB }), { duplicate: false });
+await worker('end', { runKey: 'manual:00000000-0000-4000-8000-0000000000b1', outcome: 'ok' });
+
+// --- Worker secret lockout (20261019090000_worker_secret_lockout.sql).
+const wrongSecret = 'wrong-secret-that-is-long-enough-to-pass-the-length-check';
+const notices = [];
+async function attempt(credential) {
+  await role('anon');
+  return db.query('select public.buffer_monitor_worker($1,$2,$3) as result', [credential, 'prune', {}], { onNotice: notice => notices.push(notice) });
+}
+const minuteNow = async () => Number((await sql("select floor(extract(epoch from now())/60)::bigint as m")).rows[0].m);
+const failureCounter = async () => { await db.exec('reset role'); return Number((await sql('select last_value as v from private.buffer_monitor_auth_failures')).rows[0].v); };
+const authError = message => error => error.code === '42501' && error.message === message;
+// The window is a calendar minute. Start the proof only with ten seconds or more of the minute left.
+const secondOfMinute = Number((await sql('select extract(second from now())::int as s')).rows[0].s);
+if (secondOfMinute >= 50) await new Promise(resolve => setTimeout(resolve, (61 - secondOfMinute) * 1000));
+await db.exec('reset role');
+const minute = await minuteNow();
+await sql(`select setval('private.buffer_monitor_auth_failures', ${minute}::bigint * 1000 + 8, true)`);
+// Each failure is counted although the call ends in the exception the server relies on.
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 9);
+check((await attempt(secret)).rows[0].result, {});
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 10);
+// Ten failures: every call is refused for the rest of the minute, the right secret included, and refusals do not count.
+await assert.rejects(attempt(secret), authError('Worker authentication paused')); checks++;
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication paused')); checks++;
+check(await failureCounter(), minute * 1000 + 10);
+check(await minuteNow(), minute);
+// The minute ends: the next failure starts a new count and a valid call works again.
+await sql(`select setval('private.buffer_monitor_auth_failures', ${minute - 1}::bigint * 1000 + 10, true)`);
+check((await attempt(secret)).rows[0].result, {});
+await assert.rejects(attempt(wrongSecret), authError('Worker authentication required')); checks++;
+check(await failureCounter(), minute * 1000 + 1);
+// Failures and refusals are logged as warnings that carry a count, never a secret.
+const warnings = notices.filter(notice => notice.severity === 'WARNING').map(notice => notice.message);
+check(warnings.filter(message => /^buffer_monitor_worker: authentication failed \((9|10|1) this minute\)$/.test(message)).length, 3);
+check(warnings.filter(message => message === 'buffer_monitor_worker: refusing every call until the minute ends after 10 failed authentication attempts').length, 2);
+check(notices.some(notice => JSON.stringify(notice).includes(wrongSecret) || JSON.stringify(notice).includes(secret)), false);
+for (const name of ['anon', 'authenticated', 'service_role']) {
+  const row = (await sql(`select has_sequence_privilege($1,'private.buffer_monitor_auth_failures','SELECT') as readable, has_sequence_privilege($1,'private.buffer_monitor_auth_failures','UPDATE') as writable`, [name])).rows[0];
+  check(row, { readable: false, writable: false });
+}
 await db.close();
 console.log(JSON.stringify({ result: 'PASS', assertions: checks, database: 'local PostgreSQL (PGlite)', externalWrites: false, outboundMessages: 0 }, null, 2));

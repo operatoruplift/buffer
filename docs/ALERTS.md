@@ -14,12 +14,13 @@ A live account shows **Live monitoring**. Guests can use the account explorer, r
 
 ## Hosted runtime
 
-The additive migration `20260920020000_hosted_monitoring.sql` extends the existing alert tables and adds a private worker credential and run journal. Database state, event episodes, versions, attempts, leases and receipts survive process restarts. Existing saved reports and browser/SQLite rehearsal stores retain their semantics.
+The additive migration `20260919183521_hosted_monitoring.sql` extends the existing alert tables and adds a private worker credential and run journal. Database state, event episodes, versions, attempts, leases and receipts survive process restarts. Existing saved reports and browser/SQLite rehearsal stores retain their semantics.
 
 - Authenticated owners use narrowly scoped status/mutation functions. Cross-owner reads, writes and destination assignment are denied. Server-owned destination metadata and event/outbox transitions are not browser-writable.
 - The worker uses a dedicated server-only secret. Only its SHA-256 hash is stored in `private.buffer_monitor_credentials`; this credential cannot act as a service-role key. The public SDK key alone cannot operate the worker.
 - A separate `CRON_SECRET` protects `/api/monitoring/worker`. The database admits a scheduled minute key once across concurrent invocations. Manual checks do not establish a scheduler heartbeat.
 - Fenced database claims coordinate due checks and dispatch. Each invocation atomically selects one kind of work: a fresh queued delivery first, a receipt lookup next, or a due account observation. A slow provider read cannot consume the dispatch turn. Observations use the shared exact-decimal alert engine and persist the resulting episode/event before delivery.
+- Due checks are claimed fairly (since `20261017103000_worker_fairness.sql`): the owner whose rules were attempted least recently is served first, then the longest-due rule by `coalesce(next_check, created_at)`, and at most one rule per owner is claimed per minute. Editing a rule resets its `next_check`, which used to put it first in a queue drained one rule a minute; it no longer starves another owner's rule. Manual checks (`POST /api/monitoring/rules/{id}/check`) hold a lease of their own, scoped to the owner, so they never occupy the single 45-second lease the scheduled tick needs, and the tick never blocks them; both respect each rule's lease.
 - Cadence, cooldown and hysteresis survive unavailable observations and restarts. Pausing, deleting or changing a rule version invalidates pending work. History is retained; a remotely accepted message cannot be recalled.
 - The scheduler is bounded server work, not a browser timer. A heartbeat expires after 180 seconds, including on a page left open. UI separates attempted check, last fresh observation, next check, provider acceptance and matching receipt.
 
@@ -55,7 +56,22 @@ SQLite `.local/alerts.sqlite` uses WAL, full synchronization and transactional r
 4. Configure a reviewed Discord or signed-webhook destination for the intended confirmed Supabase owner. Verify the destination according to its provider contract; prepare the exact redacted message and destination. Obtain recipient-send authorization before turning on sends. Existing signup/recovery email stays disabled independently.
 5. Save an authorized test threshold around a real current observation. Confirm event ID, rule version, source slot/time, and the destination-specific delivery receipt. Retain redacted evidence, then pause/delete the test rule. Do not call this step verified until a real receipt exists.
 
-To pause: disable the scheduler job and set sending false. To rotate: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
+### Worker secret
+
+`BUFFER_ALERT_WORKER_SECRET` is the only gate on `public.buffer_monitor_worker`, which the server calls with the publishable key. It must be at least 32 random characters (the function refuses anything shorter than 32 or longer than 256); generate it with `node -e "console.log(require('crypto').randomBytes(36).toString('base64url'))"` or `openssl rand -base64 48 | tr -d '=+/'`, never by hand. Only its SHA-256 hash is stored, in `private.buffer_monitor_credentials`.
+
+Since `20261019090000_worker_secret_lockout.sql` the function counts failed authentication attempts per calendar minute. Each failure writes a `WARNING` to the PostgreSQL log (`buffer_monitor_worker: authentication failed (N this minute)`, never the attempted value), and after 10 failures in one minute every call, including a correct one, is refused with `Worker authentication paused` until that minute ends. The current minute's count is `select last_value % 1000 as failures from private.buffer_monitor_auth_failures;`. A deployment carrying a wrong secret therefore shows up as a warning every minute and a stalled heartbeat, not as silent misses; an attacker holding the publishable key can pause the worker for the rest of a minute by failing ten times, which was accepted over unbounded guessing.
+
+To rotate the worker secret:
+
+1. Generate the new value as above.
+2. In Vercel, set `BUFFER_ALERT_WORKER_SECRET` to the new value for Production without promoting yet.
+3. Through the administrator connection run `update private.buffer_monitor_credentials set secret_hash = encode(sha256(convert_to('<new value>', 'UTF8')), 'hex') where id;` (one row; the old value stops working at once).
+4. Redeploy or promote immediately. Until the new deployment serves, each scheduled minute fails authentication once and logs a warning; ten failures in one minute would pause the worker for that minute, so do not leave the gap open.
+5. Confirm a fresh completed `cron:` run in `private.buffer_monitor_runs` and a healthy heartbeat in the app.
+6. The worker secret also keys every destination fingerprint (HMAC-SHA-256), so each configured Discord or webhook destination now carries a new fingerprint: the next status read re-verifies it and the database pauses the rules bound to it. Re-enable those rules once the destination shows as verified again.
+
+To pause: disable the scheduler job and set sending false. To rotate a destination: first disable sends, rotate the webhook/token and configuration fingerprint, reverify the channel, invalidate old pending work, redeploy, then reenable only after authorization. Never reuse unknown-outcome events as fresh sends. Inspect unavailable reasons, heartbeat age and outbox state; do not erase a damaged journal to make the UI green. Rollback leaves the additive schema/RLS in place, disables the job and sending, and promotes the previous known-good application.
 
 ## Verification
 
@@ -64,4 +80,4 @@ Unit suites cover exact threshold semantics, provider contracts, response bounds
 On October 1, 2026 at 06:23 UTC, the production database showed 30 successful scheduled cron runs and 30 completed protected worker runs in the preceding 30 minutes. The worker remained in `dry_run` mode. This verifies execution of the scheduler, not outbound delivery.
 
 
-The narrow worker processes at most one work item per minute; configured cadence is a minimum interval, not a guaranteed maximum notification delay under backlog. Limits are 20 rules per owner, 100 events per owner per day, 10 send attempts per owner per hour, 3 send attempts and 5 receipt lookups per event. Stale queued events are suppressed after 120seconds rather than dispatched after an outage. Completed/suppressed unreferenced history is pruned after 30 days in bounded batches; unresolved outcomes remain available for investigation. Fresh deliveries take precedence over receipt retries so a slow receipt cannot expire another event's send window.
+The narrow worker processes at most one work item per minute; configured cadence is a minimum interval, not a guaranteed maximum notification delay under backlog. Limits are 20 rules per owner, one claimed check per owner per minute, 30 manual checks per owner per minute and 60 per owner per hour (`CHECK_NOT_DUE`), 100 events per owner per day, 10 send attempts per owner per hour, 3 send attempts and 5 receipt lookups per event. Stale queued events are suppressed after 120seconds rather than dispatched after an outage. Completed/suppressed unreferenced history is pruned after 30 days in bounded batches; unresolved outcomes remain available for investigation. Fresh deliveries take precedence over receipt retries so a slow receipt cannot expire another event's send window.

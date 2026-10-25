@@ -3,7 +3,7 @@
   --bg: #f3f5f1;
   --surface: #fff;
   --text: #21302e;
-  --muted: #65736e;
+  --muted: #5a6863;
   --border: #dfe5dd;
   min-height: 100dvh;
   background: var(--bg);
@@ -44,24 +44,24 @@
 .buffer-app .button { border-radius: 11px; min-height: 44px; transition: background-color .16s ease, border-color .16s ease; }
 .buffer-app .button.primary { box-shadow: 0 3px 7px #315fe81a; }
 .buffer-app .button.subtle { box-shadow: none; }
-.buffer-app .live-risk-entry span { max-width: 200px; line-height: 1.6; font-size: 10px; }
+.buffer-app .live-risk-entry span { max-width: 200px; line-height: 1.6; font-size:11px; }
 .buffer-app .surface { border-color: var(--border); background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #263d3005; }
 .buffer-app .sample-guide { border: 1px solid #d9e3d1; border-radius: 16px; background: #eaf0e4; padding: 16px 20px 10px; margin-bottom: 12px; }
 .buffer-app .guide-heading strong { font-size: 13px; }
 .buffer-app .guide-steps { margin-top: 5px; }
 .buffer-app .guide-steps button { min-height: 40px; font-size: 12px; }
-.buffer-app .sample-note { margin: 0 0 4px; padding: 8px 2px; font-size: 11px; color: var(--muted); }
+.buffer-app .sample-note { margin: 0 0 4px; padding: 8px 2px; font-size:12px; color: var(--muted); }
 .buffer-app .sample-tag { border-color: #cdd9c7; background: #f8fbf4; color: #617355; }
 .buffer-app .account-strip { margin-bottom: 22px; border-color: var(--border); gap: 16px; padding: 20px 0; }
 .buffer-app .account-icon { background: #e6ebe3; color: #53684c; border-radius: 12px; }
 .buffer-app .account-name { font-size: 14px; }
-.buffer-app .freshness small { font-size: 10px; }
+.buffer-app .freshness small { font-size:11px; }
 .buffer-app .freshness span { font-size: 11px; }
 .buffer-app .section-kicker { font-size: 10px; }
 .buffer-app .metric { border-color: var(--border); border-radius: 15px; padding: 19px 22px; background: #fff; }
 .buffer-app .metric-label { font-size: 12px; }
 .buffer-app .metric-value { font-size: 29px; letter-spacing: -.9px; }
-.buffer-app .metric p { font-size: 11px; line-height: 1.65; }
+.buffer-app .metric p { font-size:12px; line-height: 1.65; }
 .buffer-app .workspace-grid { gap: 22px; }
 .buffer-app .panel-heading { padding: 22px; border-color: var(--border); }
 .buffer-app .panel-heading h2 { font-size: 17px; letter-spacing: -.45px; }
@@ -76,14 +76,14 @@
 .buffer-app .scenario-result p { font-size: 11px; line-height: 1.7; }
 .buffer-app .shock-control { padding: 24px; }
 .buffer-app .presets button { min-height: 38px; border-radius: 8px; }
-.buffer-app .coverage strong, .buffer-app .coverage p, .buffer-app .assumption-line { font-size: 11px; line-height: 1.7; }
+.buffer-app .coverage strong, .buffer-app .coverage p, .buffer-app .assumption-line { font-size:12px; line-height: 1.7; }
 .buffer-app .scenario-actions { background: #fbfcfa; }
 .buffer-app .download { font-size: 11px; }
 .buffer-app .position-table td { font-size: 12px; }
 .buffer-app .market strong { font-size: 13px; }
 .buffer-app .market small { font-size: 11px; }
 .buffer-app .inventory-group h3, .buffer-app .inventory-row { font-size: 12px; }
-.buffer-app .table-note { font-size: 11px; line-height: 1.7; }
+.buffer-app .table-note { font-size:12px; line-height: 1.7; }
 .buffer-app .risk-context-heading > div > p, .buffer-app .risk-context-note { font-size: 12px; line-height: 1.65; }
 .buffer-app .risk-status { font-size: 11px; }
 .buffer-app .liquidation-list li { background: #fafbf8; border-color: var(--border); }
@@ -97,7 +97,10 @@
 .buffer-app .network-picker button[aria-pressed="true"] { background: #243b31; border-color: #243b31; }
 .buffer-app .address-bottom p { font-size: 12px; line-height: 1.6; }
 .buffer-app .model-tag { font-size: 9px; }
-.buffer-app footer { margin-top: 32px; padding-bottom: 0; font-size: 11px; }
+.buffer-app footer { margin-top: 32px; padding-bottom: 0; font-size: 11px; gap: 16px; }
+.buffer-app .footer-legal { display: flex; gap: 18px; }
+.buffer-app .footer-legal a { display: inline-flex; align-items: center; min-height: 32px; color: var(--muted); }
+.buffer-app .footer-legal a:hover { color: var(--blue); }
 .buffer-app .toast { z-index: 45; }
 body:has(.buffer-app) { background: #f3f5f1; }
 body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; background: #f3f5f1; }
@@ -144,20 +147,20 @@ body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; backg
   .buffer-app .workspace-actions .account-launch { min-width: 0; padding: 10px 13px; }
   .buffer-app .workspace-actions .live-risk-entry { flex: 1; min-width: 144px; }
   .buffer-app .live-risk-entry .button.primary { min-width: 0; width: 100%; padding: 10px 13px; gap: 8px; }
-  .buffer-app .live-risk-entry span { font-size: 10px; max-width: 175px; }
+  .buffer-app .live-risk-entry span { font-size:11px; max-width: 175px; }
   .buffer-app .workspace-actions .readonly { font-size: 11px; }
   .buffer-app .sample-guide { padding: 14px 14px 8px; }
   .buffer-app .guide-heading strong { font-size: 12px; }
   .buffer-app .guide-steps { gap: 2px; }
   .buffer-app .guide-steps button { font-size: 11px; }
-  .buffer-app .sample-note { font-size: 11px; line-height: 1.6; }
+  .buffer-app .sample-note { font-size:12px; line-height: 1.6; }
   .buffer-app .account-strip { padding: 20px 2px; gap: 15px; align-items: flex-start; }
   .buffer-app .account-identity { flex-basis: 100%; }
   .buffer-app .account-name { font-size: 13px; }
   .buffer-app .account-identity .eyebrow { font-size: 9px; }
   .buffer-app .subaccount { max-width: 100%; flex: 1; min-width: 0; }
   .buffer-app .freshness { padding-left: 0; flex: 1; }
-  .buffer-app .freshness small { font-size: 10px; overflow-wrap: anywhere; }
+  .buffer-app .freshness small { font-size:11px; overflow-wrap: anywhere; }
   .buffer-app .freshness span { font-size: 10px; }
   .buffer-app .account-strip > .button { align-self: center; }
   .buffer-app .surface { border-radius: 16px; }
@@ -172,7 +175,7 @@ body:has(.buffer-app) #app-installation { max-width: none; padding-top: 0; backg
   .buffer-app .metric { padding: 16px 18px; }
   .buffer-app .metric-value { font-size: 25px; }
   .buffer-app .address-panel { padding: 20px 16px; }
-  .buffer-app .address-bottom p { font-size: 11px; }
+  .buffer-app .address-bottom p { font-size:12px; }
   .buffer-app footer { line-height: 1.7; }
 }
 @media (prefers-reduced-motion: reduce) {

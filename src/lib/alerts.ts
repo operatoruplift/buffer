@@ -9,6 +9,7 @@ const Exact = Decimal.clone({ precision: 260 });
 
 export const ALERT_STORAGE_VERSION = 1;
 export const ALERT_STORAGE_PREFIX = 'buffer.alerts.v1:';
+export const ALERT_REHEARSAL_PREFIX = 'buffer.alerts.rehearsal.v2:';
 export const ALERT_LEASE_MS = 30_000;
 export const ALERT_MAX_INPUT_AGE_MS = 120_000;
 export const ALERT_MAX_ATTEMPTS = 3;
@@ -330,3 +331,5 @@ export function updateAlertRule(input: AlertStore, ruleId: string, ownerId: stri
 }
 export function pauseAlertRule(input: AlertStore, ruleId: string, ownerId: string, now = new Date()): AlertStore { return updateAlertRule(input, ruleId, ownerId, { enabled: false }, now); }
 export function alertStorageKey(ownerId: string) { return `${ALERT_STORAGE_PREFIX}${ownerId}`; }
+/** The device-local example alert store for one signed-in owner, or the guest device owner. */
+export function alertRehearsalKey(ownerId: string) { return `${ALERT_REHEARSAL_PREFIX}${ownerId}`; }

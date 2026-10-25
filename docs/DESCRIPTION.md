@@ -24,7 +24,7 @@ The result comes with its explanation: what was included, what was excluded, whi
 - **Current risk and optional monitoring.** Open a public Velocity account directly and inspect current maintenance headroom beside the independent price scenario. Owner-authenticated cloud rules use fresh provider observations, durable event/outbox state and protected scheduled work. One Discord adapter separates acceptance from a matching channel receipt; destination setup and authorized live delivery remain explicit gates. Local examples use a separate rehearsal with no outbound path.
 - **Portable reports.** Download a JSON report containing the snapshot, exact scenario values, coverage, assumptions, and the identity the snapshot came from: the fixed protocol or API identity for a live read, and the reference perpetual catalog for an editable preset portfolio.
 - **Useful without an account.** Explore deterministic samples, read public accounts, and save historical reports on this device without signing in or connecting a wallet. Optional cloud accounts keep a separate private library.
-- **A workspace that travels.** Use the responsive web app on mobile, tablet, and desktop, with installation through supported PWA browsers.
+- **A workspace that travels.** Use the responsive web app on mobile, tablet, and desktop, install it through supported PWA browsers, or install the Android app built from `android/` for Seeker and the Solana dApp Store.
 
 ### Simple math, carefully scoped
 
@@ -40,7 +40,7 @@ Sample values are fixtures, not live market observations. The calculation is a p
 
 ### Read-only by design
 
-Buffer does not require a seed phrase, private key, wallet connection, or trading approval. Live lookups read Pacifica's public API or use a configured server-side Solana RPC for Velocity and Jupiter inventory. Velocity uses its pinned official SDK; Jupiter uses a separate canonical account decoder. Pacifica requires no API key. Optional sign-in and scenario storage do not grant authority over a wallet.
+Buffer does not require a seed phrase, private key, wallet connection, or trading approval. The optional **Use my wallet** button is a read-only wallet connection: it asks the wallet for its public address and never requests a signature. Live lookups read Pacifica's public API or use a configured server-side Solana RPC for Velocity and Jupiter inventory. Velocity uses its pinned official SDK; Jupiter uses a separate canonical account decoder. Pacifica requires no API key. Optional sign-in and scenario storage do not grant authority over a wallet.
 
 Live availability depends on the deployment's provider configuration and RPC service. Modeled live calculations expire after at most two minutes, or earlier when their source price expires, and require a refresh. Live balances and oracle prices can change between reads. Jupiter has no current-price scenario until its oracle and collateral-dependent capped payoff are verified together. Legacy Drift is labeled paused and its balances are not treated as migrated Velocity state. Internet access is needed for live reads and account synchronization.
 
@@ -54,4 +54,4 @@ Buffer pairs a responsive video-led website with a precise decimal calculation e
 
 ---
 
-Buffer provides scenario exploration, not trading recommendations; its liquidation estimate is a narrow, versioned model, not the protocol’s liquidation engine. Browser installation is a PWA feature, not a claim of a separately published native iOS, Android, Windows, or macOS binary.
+Buffer provides scenario exploration, not trading recommendations; its liquidation estimate is a narrow, versioned model, not the protocol’s liquidation engine. Browser installation is a PWA feature. The Android app is a Solana Mobile Web Shell, a signed APK built from `android/` that opens the same web app; there is no native iOS, Windows, or macOS binary.

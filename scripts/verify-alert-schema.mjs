@@ -31,8 +31,8 @@ await db.exec(`
     as $$ delete from private.rate_limits where window_start < now() - interval '1 hour' $$;
   insert into private.rate_limits values (now() - interval '2 hours'), (now());
 `);
-const permissionMigration = await readFile(new URL('../supabase/migrations/20260920010000_harden_function_permissions.sql', import.meta.url), 'utf8');
-for (const name of ['20260915120000_create_alert_pipeline.sql','20260919090000_harden_alert_pipeline.sql', '20260920010000_harden_function_permissions.sql']) {
+const permissionMigration = await readFile(new URL('../supabase/migrations/20260919173121_harden_function_permissions.sql', import.meta.url), 'utf8');
+for (const name of ['20260915180735_create_alert_pipeline.sql','20260919172720_harden_alert_pipeline.sql', '20260919173121_harden_function_permissions.sql']) {
   await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
 }
 await check(`select coalesce(proconfig @> array['search_path=""'],false) as secured from pg_proc where oid='private.prune_rate_limits()'::regprocedure`, [{ secured: true }]);

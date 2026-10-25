@@ -128,7 +128,7 @@ The screenshots cover all four requested routes at 1440×1000, 390×844 and 320p
 - `src/components/Landing.tsx`
 - `src/lib/alerts.ts`
 - `src/server/velocity-normalize.ts`
-- `supabase/migrations/20260919090000_harden_alert_pipeline.sql`
+- `supabase/migrations/20260919172720_harden_alert_pipeline.sql`
 - `tests/alert-worker.test.ts`
 - `tests/alerts.test.ts`
 - `tests/velocity.test.ts`

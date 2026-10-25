@@ -13,7 +13,7 @@ Buffer runs on Node 24 with Next.js App Router. `/` is the public website, `/app
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Dedicated Buffer project's API URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key; never a service-role or secret key. |
 | `NEXT_PUBLIC_AUTH_EMAIL_READY` | Public | Set `true` only after email signup, confirmation, recovery, redirects, and password policy are verified. It is currently `false`, so public signup and recovery remain visibly unavailable. |
-| `RATE_LIMIT_SECRET` | Server only | Optional secret for the protected Supabase `consume_rate_limit` RPC; absent/unreachable shared storage falls back to process limits. Never expose this value to the browser. |
+| `RATE_LIMIT_SECRET` | Server only | Optional secret for the protected Supabase `consume_rate_limit` RPC; absent/unreachable shared storage falls back to process limits. It must equal `private.rate_limit_config.secret`; on a fresh project, `20261008120000_rate_limit_retention_and_keyed_hash.sql` generates that value. Never expose this value to the browser. |
 | `BUFFER_TEST_AUTHORITY` | Local verification only | Optional public authority for manual checks; the application does not load it automatically. |
 | `BUFFER_ALERT_STORE` | Local worker only | Optional path for the durable local SQLite worker; defaults to `.local/alerts.sqlite` and is ignored by Git. |
 
@@ -67,14 +67,14 @@ The current monitoring implementation adds authenticated `/api/monitoring` confi
 
 | Variable | Scope | Purpose |
 | --- | --- | --- |
-| `BUFFER_ALERT_WORKER_SECRET` | Server only | Random 32+ character secret; only its SHA-256 hash is stored in the private worker credential row. |
+| `BUFFER_ALERT_WORKER_SECRET` | Server only | Random 32+ character secret; only its SHA-256 hash is stored in the private worker credential row. It also keys the destination fingerprints, so rotating it re-verifies every destination (see [ALERTS.md](ALERTS.md)). |
 | `CRON_SECRET` | Server only | A different 32+ character secret authenticating the scheduled endpoint; also stored in Supabase Vault for the scheduler. |
 | `BUFFER_ALERT_SEND_ENABLED` | Server only | Defaults to false. Keep false until an exact destination and test message are authorized. |
 | `BUFFER_ALERT_NOTIFICATION_MODE` | Server only | Defaults to `test`; labels genuine live observations as test notifications. `production` is a deliberate separate choice. |
 | `BUFFER_DISCORD_DESTINATIONS_JSON` | Server only | One reviewed Discord configuration with webhook credentials, channel ID, stable config UUID and explicit allowed owner UUIDs. See the exact schema in the provider runbook. |
 | `BUFFER_WEBHOOK_DESTINATIONS_JSON` | Server only | Reviewed HTTPS receivers, HMAC secrets, stable destination UUIDs and explicit allowed owner UUIDs. See [the signed-webhook contract](WEBHOOK-ALERTS.md). |
 
-Apply `20260920020000_hosted_monitoring.sql` only after its PostgreSQL verification passes. Initialize `private.buffer_monitor_credentials` with a SHA-256 hash through the administrator connection. Never commit the plaintext secret or put it in a URL. Deploy the new server variables before scheduling. Worker routes declare 60-second duration; their coordinator bounds due-provider work and dispatch. Browser requests time out after 45 seconds.
+Apply `20260919183521_hosted_monitoring.sql` only after its PostgreSQL verification passes. Initialize `private.buffer_monitor_credentials` with a SHA-256 hash through the administrator connection. Never commit the plaintext secret or put it in a URL. Deploy the new server variables before scheduling. Worker routes declare 60-second duration; their coordinator bounds due-provider work and dispatch. Browser requests time out after 45 seconds.
 
 Supabase Pro hosts the minute scheduler. The reviewed `supabase/setup/monitoring-scheduler.sql` installs `pg_cron` and pinned `http` 1.6, creates a private fixed-origin helper with an empty search path, and denies browser/service-role execution. Vault reads are denied to browser roles. Setup attempts to revoke base HTTP execution, but hosted managed grants may remain; postflight records the actual ACL. The private helper and Vault, rather than the general HTTP primitive, protect the scheduler credential. It **does not activate a job**. Store `buffer_monitor_cron_secret` securely in Vault with the same value as Vercel's `CRON_SECRET`; inspect existing `cron.job` entries before scheduling `buffer-monitor-minute` once per minute.
 

@@ -5,7 +5,7 @@ Added 28 September 2026. Two additions to hosted monitoring, both behind the sam
 - a second **metric**, `liquidation_distance`: the unsigned percentage move from the current oracle price to one position's estimated liquidation price under model `cross-margin-hold-others-v1` (see [RISK-CONTEXT.md](RISK-CONTEXT.md));
 - a second **destination kind**, `webhook`: an HMAC-signed JSON POST to a server-configured HTTPS URL.
 
-No recipient tests were exercised outside synthetic transports. The migration `20260928120000_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`. Hosted history confirms it was applied on September 28 as `20260928154216`; its constraints, RLS, function definitions and execution grants were verified on September 30.
+No recipient tests were exercised outside synthetic transports. The migration `20260928154216_liquidation_sentinels.sql` is additive and is exercised end to end against local PostgreSQL by `scripts/verify-hosted-monitoring.mjs`. Hosted history confirms it was applied on September 28 under that version (the file carried a local timestamp, `20260928120000`, until the 17 October 2026 alignment); its constraints, RLS, function definitions and execution grants were verified on September 30.
 
 ## Liquidation-distance rules
 
@@ -36,7 +36,7 @@ Set **server-only** `BUFFER_WEBHOOK_DESTINATIONS_JSON` to a JSON array. Every va
 ```
 
 - `url` must be `https://`, a public DNS hostname (no IP literals, `localhost`, `.local`, `.internal`, `.home.arpa`), with no credentials, port, query or fragment. Buffer never accepts a pasted URL from the browser; an owner outside `ownerIds` cannot list, preview or send to the destination.
-- `secret` is 32–256 URL-safe characters and never leaves the server. The browser sees only the id, label, `Webhook <hostname>` and a one-way fingerprint over id, URL, secret and sorted owners. Rotating any of them changes the fingerprint, which disables rules until the destination is re-verified on the next status read.
+- `secret` is 32–256 URL-safe characters and never leaves the server. The browser sees only the id, label, `Webhook <hostname>` and a fingerprint: HMAC-SHA-256, keyed with `BUFFER_ALERT_WORKER_SECRET`, over id, URL, secret and sorted owners (an unkeyed SHA-256 until 24 October 2026, when no destination had yet been registered). Rotating any of them, or the worker secret, changes the fingerprint, which disables rules until the destination is re-verified on the next status read.
 - Verification is configuration policy only: no request is made until a real event is due. Keep `BUFFER_ALERT_SEND_ENABLED=false` until the receiver has been reviewed.
 
 ### Request
@@ -80,7 +80,7 @@ Before configuring the first webhook destination on a deployment whose scheduler
 | Response | Recorded state | Notes |
 |---|---|---|
 | `2xx` | `delivered` | The acknowledgement is the receipt; generic receivers offer no read-back. The receipt id is `X-Buffer-Receipt`, `X-Request-Id` or JSON `id` when present, else `http-<status>`. |
-| `429` | `failed` (retryable) | Honors a numeric `Retry-After` up to one hour, else waits about 30 s, with bounded jitter. |
+| `429` | `failed` (retryable) | Honours `Retry-After` given in seconds or as an HTTP-date, capped at one hour; an absent or unreadable header waits about 30 s, with bounded jitter. |
 | `5xx`, `408` | `failed` (retryable) | About 60 s before the next attempt; three attempts total. |
 | other `4xx` | `failed` (permanent) | Not retried. |
 | redirect, timeout, transport error after the write | `unknown_outcome` | Never re-sent automatically. |

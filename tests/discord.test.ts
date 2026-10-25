@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createHmac } from 'node:crypto';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 import { createDiscordAdapter, DiscordConfigurationError, type DiscordEvent } from '../src/server/monitoring/discord';
 
@@ -9,6 +10,7 @@ const webhookId = '123456789012345678';
 const channelId = '234567890123456789';
 const messageId = '345678901234567890';
 const token = 'synthetic_test_only_webhook_token_no_external_access';
+const fingerprintKey = 'synthetic_test_only_worker_secret_keying_fingerprints';
 const config = { id: destination, label: 'Operator alerts', webhookId, webhookToken: token, channelId, ownerIds: [owner] };
 const now = Date.parse('2026-09-20T10:00:00.000Z');
 const event: DiscordEvent = {
@@ -28,7 +30,8 @@ function fixture(fetcher = vi.fn<typeof fetch>()) {
   });
   return { adapter, fetcher, preview, message };
 }
-afterEach(() => vi.useRealTimers());
+beforeEach(() => vi.stubEnv('BUFFER_ALERT_WORKER_SECRET', fingerprintKey));
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
 
 describe('Discord server-managed destination boundary', () => {
   it('has no recipient when unconfigured and never fetches for another owner', async () => {
@@ -70,6 +73,15 @@ describe('Discord server-managed destination boundary', () => {
     }
     current.label = 'Mutated client copy';
     expect(adapter.listDestinations(owner)[0].label).toBe('Operator alerts');
+  });
+  it('commits to a destination with an HMAC under the worker secret, never a bare hash of the credentials', () => {
+    const { adapter } = fixture();
+    const [current] = adapter.listDestinations(owner);
+    expect(current.fingerprint).toBe(createHmac('sha256', fingerprintKey).update(JSON.stringify([destination, webhookId, token, channelId, [owner]])).digest('hex'));
+    const otherKey = createDiscordAdapter({ configuration: JSON.stringify([config]), fingerprintKey: 'another_synthetic_worker_secret_long_enough_to_pass' }).listDestinations(owner)[0];
+    expect(otherKey.fingerprint).not.toBe(current.fingerprint);
+    for (const missing of ['', 'short']) expect(() => createDiscordAdapter({ configuration: JSON.stringify([config]), fingerprintKey: missing })).toThrow(DiscordConfigurationError);
+    expect(createDiscordAdapter({ configuration: '', fingerprintKey: '' }).listDestinations(owner)).toEqual([]);
   });
   it('verifies exact channel metadata by GET without sending and redacts provider token', async () => {
     const { adapter, fetcher } = fixture();

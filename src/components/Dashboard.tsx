@@ -1289,6 +1289,7 @@ export default function Dashboard({
             Solana · {mode === "sample" ? "Examples" : protocol.label} <span className="footer-dot">/</span>{" "}
             {mode === "sample" ? "Reference data" : snapshot?.network === "devnet" ? `${NETWORK_LABELS.devnet} public account data` : "Mainnet public account data"}
           </span>
+          <nav className="footer-legal" aria-label="Legal"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>
         </footer>
       </main>
       <div className="toast" role="status">
