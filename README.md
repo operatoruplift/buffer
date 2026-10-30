@@ -142,11 +142,11 @@ Market counts describe provider listings, not unique assets across exchanges. Ev
   <tr valign="top">
     <td width="33%" align="center"><img src="docs/dapp-store/screenshots/03-velocity-price-scenario.png" alt="Buffer on a phone, What-if tab for a public Velocity account: perp price P&amp;L change of -928.13 USDT if supported perp prices move -10% together, based on a snapshot at 2026-10-08 07:55:24 UTC, with the shared price move slider and presets from -20% to +20%" width="240"><br><sub><b>A live price scenario</b> on a public Velocity account</sub></td>
     <td width="33%" align="center"><img src="docs/dapp-store/screenshots/02-velocity-liquidation-estimate.png" alt="Buffer on a phone, Overview tab: the liquidation estimate under model cross-margin-hold-others-v1, observed 2026-10-08 07:55:24 UTC, with BTC-PERP long at 42,218.08 USD, -49.09% from 82,928.58 USD, and ETH-PERP long at 1,539.16 USD, -40.05% from 2,567.41 USD" width="240"><br><sub><b>The liquidation estimate</b>, one position at a time</sub></td>
-    <td width="33%" align="center"><img src="docs/dapp-store/screenshots/04-pacifica-positions.png" alt="Buffer on a phone, Positions tab for a Pacifica account with 22 positions at fixed sizes and snapshot oracle prices: PONS-PERP short, SP500-PERP long and XAG-PERP short, each with signed size, oracle price and notional" width="240"><br><sub><b>Pacifica positions</b> across crypto, indexes and metals</sub></td>
+    <td width="33%" align="center"><img src="docs/dapp-store/screenshots/04-pacifica-positions.png" alt="Buffer on a phone, Positions tab for a Pacifica account with 22 positions at fixed sizes and snapshot oracle prices: PONS-PERP short, SP500-PERP long and XAG-PERP short, each with signed size, oracle price and notional" width="240"><br><sub><b>Pacifica positions</b>, 22 on one public account</sub></td>
   </tr>
 </table>
 
-<p align="center"><sub>From the repository's dApp Store listing kit in <a href="docs/dapp-store/listing.md">docs/dapp-store</a>, which <code>scripts/generate-dapp-store-assets.mjs</code> captures from the live site. Observations dated 8 October 2026; public account contents change.</sub></p>
+<p align="center"><sub>From the repository's dApp Store listing kit in <a href="docs/dapp-store/listing.md">docs/dapp-store</a>, which <code>scripts/generate-dapp-store-assets.mjs</code> captures from the live site. The Velocity screens show observations dated 8 October 2026; public account contents change.</sub></p>
 
 <br>
 
