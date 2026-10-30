@@ -1,6 +1,12 @@
 {
   "name": "buffer-perps",
   "version": "1.0.0",
+  "description": "Read-only scenarios for Solana perpetual positions: Velocity, Pacifica and Jupiter Perps reads with the arithmetic in the open.",
+  "homepage": "https://bufferonsolana.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/operatoruplift/buffer.git"
+  },
   "private": true,
   "engines": {
     "node": "24.x"
